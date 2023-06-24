@@ -3,12 +3,13 @@ import json
 import urllib3
 
 from .utils import *
-from .imageProcesser import get_stages, get_coop_stages, get_all_coop_stages
+from .imageProcesser import get_stages, get_all_coop_stages
 
 schedule_res = None
 http = urllib3.PoolManager()
 
 
+# 校验过期日程
 def check_expire_schedule(schedule):
     st = datetime.datetime.strptime(schedule['regularSchedules']['nodes'][0]['startTime'], '%Y-%m-%dT%H:%M:%SZ')
     ed = datetime.datetime.strptime(schedule['regularSchedules']['nodes'][0]['endTime'], '%Y-%m-%dT%H:%M:%SZ')
@@ -18,6 +19,7 @@ def check_expire_schedule(schedule):
     return True
 
 
+# 取日程数据
 def get_schedule():
     global schedule_res
     if schedule_res is None or check_expire_schedule(schedule_res):
@@ -31,40 +33,41 @@ def get_schedule():
         return schedule_res
 
 
-def get_coop_info(all = False):
-    def get_stage_image_info(sch):  # schedule[idx]
+# 取 打工
+def get_coop_info(all=False):
+    # 取地图信息
+    def get_stage_image_info(sch):  # sch为schedule[idx]
         return ImageInfo(sch['setting']['coopStage']['name'], sch['setting']['coopStage']['image']['url'])
 
-    def get_weapon_image_info(sch):  # schedule[idx]
-        return [ImageInfo(sch['setting']['weapons'][i]['name'], sch['setting']['weapons'][i]['image']['url']) for i in range(4)]
+    # 取装备信息
+    def get_weapon_image_info(sch):  # sch为schedule[idx]
+        return [ImageInfo(sch['setting']['weapons'][i]['name'], sch['setting']['weapons'][i]['image']['url']) for i in
+                range(4)]
 
+    # 取时间信息
     def get_str_info(sch):
-        startTime = time_converter_day(sch['startTime'])
-        endTime = time_converter_day(sch['endTime'])
-        return '{} - {}'.format(startTime, endTime)
+        start_time = time_converter_day(sch['startTime'])
+        end_time = time_converter_day(sch['endTime'])
+        return '{} - {}'.format(start_time, end_time)
 
+    # 取日程
     schedule = get_schedule()
     schedule = schedule['coopGroupingSchedule']['regularSchedules']['nodes']
     if not all:
-
-        stage_first = get_stage_image_info(schedule[0])
-        stage_second = get_stage_image_info(schedule[1])
-        weapon_first = get_weapon_image_info(schedule[0])
-        weapon_second = get_weapon_image_info(schedule[1])
-        info_first = get_str_info(schedule[0])
-        info_second = get_str_info(schedule[1])
-
-        return get_coop_stages(stage_first, weapon_first, info_first, stage_second, weapon_second, info_second)
+        # 只输出两排
+        stage = [get_stage_image_info(schedule[0]), get_stage_image_info(schedule[1])]
+        weapon = [get_weapon_image_info(schedule[0]), get_weapon_image_info(schedule[1])]
+        info = [get_str_info(schedule[0]), get_str_info(schedule[1])]
     else:
-        stage = [get_stage_image_info(i) for i in schedule]
-        weapon = [get_weapon_image_info(i) for i in schedule]
-        info = [get_str_info(i) for i in schedule]
+        # 输出全部(五排)
+        stage = [get_stage_image_info(sch) for sch in schedule]
+        weapon = [get_weapon_image_info(sch) for sch in schedule]
+        info = [get_str_info(sch) for sch in schedule]
 
-        return get_all_coop_stages(stage, weapon, info)
+    return get_all_coop_stages(stage, weapon, info)
 
 
-
-
+# 取 图
 def get_stage_info(num_list=None, stage_mode=None):
     if num_list is None:
         num_list = [0]
