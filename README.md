@@ -41,5 +41,5 @@
 git clone https://github.com/Skyminers/Bot-Splatoon3.git
 ```
 
-在 nonebot2 框架中，将本仓库代码置于插件目录(`src/plugins`)即可正常加载
+在 nonebot2 框架中，将本仓库代码内的`nonebot_plugin_splatoon3`文件夹置于插件目录(`src/plugins`)即可正常加载
 

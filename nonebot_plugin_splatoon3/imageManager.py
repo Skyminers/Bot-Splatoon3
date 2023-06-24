@@ -1,9 +1,11 @@
 import csv
+import os
 import sqlite3
 from pathlib import Path
 from typing import Union
 
-DATABASE = Path() / "data" / "image"
+DATABASE = Path(os.path.join(os.path.dirname(__file__), "data", "image"))
+
 
 class ImageManager:
     _has_init = False
