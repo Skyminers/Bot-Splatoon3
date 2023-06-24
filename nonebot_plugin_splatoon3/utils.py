@@ -4,8 +4,10 @@ from multiprocessing import Lock
 map_contest = {'涂地': 'Turf War', '挑战': 'Ranked Challenge', '开放': 'Ranked Open', 'X段': 'X Schedule', 'x段': 'X Schedule'}
 map_rule = {'区域': 'AREA', '推塔': 'LOFT', '蛤蜊': 'CLAM', '抢鱼': 'GOAL'}
 
+# 群白名单
 white_list = ['458482582', '792711635', '835723997', '578031026', '1607044636']
 
+# 翻译字典
 trans_dict = {
     'LOFT': '推塔模式',
     'CLAM': '蛤蜊模式',
