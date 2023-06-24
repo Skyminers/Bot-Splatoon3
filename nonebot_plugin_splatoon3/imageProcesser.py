@@ -9,7 +9,8 @@ from .imageManager import ImageManager
 
 from pathlib import Path
 
-cur_path = Path()
+
+cur_path = os.path.dirname(__file__)
 
 image_folder = os.path.join(cur_path, 'staticData', 'ImageData')
 weapon_folder = os.path.join(cur_path, 'staticData', 'weapon')
@@ -18,6 +19,7 @@ ttf_path_chinese = os.path.join(cur_path, 'staticData', 'Text.ttf')
 
 imageManager = ImageManager()
 http = urllib3.PoolManager()
+
 
 def image_to_base64(image):
     buffered = BytesIO()
@@ -29,12 +31,15 @@ def get_file(name, format_name='png'):
     img = Image.open(os.path.join(image_folder, '{}.{}'.format(name, format_name)))
     return img
 
+
 def get_weapon(name):
     return Image.open(os.path.join(weapon_folder, '{}'.format(name)))
+
 
 def get_file_url(url):
     r = http.request('GET', url, timeout=5)
     return r.data
+
 
 def get_save_file(img: ImageInfo):
     res = imageManager.get_info(img.name)
@@ -46,8 +51,10 @@ def get_save_file(img: ImageInfo):
     else:
         return Image.open(io.BytesIO(res[1]))
 
+
 def get_file_path(name, format_name='png'):
     return os.path.join(image_folder, '{}.{}'.format(name, format_name))
+
 
 def circle_corner(img, radii):
     """
@@ -84,30 +91,30 @@ def paste_with_a(image_background, image_pasted, pos):
 def get_stage_card(stage1, stage2, contest_mode, contest_name, game_mode, start_time, end_time, img_size=(1024, 340)):
     _, image_background = circle_corner(get_file('background').resize(img_size), radii=20)
 
-    stage_size = (int(img_size[0]*0.48), int(img_size[1]*0.7))
+    stage_size = (int(img_size[0] * 0.48), int(img_size[1] * 0.7))
     image_left = get_save_file(stage1).resize(stage_size, Image.ANTIALIAS)
     image_right = get_save_file(stage2).resize(stage_size, Image.ANTIALIAS)
     _, image_alpha = circle_corner(image_left, radii=16)
 
-    width_between_stages = int((img_size[0] - 2*stage_size[0])/3)
-    start_stage_pos = (width_between_stages, int((img_size[1]-stage_size[1])/8*7))
+    width_between_stages = int((img_size[0] - 2 * stage_size[0]) / 3)
+    start_stage_pos = (width_between_stages, int((img_size[1] - stage_size[1]) / 8 * 7))
     image_background.paste(image_left, start_stage_pos, mask=image_alpha)
     next_stage_pos = (start_stage_pos[0] + width_between_stages + stage_size[0], start_stage_pos[1])
     image_background.paste(image_right, next_stage_pos, mask=image_alpha)
 
-    stage_mid_pos = (img_size[0]//2 - 60, img_size[1]//2 - 20)
+    stage_mid_pos = (img_size[0] // 2 - 60, img_size[1] // 2 - 20)
     image_icon = get_file(contest_name)
     paste_with_a(image_background, image_icon, stage_mid_pos)
 
     blank_size = (img_size[0], start_stage_pos[1])
     drawer = ImageDraw.Draw(image_background)
     ttf = ImageFont.truetype(ttf_path_chinese, 40)
-    drawer.text((40, start_stage_pos[1]-60), contest_mode, font=ttf, fill=(255, 255, 255))
+    drawer.text((40, start_stage_pos[1] - 60), contest_mode, font=ttf, fill=(255, 255, 255))
     ttf = ImageFont.truetype(ttf_path_chinese, 40)
     game_mode = trans(game_mode)
-    drawer.text((blank_size[0]//3, start_stage_pos[1]-60), game_mode, font=ttf, fill=(255, 255, 255))
+    drawer.text((blank_size[0] // 3, start_stage_pos[1] - 60), game_mode, font=ttf, fill=(255, 255, 255))
     ttf = ImageFont.truetype(ttf_path, 40)
-    drawer.text((blank_size[0]*2//3, 20), '{} - {}'.format(start_time, end_time), font=ttf, fill=(255, 255, 255))
+    drawer.text((blank_size[0] * 2 // 3, 20), '{} - {}'.format(start_time, end_time), font=ttf, fill=(255, 255, 255))
 
     return image_background
 
@@ -135,13 +142,15 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
                 cnt += 1
     if cnt == 0:
         return None
-    background = Image.new('RGB', (1044, 340*cnt), (41, 36, 33))
+    background = Image.new('RGB', (1044, 340 * cnt), (41, 36, 33))
     pos = 0
     for idx in num_list:
         if contest_match is None or contest_match == 'Turf War':
             regular_card = get_stage_card(
-                ImageInfo(regular[idx]['regularMatchSetting']['vsStages'][0]['name'], regular[idx]['regularMatchSetting']['vsStages'][0]['image']['url']),
-                ImageInfo(regular[idx]['regularMatchSetting']['vsStages'][1]['name'], regular[idx]['regularMatchSetting']['vsStages'][1]['image']['url']),
+                ImageInfo(regular[idx]['regularMatchSetting']['vsStages'][0]['name'],
+                          regular[idx]['regularMatchSetting']['vsStages'][0]['image']['url']),
+                ImageInfo(regular[idx]['regularMatchSetting']['vsStages'][1]['name'],
+                          regular[idx]['regularMatchSetting']['vsStages'][1]['image']['url']),
                 '涂地模式', 'Regular',
                 regular[idx]['regularMatchSetting']['vsRule']['rule'],
                 time_converter(regular[idx]['startTime']),
@@ -153,8 +162,10 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
         if contest_match is None or contest_match == 'Ranked Challenge':
             if rule_match is None or rule_match == ranked[idx]['bankaraMatchSettings'][0]['vsRule']['rule']:
                 ranked_challenge_card = get_stage_card(
-                    ImageInfo(ranked[idx]['bankaraMatchSettings'][0]['vsStages'][0]['name'], ranked[idx]['bankaraMatchSettings'][0]['vsStages'][0]['image']['url']),
-                    ImageInfo(ranked[idx]['bankaraMatchSettings'][0]['vsStages'][1]['name'], ranked[idx]['bankaraMatchSettings'][0]['vsStages'][1]['image']['url']),
+                    ImageInfo(ranked[idx]['bankaraMatchSettings'][0]['vsStages'][0]['name'],
+                              ranked[idx]['bankaraMatchSettings'][0]['vsStages'][0]['image']['url']),
+                    ImageInfo(ranked[idx]['bankaraMatchSettings'][0]['vsStages'][1]['name'],
+                              ranked[idx]['bankaraMatchSettings'][0]['vsStages'][1]['image']['url']),
                     '真格模式-挑战', 'Ranked-Challenge',
                     ranked[idx]['bankaraMatchSettings'][0]['vsRule']['rule'],
                     time_converter(ranked[idx]['startTime']),
@@ -166,8 +177,10 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
         if contest_match is None or contest_match == 'Ranked Open':
             if rule_match is None or rule_match == ranked[idx]['bankaraMatchSettings'][1]['vsRule']['rule']:
                 ranked_challenge_card = get_stage_card(
-                    ImageInfo(ranked[idx]['bankaraMatchSettings'][1]['vsStages'][0]['name'], ranked[idx]['bankaraMatchSettings'][1]['vsStages'][0]['image']['url']),
-                    ImageInfo(ranked[idx]['bankaraMatchSettings'][1]['vsStages'][1]['name'], ranked[idx]['bankaraMatchSettings'][1]['vsStages'][1]['image']['url']),
+                    ImageInfo(ranked[idx]['bankaraMatchSettings'][1]['vsStages'][0]['name'],
+                              ranked[idx]['bankaraMatchSettings'][1]['vsStages'][0]['image']['url']),
+                    ImageInfo(ranked[idx]['bankaraMatchSettings'][1]['vsStages'][1]['name'],
+                              ranked[idx]['bankaraMatchSettings'][1]['vsStages'][1]['image']['url']),
                     '真格模式-开放', 'Ranked-Open',
                     ranked[idx]['bankaraMatchSettings'][1]['vsRule']['rule'],
                     time_converter(ranked[idx]['startTime']),
@@ -230,17 +243,17 @@ def get_coop_stages(stage_first, weapon_first, info_first, stage_second, weapon_
 def get_all_coop_stages(stage, weapon, info):
     img_size = (300, 160)
     weapon_size = (90, 90)
-    _, image_background = circle_corner(get_file('background').resize((800, len(stage)*160)), radii=20)
+    _, image_background = circle_corner(get_file('background').resize((800, len(stage) * 160)), radii=20)
     dr = ImageDraw.Draw(image_background)
     font = ImageFont.truetype(ttf_path, 30)
     for (pos, val) in enumerate(info):
-        dr.text((60, 5 + pos*160), val, font=font, fill="#FFFFFF")
+        dr.text((60, 5 + pos * 160), val, font=font, fill="#FFFFFF")
     for (pos, val) in enumerate(stage):
         img = get_save_file(val).resize(img_size, Image.ANTIALIAS)
-        image_background.paste(img, (500, 160*pos))
+        image_background.paste(img, (500, 160 * pos))
         for (pos_weapon, val_weapon) in enumerate(weapon[pos]):
             image = get_save_file(val_weapon).resize(weapon_size, Image.ANTIALIAS)
-            image_background.paste(image, (120 * pos_weapon + 20, 60 + 160*pos))
+            image_background.paste(image, (120 * pos_weapon + 20, 60 + 160 * pos))
 
     return image_to_base64(image_background)
 
@@ -265,6 +278,7 @@ def get_random_weapon(weapon1: [] = None, weapon2: [] = None):
 
     return image_to_base64(image_background)
 
+
 # mode: coop,
 def draw_text_image(text, mode):
     if mode == 'coop':
@@ -278,7 +292,6 @@ def draw_text_image(text, mode):
     font = ImageFont.truetype(ttf_path_chinese, 30)
     dr.text((10, 5), text, font=font, fill="#000000")
     return image_to_base64(im)
-
 
 # if __name__ == '__main__':
 #     get_random_weapon().show()
