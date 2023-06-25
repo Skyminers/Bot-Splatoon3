@@ -1,7 +1,7 @@
 import json
 import httpx
 
-from nonebot_plugin_splatoon3.utils import get_time_ymd
+from .utils import get_time_ymd
 
 trans_res = None
 trans_res_save_ymd = None

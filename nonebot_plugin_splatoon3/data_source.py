@@ -2,7 +2,7 @@ import httpx
 import json
 import urllib3
 
-from nonebot_plugin_splatoon3.translation import get_trans_stage, get_trans_weapon, get_trans
+from .translation import get_trans_stage, get_trans_weapon, get_trans
 from .utils import *
 from .imageProcesser import get_stages, get_all_coop_stages
 
