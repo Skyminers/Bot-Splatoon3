@@ -50,11 +50,12 @@ def get_file_url(url):
 
 # 从数据库新增或读取图片二进制文件
 def get_save_file(img: ImageInfo):
-    res = imageManager.get_info(img.name)
+    res = imageManager.get_img_data(img.name)
     if not res:
-        print('nonebot_plugin_splatoon3: [ImageManager] new image {}.'.format(img.name))
         image_data = get_file_url(img.url)
-        imageManager.add_or_modify(img.name, image_data, img.zh_name)
+        if len(image_data) != 0:
+            print('nonebot_plugin_splatoon3: [ImageManager] new image {}'.format(img.name))
+            imageManager.add_or_modify_IMAGE_DATA(img.name, image_data, img.zh_name)
         return Image.open(io.BytesIO(image_data))
     else:
         return Image.open(io.BytesIO(res[0]))
@@ -91,6 +92,16 @@ def circle_corner(img, radii):
 
     img.putalpha(alpha)  # 白色区域透明可见，黑色区域不可见
     return alpha, img
+
+
+# 图片 平铺填充
+def tiled_fill(big_image, small_image):
+    catImWidth, catImHeigh = big_image.size
+    faceImWidth, faceImHeigh = small_image.size
+    for left in range(0, catImWidth, faceImWidth):  # 横纵两个方向上用两个for循环实现平铺效果
+        for top in range(0, catImHeigh, faceImHeigh):
+            paste_with_a(big_image, small_image, (left, top))
+    return big_image
 
 
 # 图像粘贴 加上a通道参数 使圆角透明
@@ -297,21 +308,11 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
         #         )
         #         paste_with_a(background, league_card, (10, pos))
         #         pos += 340
-    return image_to_base64(background)
-
-
-# 图片 平铺填充
-def tiled_fill(big_image, small_image):
-    catImWidth, catImHeigh = big_image.size
-    faceImWidth, faceImHeigh = small_image.size
-    for left in range(0, catImWidth, faceImWidth):  # 横纵两个方向上用两个for循环实现平铺效果
-        for top in range(0, catImHeigh, faceImHeigh):
-            paste_with_a(big_image, small_image, (left, top))
-    return big_image
+    return background
 
 
 # 绘制 打工地图
-def get_coop_stages(stage, weapon, info, boss, mode):
+def get_coop_stages(stage, weapon, time, boss, mode):
     stage_bg_size = (300, 160)
     weapon_size = (90, 90)
     boss_size = (40, 40)
@@ -329,7 +330,7 @@ def get_coop_stages(stage, weapon, info, boss, mode):
 
     dr = ImageDraw.Draw(image_background)
     font = ImageFont.truetype(ttf_path, 30)
-    for (pos, val) in enumerate(info):
+    for (pos, val) in enumerate(time):
         # 绘制时间文字
         time_text_pos = (40, 5 + pos * 160)
         time_text_size = font.getsize(val)
@@ -349,21 +350,25 @@ def get_coop_stages(stage, weapon, info, boss, mode):
         paste_with_a(image_background, stage_name_bg, stage_name_bg_pos)
 
         for (pos_weapon, val_weapon) in enumerate(weapon[pos]):
+            # 绘制武器底图
+            weapon_bg_img = Image.new('RGBA', weapon_size, (255, 255, 255))
             # 绘制武器图片
-            image = get_save_file(val_weapon).resize(weapon_size, Image.ANTIALIAS)
-            image_background.paste(image, (120 * pos_weapon + 20, 60 + 160 * pos))
+            weapon_image = get_save_file(val_weapon).resize(weapon_size, Image.ANTIALIAS)
+            weapon_bg_img.paste(weapon_image, (0, 0))
+            # paste_with_a(weapon_bg_img,weapon_image,(0,0))
+            image_background.paste(weapon_bg_img, (120 * pos_weapon + 20, 60 + 160 * pos))
     for (pos, val) in enumerate(boss):
         if val != "":
             # 绘制boss图标
             boss_img = get_file(val).resize(boss_size)
-            boss_img_pos = (500, 160 * pos+stage_bg_size[1]-40)
+            boss_img_pos = (500, 160 * pos + stage_bg_size[1] - 40)
             paste_with_a(image_background, boss_img, boss_img_pos)
     for (pos, val) in enumerate(mode):
         # 绘制打工模式图标
         mode_img = get_file(val).resize(mode_size)
-        mode_img_pos = (500-70, 160 * pos+15)
+        mode_img_pos = (500 - 70, 160 * pos + 15)
         paste_with_a(image_background, mode_img, mode_img_pos)
-    return image_to_base64(image_background)
+    return image_background
 
 
 # 随机武器
@@ -388,23 +393,22 @@ def get_random_weapon(weapon1: [] = None, weapon2: [] = None):
         image = get_weapon(weapon2[i]).resize(weapon_size, Image.ANTIALIAS)
         image_background.paste(image, ((160 * i + 5), 20 + 220))
 
-    return image_to_base64(image_background)
+    return image_background
 
-
-# 文本图片
+# 文本图片  弃用函数
 # mode: coop,
-def draw_text_image(text, mode):
-    if mode == 'coop':
-        size = (960, 320)
-    elif mode == 'contest':
-        size = (960, 720)
-    else:
-        size = (1920, 1080)
-    im = Image.new("RGB", size, (255, 255, 255))
-    dr = ImageDraw.Draw(im)
-    font = ImageFont.truetype(ttf_path_chinese, 30)
-    dr.text((10, 5), text, font=font, fill="#000000")
-    return image_to_base64(im)
+# def draw_text_image(text, mode):
+#     if mode == 'coop':
+#         size = (960, 320)
+#     elif mode == 'contest':
+#         size = (960, 720)
+#     else:
+#         size = (1920, 1080)
+#     img = Image.new("RGB", size, (255, 255, 255))
+#     dr = ImageDraw.Draw(img)
+#     font = ImageFont.truetype(ttf_path_chinese, 30)
+#     dr.text((10, 5), text, font=font, fill="#000000")
+#     return image_to_base64(img)
 
 # if __name__ == '__main__':
 #     get_random_weapon().show()
