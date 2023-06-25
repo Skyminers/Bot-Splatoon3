@@ -24,7 +24,7 @@ matcher_random_weapon = on_command('随机武器', priority=10, block=True)
 
 
 # 随机武器
-@matcher_random_weapon.handle()
+# @matcher_random_weapon.handle()
 async def _(matcher: Matcher, event: MessageEvent):
     await matcher.finish(
         MessageSegment.image(

@@ -4,6 +4,8 @@ import random
 from io import BytesIO
 import urllib3
 from PIL import Image, ImageDraw, ImageFont
+
+from .translation import get_trans_stage
 from .utils import *
 from .imageManager import ImageManager
 
@@ -51,11 +53,11 @@ def get_save_file(img: ImageInfo):
     res = imageManager.get_info(img.name)
     if not res:
         print('nonebot_plugin_splatoon3: [ImageManager] new image {}.'.format(img.name))
-        res = get_file_url(img.url)
-        imageManager.add_or_modify(img.name, res)
-        return Image.open(io.BytesIO(res))
+        image_data = get_file_url(img.url)
+        imageManager.add_or_modify(img.name, image_data, img.zh_name)
+        return Image.open(io.BytesIO(image_data))
     else:
-        return Image.open(io.BytesIO(res[1]))
+        return Image.open(io.BytesIO(res[0]))
 
 
 # 取文件路径
@@ -121,7 +123,7 @@ def get_stage_card(stage1, stage2, contest_mode, contest_name, game_mode, start_
     image_background.paste(image_right, next_stage_pos, mask=image_alpha)
 
     # 中间绘制 模式图标
-    stage_mid_pos = (img_size[0] // 2 - 60, img_size[1] // 2 - 20)
+    stage_mid_pos = (img_size[0] // 2 - 65, img_size[1] // 2 - 20)
     image_icon = get_file(contest_name)
     paste_with_a(image_background, image_icon, stage_mid_pos)
 
@@ -129,16 +131,49 @@ def get_stage_card(stage1, stage2, contest_mode, contest_name, game_mode, start_
     # 空白尺寸
     blank_size = (img_size[0], start_stage_pos[1])
     drawer = ImageDraw.Draw(image_background)
-    # 绘制竞赛模式
+    # 绘制竞赛模式文字
     ttf = ImageFont.truetype(ttf_path_chinese, 40)
-    drawer.text((40, start_stage_pos[1] - 60), contest_mode, font=ttf, fill=(255, 255, 255))
-    # 绘制游戏模式
+    drawer.text((30, start_stage_pos[1] - 60), contest_mode, font=ttf, fill=(255, 255, 255))
+    # 绘制游戏模式文字
     ttf = ImageFont.truetype(ttf_path_chinese, 40)
     game_mode = trans(game_mode)
     drawer.text((blank_size[0] // 3, start_stage_pos[1] - 60), game_mode, font=ttf, fill=(255, 255, 255))
+    # 绘制游戏模式小图标
+    game_mode_img = get_file(game_mode).resize((35, 35), Image.ANTIALIAS)
+    game_mode_img_pos = (blank_size[0] // 3 - 40, start_stage_pos[1] - 50)
+    paste_with_a(image_background, game_mode_img, game_mode_img_pos)
     # 绘制开始，结束时间
     ttf = ImageFont.truetype(ttf_path, 40)
     drawer.text((blank_size[0] * 2 // 3, 20), '{} - {}'.format(start_time, end_time), font=ttf, fill=(255, 255, 255))
+    ## 绘制地图中文名背景
+    # 计算文本长度 左
+    stage1.zh_name_size = (len(stage1.zh_name * 25), 30)
+    # 新建画布
+    stage_zh_name_background_left = Image.new('RGBA', stage1.zh_name_size, (0, 0, 0))
+    # 圆角化
+    _, stage_zh_name_background = circle_corner(stage_zh_name_background_left, radii=16)
+    # # 绘制文字
+    drawer = ImageDraw.Draw(stage_zh_name_background)
+    ttf = ImageFont.truetype(ttf_path_chinese, 25)
+    drawer.text((4, 2), stage1.zh_name, font=ttf, fill=(255, 255, 255))
+    # 贴图
+    stage_zh_name_background_pos = (stage_size[0] // 2 - stage1.zh_name_size[0] // 2 + 10, img_size[1] - 42)
+    image_background.paste(stage_zh_name_background, stage_zh_name_background_pos)
+
+    # 计算文本长度 右
+    stage2.zh_name_size = (len(stage2.zh_name * 25), 30)
+    # 新建画布
+    stage_zh_name_background_left = Image.new('RGBA', stage2.zh_name_size, (0, 0, 0))
+    # 圆角化
+    _, stage_zh_name_background = circle_corner(stage_zh_name_background_left, radii=10)
+    # # 绘制文字
+    drawer = ImageDraw.Draw(stage_zh_name_background)
+    ttf = ImageFont.truetype(ttf_path_chinese, 25)
+    drawer.text((4, 1), stage2.zh_name, font=ttf, fill=(255, 255, 255))
+    # 贴图
+    stage_zh_name_background_pos = (
+    width_between_stages * 2 + stage_size[0] * 3 // 2 - stage2.zh_name_size[0] // 2 + 5, img_size[1] - 42)
+    image_background.paste(stage_zh_name_background, stage_zh_name_background_pos)
 
     return image_background
 
@@ -181,9 +216,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
         if contest_match is None or contest_match == 'Turf War':
             stage = regular[idx]['regularMatchSetting']['vsStages']
             regular_card = get_stage_card(
-                ImageInfo(stage[0]['name'], stage[0]['image']['url']),
-                ImageInfo(stage[1]['name'], stage[1]['image']['url']),
-                '涂地模式',
+                ImageInfo(stage[0]['name'], stage[0]['image']['url'], get_trans_stage(stage[0]['id'])),
+                ImageInfo(stage[1]['name'], stage[1]['image']['url'], get_trans_stage(stage[1]['id'])),
+                '一般比赛',
                 'Regular',
                 regular[idx]['regularMatchSetting']['vsRule']['rule'],
                 time_converter(regular[idx]['startTime']),
@@ -197,9 +232,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
             if rule_match is None or rule_match == ranked[idx]['bankaraMatchSettings'][0]['vsRule']['rule']:
                 stage = ranked[idx]['bankaraMatchSettings'][0]['vsStages']
                 ranked_challenge_card = get_stage_card(
-                    ImageInfo(stage[0]['name'], stage[0]['image']['url']),
-                    ImageInfo(stage[1]['name'], stage[1]['image']['url']),
-                    '真格模式-挑战',
+                    ImageInfo(stage[0]['name'], stage[0]['image']['url'], get_trans_stage(stage[0]['id'])),
+                    ImageInfo(stage[1]['name'], stage[1]['image']['url'], get_trans_stage(stage[1]['id'])),
+                    '蛮颓比赛-挑战',
                     'Ranked-Challenge',
                     ranked[idx]['bankaraMatchSettings'][0]['vsRule']['rule'],
                     time_converter(ranked[idx]['startTime']),
@@ -213,9 +248,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
             if rule_match is None or rule_match == ranked[idx]['bankaraMatchSettings'][1]['vsRule']['rule']:
                 stage = ranked[idx]['bankaraMatchSettings'][1]['vsStages']
                 ranked_challenge_card = get_stage_card(
-                    ImageInfo(stage[0]['name'], stage[0]['image']['url']),
-                    ImageInfo(stage[1]['name'], stage[1]['image']['url']),
-                    '真格模式-开放',
+                    ImageInfo(stage[0]['name'], stage[0]['image']['url'], get_trans_stage(stage[0]['id'])),
+                    ImageInfo(stage[1]['name'], stage[1]['image']['url'], get_trans_stage(stage[1]['id'])),
+                    '蛮颓比赛-开放',
                     'Ranked-Open',
                     ranked[idx]['bankaraMatchSettings'][1]['vsRule']['rule'],
                     time_converter(ranked[idx]['startTime']),
@@ -229,9 +264,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
             if rule_match is None or rule_match == xschedule[idx]['xMatchSetting']['vsRule']['rule']:
                 stage = xschedule[idx]['xMatchSetting']['vsStages']
                 ranked_challenge_card = get_stage_card(
-                    ImageInfo(stage[0]['name'], stage[0]['image']['url']),
-                    ImageInfo(stage[1]['name'], stage[1]['image']['url']),
-                    'X段模式',
+                    ImageInfo(stage[0]['name'], stage[0]['image']['url'], get_trans_stage(stage[0]['id'])),
+                    ImageInfo(stage[1]['name'], stage[1]['image']['url'], get_trans_stage(stage[1]['id'])),
+                    'X比赛',
                     'X',
                     xschedule[idx]['xMatchSetting']['vsRule']['rule'],
                     time_converter(xschedule[idx]['startTime']),
@@ -269,6 +304,22 @@ def get_all_coop_stages(stage, weapon, info):
         # 绘制打工地图
         img = get_save_file(val).resize(img_size, Image.ANTIALIAS)
         image_background.paste(img, (500, 160 * pos))
+
+        # 绘制打工地图中文名
+        stage_zh_name_size = (len(val.zh_name * 25), 30)
+        # 新建画布
+        stage_zh_name_background = Image.new('RGBA', stage_zh_name_size, (0, 0, 0))
+        # 圆角化
+        _, stage_zh_name_background = circle_corner(stage_zh_name_background, radii=10)
+        ## 绘制文字
+        drawer = ImageDraw.Draw(stage_zh_name_background)
+        ttf = ImageFont.truetype(ttf_path_chinese, 25)
+        drawer.text((4, 1), val.zh_name, font=ttf, fill=(255, 255, 255))
+        # 贴图
+        stage_zh_name_background_pos = (
+            500 + img_size[0] // 2 - stage_zh_name_size[0] // 2 + 5, 160 * pos + 128)
+        image_background.paste(stage_zh_name_background, stage_zh_name_background_pos)
+
         for (pos_weapon, val_weapon) in enumerate(weapon[pos]):
             # 绘制武器图片
             image = get_save_file(val_weapon).resize(weapon_size, Image.ANTIALIAS)
