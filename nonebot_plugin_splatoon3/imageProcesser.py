@@ -310,11 +310,11 @@ def get_all_coop_stages(stage, weapon, info):
         # 新建画布
         stage_zh_name_background = Image.new('RGBA', stage_zh_name_size, (0, 0, 0))
         # 圆角化
-        _, stage_zh_name_background = circle_corner(stage_zh_name_background, radii=10)
+        _, stage_zh_name_background = circle_corner(stage_zh_name_background, radii=8)
         ## 绘制文字
         drawer = ImageDraw.Draw(stage_zh_name_background)
         ttf = ImageFont.truetype(ttf_path_chinese, 25)
-        drawer.text((4, 1), val.zh_name, font=ttf, fill=(255, 255, 255))
+        drawer.text((2, 1), val.zh_name, font=ttf, fill=(255, 255, 255))
         # 贴图
         stage_zh_name_background_pos = (
             500 + img_size[0] // 2 - stage_zh_name_size[0] // 2 + 5, 160 * pos + 128)
