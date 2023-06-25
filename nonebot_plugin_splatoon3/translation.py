@@ -12,7 +12,7 @@ def get_trans():
     global trans_res
     global trans_res_save_ymd
     if trans_res is None or check_expire_trans(trans_res_save_ymd):
-        print('Re-get schedule')
+        print('重新请求:翻译文本')
         with httpx.Client() as client:
             result = client.get('https://splatoon3.ink/data/locale/zh-CN.json')
             trans_res = json.load(result)

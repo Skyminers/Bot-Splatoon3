@@ -24,7 +24,7 @@ def check_expire_schedule(schedule):
 def get_schedule():
     global schedule_res
     if schedule_res is None or check_expire_schedule(schedule_res):
-        print('重新获取 schedule')
+        print('重新请求:日程数据')
         with httpx.Client() as client:
             result = client.get('https://splatoon3.ink/data/schedules.json')
             schedule_res = json.load(result)
