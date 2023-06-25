@@ -24,7 +24,7 @@ matcher_random_weapon = on_command('随机武器', priority=10, block=True)
 
 
 # 随机武器
-@matcher_random_weapon.handle()
+# @matcher_random_weapon.handle()
 async def _(matcher: Matcher, event: MessageEvent):
     await matcher.finish(
         MessageSegment.image(
@@ -71,7 +71,7 @@ async def _(matcher: Matcher, event: MessageEvent):
     img = get_stage_info(msg, stage_mode=plain_text[-4:])
     if img is None:
         msg = '好像没有符合要求的地图模式>_<'
-    else:
+    # else:
         msg = MessageSegment.image(
             file=img,
             cache=False,
