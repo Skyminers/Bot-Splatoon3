@@ -9,18 +9,6 @@ map_rule = {'区域': 'AREA', '推塔': 'LOFT', '蛤蜊': 'CLAM', '抢鱼': 'GOA
 # 群白名单
 white_list = ['458482582', '792711635', '835723997', '578031026', '1607044636']
 
-# 翻译字典
-trans_dict = {
-    'LOFT': '真格塔楼',
-    'CLAM': '真格蛤蜊',
-    'GOAL': '真格鱼虎',
-    'AREA': '真格区域',
-    'TURF_WAR': '占地对战'
-}
-
-
-
-# stage_names = ['Scorch Gorge', 'Eeltail Alley', 'Hagglefish Market', 'Hagglefish Market']
 
 # 类 图片信息 自身转化为对象
 class ImageInfo:
@@ -58,14 +46,10 @@ def get_time_ymd():
     dt = datetime.datetime.now().strftime('%Y-%m-%d')
     return dt
 
-
+# 校验群号
 def check_group_id(group_id):
     # if group_id == '616533832':
     #     return False
     return True
 
 
-def trans(text):
-    if text in trans_dict:
-        return trans_dict[text]
-    return text

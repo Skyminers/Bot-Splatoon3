@@ -5,7 +5,7 @@ from io import BytesIO
 import urllib3
 from PIL import Image, ImageDraw, ImageFont
 
-from .translation import get_trans_stage
+from .translation import get_trans_stage, get_trans_game_mode
 from .utils import *
 from .imageManager import ImageManager
 
@@ -93,22 +93,39 @@ def circle_corner(img, radii):
     return alpha, img
 
 
-# 图像粘贴
+# 图像粘贴 加上a通道参数 使圆角透明
 def paste_with_a(image_background, image_pasted, pos):
     _, _, _, a = image_pasted.convert('RGBA').split()
     image_background.paste(image_pasted, pos, mask=a)
 
 
+# 绘制 地图名称及文字底图
+def get_stage_name_bg(stage_name, font_size=25):
+    stage_name_bg_size = (len(stage_name * font_size) + 16, 30)
+    # 新建画布
+    stage_name_bg = Image.new('RGBA', stage_name_bg_size, (0, 0, 0))
+    # 圆角化
+    _, stage_name_bg = circle_corner(stage_name_bg, radii=16)
+    # # 绘制文字
+    drawer = ImageDraw.Draw(stage_name_bg)
+    ttf = ImageFont.truetype(ttf_path_chinese, font_size)
+    # 文字居中绘制
+    w, h = ttf.getsize(stage_name)
+    text_pos = ((stage_name_bg_size[0] - w) // 2, (stage_name_bg_size[1] - h) // 2)
+    drawer.text(text_pos, stage_name, font=ttf, fill=(255, 255, 255))
+    return stage_name_bg
+
+
 # 绘制 一排 地图卡片
 def get_stage_card(stage1, stage2, contest_mode, contest_name, game_mode, start_time, end_time, img_size=(1024, 340)):
-    _, image_background = circle_corner(get_file('background').resize(img_size), radii=20)
+    _, image_background = circle_corner(get_file('背景').resize(img_size), radii=20)
 
     ## 绘制两张地图
     # 计算尺寸，加载图片
     stage_size = (int(img_size[0] * 0.48), int(img_size[1] * 0.7))
     image_left = get_save_file(stage1).resize(stage_size, Image.ANTIALIAS)
     image_right = get_save_file(stage2).resize(stage_size, Image.ANTIALIAS)
-    # 圆角处理
+    # 定义圆角 蒙版
     _, image_alpha = circle_corner(image_left, radii=16)
 
     # 计算地图间隔
@@ -122,9 +139,29 @@ def get_stage_card(stage1, stage2, contest_mode, contest_name, game_mode, start_
     next_stage_pos = (start_stage_pos[0] + width_between_stages + stage_size[0], start_stage_pos[1])
     image_background.paste(image_right, next_stage_pos, mask=image_alpha)
 
+    ## 绘制地图中文名及文字背景
+    # 左半地图名
+    stage_name_bg = get_stage_name_bg(stage1.zh_name, 25)
+    stage_name_bg_size = stage_name_bg.size
+    # X:地图x点位+一半的地图宽度-文字背景的一半宽度   Y:地图Y点位+一半地图高度-文字背景高度
+    stage_name_bg_pos = (start_stage_pos[0] + stage_size[0] // 2 - stage_name_bg_size[0] // 2,
+                         start_stage_pos[1] + stage_size[1] - stage_name_bg_size[1])
+    paste_with_a(image_background, stage_name_bg, stage_name_bg_pos)
+
+    # 右半地图名
+    stage_name_bg = get_stage_name_bg(stage2.zh_name, 25)
+    stage_name_bg_size = stage_name_bg.size
+    # X:地图x点位+一半的地图宽度-文字背景的一半宽度   Y:地图Y点位+一半地图高度-文字背景高度
+    stage_name_bg_pos = (next_stage_pos[0] + +stage_size[0] // 2 - stage_name_bg_size[0] // 2,
+                         next_stage_pos[1] + stage_size[1] - stage_name_bg_size[1])
+    paste_with_a(image_background, stage_name_bg, stage_name_bg_pos)
+
     # 中间绘制 模式图标
-    stage_mid_pos = (img_size[0] // 2 - 65, img_size[1] // 2 - 20)
     image_icon = get_file(contest_name)
+    image_icon_size = image_icon.size
+    # X: 整张卡片宽度/2 - 图标宽度/2    Y: 左地图x点位+地图高度/2 - 图标高度/2
+    stage_mid_pos = (img_size[0] // 2 - image_icon_size[0] // 2,
+                     start_stage_pos[1] + stage_size[1] // 2 - image_icon_size[1] // 2)
     paste_with_a(image_background, image_icon, stage_mid_pos)
 
     ## 绘制模式文本
@@ -133,47 +170,20 @@ def get_stage_card(stage1, stage2, contest_mode, contest_name, game_mode, start_
     drawer = ImageDraw.Draw(image_background)
     # 绘制竞赛模式文字
     ttf = ImageFont.truetype(ttf_path_chinese, 40)
-    drawer.text((30, start_stage_pos[1] - 60), contest_mode, font=ttf, fill=(255, 255, 255))
+    contest_mode_pos = (start_stage_pos[0] + 10, start_stage_pos[1] - 60)
+    drawer.text(contest_mode_pos, contest_mode, font=ttf, fill=(255, 255, 255))
     # 绘制游戏模式文字
-    ttf = ImageFont.truetype(ttf_path_chinese, 40)
-    game_mode = trans(game_mode)
-    drawer.text((blank_size[0] // 3, start_stage_pos[1] - 60), game_mode, font=ttf, fill=(255, 255, 255))
+    game_mode_text = get_trans_game_mode(game_mode)
+    game_mode_text_pos = (blank_size[0] // 3, contest_mode_pos[1])
+    drawer.text(game_mode_text_pos, game_mode_text, font=ttf, fill=(255, 255, 255))
     # 绘制游戏模式小图标
-    game_mode_img = get_file(game_mode).resize((35, 35), Image.ANTIALIAS)
-    game_mode_img_pos = (blank_size[0] // 3 - 40, start_stage_pos[1] - 50)
+    game_mode_img = get_file(game_mode_text).resize((35, 35), Image.ANTIALIAS)
+    game_mode_img_pos = (game_mode_text_pos[0] - 40, game_mode_text_pos[1] + 10)
     paste_with_a(image_background, game_mode_img, game_mode_img_pos)
     # 绘制开始，结束时间
     ttf = ImageFont.truetype(ttf_path, 40)
-    drawer.text((blank_size[0] * 2 // 3, 20), '{} - {}'.format(start_time, end_time), font=ttf, fill=(255, 255, 255))
-    ## 绘制地图中文名背景
-    # 计算文本长度 左
-    stage1.zh_name_size = (len(stage1.zh_name * 25), 30)
-    # 新建画布
-    stage_zh_name_background_left = Image.new('RGBA', stage1.zh_name_size, (0, 0, 0))
-    # 圆角化
-    _, stage_zh_name_background = circle_corner(stage_zh_name_background_left, radii=16)
-    # # 绘制文字
-    drawer = ImageDraw.Draw(stage_zh_name_background)
-    ttf = ImageFont.truetype(ttf_path_chinese, 25)
-    drawer.text((4, 2), stage1.zh_name, font=ttf, fill=(255, 255, 255))
-    # 贴图
-    stage_zh_name_background_pos = (stage_size[0] // 2 - stage1.zh_name_size[0] // 2 + 10, img_size[1] - 42)
-    image_background.paste(stage_zh_name_background, stage_zh_name_background_pos)
-
-    # 计算文本长度 右
-    stage2.zh_name_size = (len(stage2.zh_name * 25), 30)
-    # 新建画布
-    stage_zh_name_background_left = Image.new('RGBA', stage2.zh_name_size, (0, 0, 0))
-    # 圆角化
-    _, stage_zh_name_background = circle_corner(stage_zh_name_background_left, radii=10)
-    # # 绘制文字
-    drawer = ImageDraw.Draw(stage_zh_name_background)
-    ttf = ImageFont.truetype(ttf_path_chinese, 25)
-    drawer.text((4, 1), stage2.zh_name, font=ttf, fill=(255, 255, 255))
-    # 贴图
-    stage_zh_name_background_pos = (
-    width_between_stages * 2 + stage_size[0] * 3 // 2 - stage2.zh_name_size[0] // 2 + 5, img_size[1] - 42)
-    image_background.paste(stage_zh_name_background, stage_zh_name_background_pos)
+    time_pos = (blank_size[0] * 2 // 3, 20)
+    drawer.text(time_pos, '{} - {}'.format(start_time, end_time), font=ttf, fill=(255, 255, 255))
 
     return image_background
 
@@ -290,41 +300,69 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
     return image_to_base64(background)
 
 
-# 全部打工 图片
-def get_all_coop_stages(stage, weapon, info):
-    img_size = (300, 160)
+# 图片 平铺填充
+def tiled_fill(big_image, small_image):
+    catImWidth, catImHeigh = big_image.size
+    faceImWidth, faceImHeigh = small_image.size
+    for left in range(0, catImWidth, faceImWidth):  # 横纵两个方向上用两个for循环实现平铺效果
+        for top in range(0, catImHeigh, faceImHeigh):
+            paste_with_a(big_image, small_image, (left, top))
+    return big_image
+
+
+# 绘制 打工地图
+def get_coop_stages(stage, weapon, info, boss, mode):
+    stage_bg_size = (300, 160)
     weapon_size = (90, 90)
-    _, image_background = circle_corner(get_file('background').resize((800, len(stage) * 160)), radii=20)
+    boss_size = (40, 40)
+    mode_size = (40, 40)
+    bg_size = (800, len(stage) * 160)
+
+    # 创建纯色背景
+    coop_stage_bg = Image.new('RGBA', bg_size, (14, 203, 146))
+    bg_mask = get_file('打工蒙版').resize((bg_size[0] // 2, bg_size[1] // 2))
+    # 填充小图
+    coop_stage_bg = tiled_fill(coop_stage_bg, bg_mask)
+    # 圆角
+    _, coop_stage_bg = circle_corner(coop_stage_bg, radii=20)
+    image_background = coop_stage_bg
+
     dr = ImageDraw.Draw(image_background)
     font = ImageFont.truetype(ttf_path, 30)
     for (pos, val) in enumerate(info):
         # 绘制时间文字
-        dr.text((60, 5 + pos * 160), val, font=font, fill="#FFFFFF")
+        time_text_pos = (40, 5 + pos * 160)
+        time_text_size = font.getsize(val)
+        dr.text(time_text_pos, val, font=font, fill="#FFFFFF")
     for (pos, val) in enumerate(stage):
         # 绘制打工地图
-        img = get_save_file(val).resize(img_size, Image.ANTIALIAS)
-        image_background.paste(img, (500, 160 * pos))
+        stage_bg = get_save_file(val).resize(stage_bg_size, Image.ANTIALIAS)
+        stage_bg_pos = (500, 160 * pos)
+        image_background.paste(stage_bg, stage_bg_pos)
 
-        # 绘制打工地图中文名
-        stage_zh_name_size = (len(val.zh_name * 25), 30)
-        # 新建画布
-        stage_zh_name_background = Image.new('RGBA', stage_zh_name_size, (0, 0, 0))
-        # 圆角化
-        _, stage_zh_name_background = circle_corner(stage_zh_name_background, radii=8)
-        ## 绘制文字
-        drawer = ImageDraw.Draw(stage_zh_name_background)
-        ttf = ImageFont.truetype(ttf_path_chinese, 25)
-        drawer.text((2, 1), val.zh_name, font=ttf, fill=(255, 255, 255))
-        # 贴图
-        stage_zh_name_background_pos = (
-            500 + img_size[0] // 2 - stage_zh_name_size[0] // 2 + 5, 160 * pos + 128)
-        image_background.paste(stage_zh_name_background, stage_zh_name_background_pos)
+        # 绘制 地图名
+        stage_name_bg = get_stage_name_bg(val.zh_name, 25)
+        stage_name_bg_size = stage_name_bg.size
+        # X:地图x点位+一半的地图宽度-文字背景的一半宽度   Y:地图Y点位+一半地图高度-文字背景高度
+        stage_name_bg_pos = (stage_bg_pos[0] + +stage_bg_size[0] // 2 - stage_name_bg_size[0] // 2,
+                             stage_bg_pos[1] + stage_bg_size[1] - stage_name_bg_size[1])
+        paste_with_a(image_background, stage_name_bg, stage_name_bg_pos)
 
         for (pos_weapon, val_weapon) in enumerate(weapon[pos]):
             # 绘制武器图片
             image = get_save_file(val_weapon).resize(weapon_size, Image.ANTIALIAS)
             image_background.paste(image, (120 * pos_weapon + 20, 60 + 160 * pos))
-
+    for (pos, val) in enumerate(boss):
+        if val != "":
+            # 绘制boss图标
+            boss_img = get_file(val).resize(boss_size)
+            boss_img_pos = (500, 160 * pos+stage_bg_size[1]-40)
+            paste_with_a(image_background, boss_img, boss_img_pos)
+    for (pos, val) in enumerate(mode):
+        # 绘制打工模式图标
+        mode_img = get_file(val).resize(mode_size)
+        mode_img_pos = (500-70, 160 * pos+15)
+        paste_with_a(image_background, mode_img, mode_img_pos)
     return image_to_base64(image_background)
 
 
@@ -336,7 +374,7 @@ def get_random_weapon(weapon1: [] = None, weapon2: [] = None):
     if weapon2 is None:
         weapon2 = random.sample(os.listdir(weapon_folder), k=4)
     weapon_size = (122, 158)
-    _, image_background = circle_corner(get_file('background').resize((620, 420)), radii=20)
+    _, image_background = circle_corner(get_file('背景').resize((620, 420)), radii=20)
     dr = ImageDraw.Draw(image_background)
     font = ImageFont.truetype(ttf_path, 50)
     # 绘制中间vs和长横线

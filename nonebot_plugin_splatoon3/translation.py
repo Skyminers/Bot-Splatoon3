@@ -3,6 +3,18 @@ import httpx
 
 from .utils import get_time_ymd
 
+# 翻译字典
+trans_dict = {
+    'LOFT': '真格塔楼',
+    'CLAM': '真格蛤蜊',
+    'GOAL': '真格鱼虎',
+    'AREA': '真格区域',
+    'TURF_WAR': '占地对战'
+}
+
+# 鲑鱼跑模式
+list_salmonrun_mode = ['一般打工', '团队打工', 'bigrun']
+
 trans_res = None
 trans_res_save_ymd = None
 
@@ -47,3 +59,10 @@ def get_trans_weapon(id: str):
     if zh_name == '':
         return '未取得翻译名称'
     return zh_name
+
+
+# 用现有翻译字典对游戏模式进行翻译
+def get_trans_game_mode(text):
+    if text in trans_dict:
+        return trans_dict[text]
+    return text

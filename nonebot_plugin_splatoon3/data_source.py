@@ -2,9 +2,9 @@ import httpx
 import json
 import urllib3
 
-from .translation import get_trans_stage, get_trans_weapon, get_trans
+from .translation import get_trans_stage, get_trans_weapon, get_trans, list_salmonrun_mode
 from .utils import *
-from .imageProcesser import get_stages, get_all_coop_stages
+from .imageProcesser import get_stages, get_coop_stages
 
 schedule_res = None
 http = urllib3.PoolManager()
@@ -55,23 +55,60 @@ def get_coop_info(all=False):
         end_time = time_converter_day(sch['endTime'])
         return '{} - {}'.format(start_time, end_time)
 
+    # 取boss名称
+    def get_str_boss(sch):
+        return sch['__splatoon3ink_king_salmonid_guess']
+
     # 取日程
     schedule = get_schedule()
     # 取翻译
     get_trans()
-    schedule = schedule['coopGroupingSchedule']['regularSchedules']['nodes']
+    # 一般打工数据
+    regular_schedule = schedule['coopGroupingSchedule']['regularSchedules']['nodes']
+    # 团队打工竞赛
+    team_schedule = schedule['coopGroupingSchedule']['teamContestSchedules']['nodes']
+    # big run 数据
+    bigrun_schedule = schedule['coopGroupingSchedule']['bigRunSchedules']['nodes']
+    stage = weapon = info = boss = mode = []
+    schedule = regular_schedule
     if not all:
         # 只输出两排
-        stage = [get_stage_image_info(schedule[0]), get_stage_image_info(schedule[1])]
-        weapon = [get_weapon_image_info(schedule[0]), get_weapon_image_info(schedule[1])]
-        info = [get_str_info(schedule[0]), get_str_info(schedule[1])]
+        for i in range(2):
+            stage.append(get_stage_image_info(schedule[i]))
+            weapon.append(get_weapon_image_info(schedule[i]))
+            info.append(get_str_info(schedule[i]))
+            boss.append(get_str_boss(schedule[i]))
+            mode.append(list_salmonrun_mode[0])
     else:
         # 输出全部(五排)
         stage = [get_stage_image_info(sch) for sch in schedule]
         weapon = [get_weapon_image_info(sch) for sch in schedule]
         info = [get_str_info(sch) for sch in schedule]
+        boss = [get_str_boss(sch) for sch in schedule]
+        mode = [list_salmonrun_mode[0] for sch in schedule]
 
-    return get_all_coop_stages(stage, weapon, info)
+    # 如果存在 团队打工
+    if len(team_schedule) != 0:
+        schedule = team_schedule
+        stage.append(get_stage_image_info(schedule[0]))
+        weapon.append(get_weapon_image_info(schedule[0]))
+        info.append(get_str_info(schedule[0]))
+        # 团队打工取不到boss信息
+        boss.append("")
+        mode.append(list_salmonrun_mode[1])
+
+    # 如果存在 bigrun
+    if len(bigrun_schedule)!= 0:
+        schedule = bigrun_schedule
+        stage.append(get_stage_image_info(schedule[0]))
+        weapon.append(get_weapon_image_info(schedule[0]))
+        info.append(get_str_info(schedule[0]))
+        # 团队打工取不到boss信息
+        boss.append("")
+        # 现在没有bigrun素材图片，暂时用团队打工图片
+        mode.append(list_salmonrun_mode[1])
+
+    return get_coop_stages(stage, weapon, info, boss, mode)
 
 
 # 取 图
