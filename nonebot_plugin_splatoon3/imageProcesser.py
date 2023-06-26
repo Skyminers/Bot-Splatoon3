@@ -48,7 +48,7 @@ def get_file_url(url):
     return r.data
 
 
-# 从数据库新增或读取图片二进制文件
+# 向数据库新增或读取素材图片二进制文件
 def get_save_file(img: ImageInfo):
     res = imageManager.get_img_data(img.name)
     if not res:

@@ -11,7 +11,8 @@ matcher_select_stage_mode_rule = on_regex('[0-9]+(区域|推塔|蛤蜊|抢鱼|�
                                           priority=10,
                                           block=True)
 matcher_select_stage_mode = on_regex('[0-9]+(挑战|真格|开放|组排|排排|涂地|涂涂|X段|x段)', priority=10, block=True)
-matcher_select_all_mode_rule = on_regex('全部(区域|推塔|蛤蜊|抢鱼|塔楼|鱼虎)(挑战|真格|开放|组排|排排|X段|x段)', priority=10,
+matcher_select_all_mode_rule = on_regex('全部(区域|推塔|蛤蜊|抢鱼|塔楼|鱼虎)(挑战|真格|开放|组排|排排|X段|x段)',
+                                        priority=10,
                                         block=True)
 matcher_select_all_mode = on_regex('全部(挑战|真格|开放|组排|排排|涂地|涂涂|X段|x段)', priority=10, block=True)
 
@@ -22,7 +23,7 @@ matcher_all_coop = on_command('全部工', aliases={'全部打工', '全部鲑�
 matcher_stage_group = on_command('图', priority=10, block=True)
 matcher_stage_group2 = on_command('图图', priority=10, block=True)
 matcher_stage_next1 = on_command('下图', priority=10, block=True)
-matcher_stage_next12 = on_command('下图图',aliases={'下下图'}, priority=10, block=True)
+matcher_stage_next12 = on_command('下图图', aliases={'下下图'}, priority=10, block=True)
 matcher_random_weapon = on_command('随机武器', priority=10, block=True)
 
 matcher_help = on_command('帮助', aliases={"help"}, priority=10, block=True)

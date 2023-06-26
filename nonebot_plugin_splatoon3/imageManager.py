@@ -39,7 +39,7 @@ class ImageManager:
                     id INTEGER PRIMARY KEY AUTOINCREMENT ,
                     trigger_word Char(30) UNIQUE,
                     image_data BLOB,
-                    image_update_time TEXT
+                    image_expire_time TEXT
                 );""")
         self.conn.commit()
 
@@ -69,24 +69,24 @@ class ImageManager:
         return data
 
     # 添加或修改 图片缓存表
-    def add_or_modify_IMAGE_TEMP(self, trigger_word: str, image_data, image_update_time: str):
+    def add_or_modify_IMAGE_TEMP(self, trigger_word: str, image_data, image_expire_time: str):
         sql = f"select * from IMAGE_TEMP where trigger_word=?"
         c = self.conn.cursor()
         c.execute(sql, (trigger_word,))
         data = c.fetchone()
         if not data:  # create user
-            sql = f"INSERT INTO IMAGE_TEMP ( image_data,image_update_time,trigger_word) VALUES (?, ?, ?);"
+            sql = f"INSERT INTO IMAGE_TEMP ( image_data,image_expire_time,trigger_word) VALUES (?, ?, ?);"
         else:
-            sql = f"UPDATE IMAGE_TEMP set image_data=?,image_update_time=? where trigger_word=?"
+            sql = f"UPDATE IMAGE_TEMP set image_data=?,image_expire_time=? where trigger_word=?"
             image_name = data[0]
 
-        c.execute(sql, (image_data,image_update_time, trigger_word))
+        c.execute(sql, (image_data,image_expire_time, trigger_word))
         self.conn.commit()
 
     # 取图片缓存(图片二进制数据)
     # return value: visible_fc, visible_card, fc_code, card
     def get_img_temp(self, trigger_word) -> []:
-        sql = f"select image_data,image_update_time from IMAGE_TEMP where trigger_word=?"
+        sql = f"select image_data,image_expire_time from IMAGE_TEMP where trigger_word=?"
         c = self.conn.cursor()
         c.execute(sql, (trigger_word,))
         data = c.fetchone()
