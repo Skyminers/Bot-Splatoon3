@@ -4,21 +4,22 @@ import sqlite3
 from pathlib import Path
 from typing import Union
 
-DATABASE = Path(os.path.join(os.path.dirname(__file__), "data", "image"))
-
+DATABASE_path = Path(os.path.join(os.path.dirname(__file__), "data", "image"))
+DATABASE=Path(DATABASE_path,"image.db")
 
 class ImageManager:
     _has_init = False
 
     def __init__(self):
         if not ImageManager._has_init:
-            if not DATABASE.exists():
+            if not DATABASE_path.exists():
                 DATABASE.mkdir(parents=True)
-                self.database_path = DATABASE / "image.db"
+            if not DATABASE.exists():
+                self.database_path = DATABASE
                 self.conn = sqlite3.connect(self.database_path)
                 self._create_table()
             else:
-                self.database_path = DATABASE / "image.db"
+                self.database_path = DATABASE
                 self.conn = sqlite3.connect(self.database_path)
             print("nonebot_plugin_splatoon3: 图片数据库连接！")
 
@@ -35,7 +36,9 @@ class ImageManager:
                     image_name Char(30) UNIQUE,
                     image_data BLOB,
                     image_zh_name Char(30)
-                );CREATE TABLE IMAGE_TEMP(
+                );""")
+        # 一次只能执行一条sql语句
+        c.execute("""CREATE TABLE IMAGE_TEMP(
                     id INTEGER PRIMARY KEY AUTOINCREMENT ,
                     trigger_word Char(30) UNIQUE,
                     image_data BLOB,

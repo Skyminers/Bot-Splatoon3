@@ -141,8 +141,7 @@ def get_coop_info(all=None):
         time.insert(insert_idx, get_str_time(schedule[0]))
         # 团队打工取不到boss信息
         boss.insert(insert_idx, "")
-        # 现在没有bigrun素材图片，暂时用团队打工图片
-        mode.insert(insert_idx, list_salmonrun_mode[1])
+        mode.insert(insert_idx, list_salmonrun_mode[2])
 
     return stage, weapon, time, boss, mode
 
