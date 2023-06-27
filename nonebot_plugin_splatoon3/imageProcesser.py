@@ -402,10 +402,8 @@ def get_coop_stages(stage, weapon, time, boss, mode):
     # 创建纯色背景
     image_background = Image.new("RGBA", bg_size, (14, 203, 146))
     bg_mask = get_file("打工蒙版").resize((bg_size[0] // 2, bg_size[1] // 2))
-    # 填充小图
+    # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
-    # 圆角
-    _, image_background = circle_corner(image_background, radii=20)
     # 绘制小鲑鱼
     coop_fish_size = (36, 48)
     coop_fish_img = get_file("小鲑鱼").resize(coop_fish_size)
@@ -459,6 +457,8 @@ def get_coop_stages(stage, weapon, time, boss, mode):
         paste_with_a(coop_stage_bg, mode_img, mode_img_pos)
 
     paste_with_a(image_background, coop_stage_bg, top_size_pos)
+    # 圆角
+    _, image_background = circle_corner(image_background, radii=20)
 
     return image_background
 
