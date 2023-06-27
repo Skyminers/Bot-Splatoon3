@@ -1,9 +1,12 @@
 from nonebot_plugin_splatoon3.image import *
 
 # 测试打工图片
-# res = get_coop_stages_image(True)
-# file = open('../output/coop.jpg', "wb")
-# file.write(res)
+res = get_coop_stages_image(True)
+# res.show()
+image = image_to_base64(res)
+file = open("../output/coop.jpg", "wb")
+file.write(image)
+
 #
 # # 测试 图
 # res = get_stage_info(num_list=None, stage_mode=None)
@@ -35,11 +38,11 @@ from nonebot_plugin_splatoon3.image import *
 
 
 # 测试nonebot 对战 命令文本触发
-plain_text = '6抢鱼真格'
-# 传递函数指针
-num_list = [0, 1, 2, 3, 4, 5]
-stage_mode = plain_text[-4:]
-func = get_stages_image
-res = get_save_temp_image(plain_text, func, num_list, stage_mode)
-file = open('../output/stage.jpg', "wb")
-file.write(res)
+# plain_text = '6抢鱼真格'
+# # 传递函数指针
+# num_list = [0, 1, 2, 3, 4, 5]
+# stage_mode = plain_text[-4:]
+# func = get_stages_image
+# res = get_save_temp_image(plain_text, func, num_list, stage_mode)
+# file = open('../output/stage.jpg', "wb")
+# file.write(res)
