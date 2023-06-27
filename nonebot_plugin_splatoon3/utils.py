@@ -2,25 +2,13 @@ import datetime
 from multiprocessing import Lock
 
 # map
-map_contest = {'涂地': 'Turf War', '挑战': 'Ranked Challenge', '开放': 'Ranked Open', 'X段': 'X Schedule',
-               'x段': 'X Schedule'}
-map_rule = {'区域': 'AREA', '推塔': 'LOFT', '蛤蜊': 'CLAM', '抢鱼': 'GOAL'}
+map_contest = {'涂地': 'Turf War','涂涂': 'Turf War', '挑战': 'Ranked Challenge', '开放': 'Ranked Open', '真格': 'Ranked Challenge',
+               '组排': 'Ranked Open','排排': 'Ranked Open', 'X段': 'X Schedule', 'x段': 'X Schedule'}
+map_rule = {'区域': 'AREA', '推塔': 'LOFT', '蛤蜊': 'CLAM', '抢鱼': 'GOAL', '塔楼': 'LOFT', '鱼虎': 'GOAL'}
 
 # 群白名单
 white_list = ['458482582', '792711635', '835723997', '578031026', '1607044636']
 
-# 翻译字典
-trans_dict = {
-    'LOFT': '真格塔楼',
-    'CLAM': '真格蛤蜊',
-    'GOAL': '真格鱼虎',
-    'AREA': '真格区域',
-    'TURF_WAR': '占地对战'
-}
-
-
-
-# stage_names = ['Scorch Gorge', 'Eeltail Alley', 'Hagglefish Market', 'Hagglefish Market']
 
 # 类 图片信息 自身转化为对象
 class ImageInfo:
@@ -31,9 +19,6 @@ class ImageInfo:
 
 
 image_json_lock = Lock()
-
-
-
 
 
 # 时间转换 时:分
@@ -59,13 +44,8 @@ def get_time_ymd():
     return dt
 
 
+# 校验群号
 def check_group_id(group_id):
     # if group_id == '616533832':
     #     return False
     return True
-
-
-def trans(text):
-    if text in trans_dict:
-        return trans_dict[text]
-    return text
