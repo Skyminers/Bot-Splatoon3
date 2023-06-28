@@ -2,7 +2,12 @@ import httpx
 import json
 import urllib3
 
-from .translation import get_trans_stage, get_trans_weapon, get_trans_data, list_salmonrun_mode
+from .translation import (
+    get_trans_stage,
+    get_trans_weapon,
+    get_trans_data,
+    list_salmonrun_mode,
+)
 from .utils import *
 from .imageProcesser import get_stages
 
@@ -14,8 +19,12 @@ http = urllib3.PoolManager()
 def get_schedule_data():
     # 校验过期日程
     def check_expire_schedule(schedule):
-        st = datetime.datetime.strptime(schedule['regularSchedules']['nodes'][0]['startTime'], '%Y-%m-%dT%H:%M:%SZ')
-        ed = datetime.datetime.strptime(schedule['regularSchedules']['nodes'][0]['endTime'], '%Y-%m-%dT%H:%M:%SZ')
+        st = datetime.datetime.strptime(
+            schedule["regularSchedules"]["nodes"][0]["startTime"], "%Y-%m-%dT%H:%M:%SZ"
+        )
+        ed = datetime.datetime.strptime(
+            schedule["regularSchedules"]["nodes"][0]["endTime"], "%Y-%m-%dT%H:%M:%SZ"
+        )
         nw = datetime.datetime.now() - datetime.timedelta(hours=8)
         if st < nw < ed:
             return False
@@ -23,45 +32,51 @@ def get_schedule_data():
 
     global schedule_res
     if schedule_res is None or check_expire_schedule(schedule_res):
-        print('nonebot_plugin_splatoon3: 重新请求:日程数据')
+        print("nonebot_plugin_splatoon3: 重新请求:日程数据")
         with httpx.Client() as client:
-            result = client.get('https://splatoon3.ink/data/schedules.json')
+            result = client.get("https://splatoon3.ink/data/schedules.json")
             schedule_res = json.load(result)
-            schedule_res = schedule_res['data']
+            schedule_res = schedule_res["data"]
             return schedule_res
     else:
         return schedule_res
 
 
-# 取 打工
+# 取 打工 信息
 def get_coop_info(all=None):
     # 取地图信息
     def get_stage_image_info(sch):  # sch为schedule[idx]
-        return ImageInfo(sch['setting']['coopStage']['name'],
-                         sch['setting']['coopStage']['image']['url'],
-                         get_trans_stage(sch['setting']['coopStage']['id']))
+        return ImageInfo(
+            sch["setting"]["coopStage"]["name"],
+            sch["setting"]["coopStage"]["image"]["url"],
+            get_trans_stage(sch["setting"]["coopStage"]["id"]),
+        )
 
     # 取装备信息
     def get_weapon_image_info(sch):  # sch为schedule[idx]
-        return [ImageInfo(sch['setting']['weapons'][i]['name'],
-                          sch['setting']['weapons'][i]['image']['url'],
-                          get_trans_weapon(sch['setting']['weapons'][i]['__splatoon3ink_id']))
-                for i in range(4)]
+        return [
+            ImageInfo(
+                sch["setting"]["weapons"][i]["name"],
+                sch["setting"]["weapons"][i]["image"]["url"],
+                get_trans_weapon(sch["setting"]["weapons"][i]["__splatoon3ink_id"]),
+            )
+            for i in range(4)
+        ]
 
     # 取时间信息
     def get_str_time(sch):
-        start_time = time_converter_day(sch['startTime'])
-        end_time = time_converter_day(sch['endTime'])
-        return '{} - {}'.format(start_time, end_time)
+        start_time = time_converter_day(sch["startTime"])
+        end_time = time_converter_day(sch["endTime"])
+        return "{} - {}".format(start_time, end_time)
 
     # 取boss名称
     def get_str_boss(sch):
-        return sch['__splatoon3ink_king_salmonid_guess']
+        return sch["__splatoon3ink_king_salmonid_guess"]
 
     # 校验普通打工时间，是否在特殊打工模式之后
     def check_salmonrun_time(start_time, special_mode_start_time):
-        st = datetime.datetime.strptime(start_time, '%m-%d %H:%M')
-        su_st = datetime.datetime.strptime(special_mode_start_time, '%m-%d %H:%M')
+        st = datetime.datetime.strptime(start_time, "%m-%d %H:%M")
+        su_st = datetime.datetime.strptime(special_mode_start_time, "%m-%d %H:%M")
         if st > su_st:
             return True
         return False
@@ -71,11 +86,11 @@ def get_coop_info(all=None):
     # 取翻译
     get_trans_data()
     # 一般打工数据
-    regular_schedule = schedule['coopGroupingSchedule']['regularSchedules']['nodes']
+    regular_schedule = schedule["coopGroupingSchedule"]["regularSchedules"]["nodes"]
     # 团队打工竞赛
-    team_schedule = schedule['coopGroupingSchedule']['teamContestSchedules']['nodes']
+    team_schedule = schedule["coopGroupingSchedule"]["teamContestSchedules"]["nodes"]
     # big run 数据
-    bigrun_schedule = schedule['coopGroupingSchedule']['bigRunSchedules']['nodes']
+    bigrun_schedule = schedule["coopGroupingSchedule"]["bigRunSchedules"]["nodes"]
     stage = []
     weapon = []
     time = []
@@ -109,6 +124,7 @@ def get_coop_info(all=None):
             start_time = v.split(" - ")[0]
             if check_salmonrun_time(start_time, special_mode_start_time):
                 insert_idx = k
+                need_offset = True
         if not need_offset:
             insert_idx = len(time)
 
@@ -146,7 +162,7 @@ def get_coop_info(all=None):
     return stage, weapon, time, boss, mode
 
 
-# 取 图
+# 取 图 信息
 def get_stage_info(num_list=None, stage_mode=None):
     if num_list is None:
         num_list = [0]
@@ -164,6 +180,6 @@ def get_stage_info(num_list=None, stage_mode=None):
     return schedule, num_list, contest_match, rule_match
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # get_stage_info().show()
     get_coop_info().show()
