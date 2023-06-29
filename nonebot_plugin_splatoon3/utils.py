@@ -38,6 +38,7 @@ dict_keyword_replace = {
     "big run": "工",
     "bigrun": "工",
     "help": "帮助",
+    "衣服": "装备",
 }
 
 # 背景 rgb颜色

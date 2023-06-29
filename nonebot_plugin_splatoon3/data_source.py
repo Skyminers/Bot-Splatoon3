@@ -2,6 +2,7 @@ import json
 
 import httpx
 import urllib3
+from playwright.async_api import Browser, async_playwright
 
 from .translation import (
     get_trans_stage,
@@ -13,7 +14,43 @@ from .utils import *
 
 schedule_res = None
 http = urllib3.PoolManager()
+_browser = None
 
+# 初始化 browser 并唤起
+async def init_browser() -> Browser:
+    global _browser
+    p = await async_playwright().start()
+    _browser = await p.chromium.launch()
+    return _browser
+
+# 获取目前唤起的 brower
+async def get_browser() -> Browser:
+    global _browser
+    if _browser is None or not _browser.is_connected():
+        _browser = await init_browser()
+    return _browser
+
+# 通过 browser 获取 shoturl 中的网页截图
+async def get_screenshot(shoturl, shotpath=None):
+    # playwright 要求不能有多个 browser 被同时唤起
+    browser = await get_browser()
+    context = await browser.new_context(
+        viewport={"width": 1480, "height": 900},
+        locale="zh-CH"
+    )
+    page = await context.new_page()
+    await page.set_viewport_size({"width": 1480, "height": 900})
+    await page.goto(shoturl)
+    try:
+        if shotpath is None:
+            return await page.screenshot()
+        else:
+            await page.screenshot(path=shotpath)
+    except Exception:
+        print("Error in screenshot")
+        return await page.screenshot(full_page=True)
+    finally:
+        await context.close()
 
 # 取日程数据
 def get_schedule_data():

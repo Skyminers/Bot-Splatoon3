@@ -1,6 +1,6 @@
 import datetime
 
-from .data_source import get_coop_info, get_stage_info
+from .data_source import get_coop_info, get_stage_info, get_screenshot
 from .imageProcesser import (
     get_coop_stages,
     imageManager,

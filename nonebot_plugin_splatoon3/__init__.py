@@ -12,6 +12,7 @@ from .image import (
     get_stages_image,
 )
 from .utils import multiple_replace, dict_contest, dict_rule
+from .data_source import get_screenshot
 
 # 图 触发器  正则内需要涵盖所有的同义词
 matcher_stage_group = on_regex("^[\\\/\.。]?[0-9]*(全部)?下*图+$", priority=10, block=True)
@@ -31,7 +32,7 @@ matcher_coop = on_regex(
 )
 
 # 其他命令 触发器
-matcher_else = on_regex("^[\\\/\.。]?(帮助|help|随机武器)$", priority=10, block=True)
+matcher_else = on_regex("^[\\\/\.。]?(帮助|help|随机武器|装备|衣服|祭典|活动)$", priority=10, block=True)
 
 
 # 图 触发器处理 二次判断正则前，已经进行了同义词替换，二次正则只需要判断最终词
@@ -232,4 +233,15 @@ async def _(matcher: Matcher, event: MessageEvent):
         weapon2 = None
         img = get_random_weapon_image(weapon1, weapon2)
         # 发送消息
+        await matcher.finish(MessageSegment.image(file=img, cache=False))
+    elif re.search("^祭典$", plain_text):
+        # 获取祭典，网页图片中含有倒计时，不适合进行缓存
+        # 速度较慢，可以考虑后续从 json 自行生成，后续的分支都是网页截图
+        img = await get_screenshot(shoturl='https://splatoon3.ink/splatfests')
+        await matcher.finish(MessageSegment.image(file=img, cache=False))
+    elif re.search("^活动$", plain_text):
+        img = await get_screenshot(shoturl='https://splatoon3.ink/challenges')
+        await matcher.finish(MessageSegment.image(file=img, cache=False))
+    elif re.search("^装备$", plain_text):
+        img = await get_screenshot(shoturl='https://splatoon3.ink/gear')
         await matcher.finish(MessageSegment.image(file=img, cache=False))
