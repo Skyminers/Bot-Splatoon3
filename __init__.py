@@ -1,0 +1,1 @@
+from . import nonebot_plugin_splatoon3

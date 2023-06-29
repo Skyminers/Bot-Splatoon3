@@ -100,7 +100,7 @@ def get_coop_info(all=None):
                 sch["setting"]["weapons"][i]["image"]["url"],
                 get_trans_weapon(sch["setting"]["weapons"][i]["__splatoon3ink_id"]),
                 "武器",
-            )
+            ) for i in range(4)
         ]
 
     # 取时间信息
