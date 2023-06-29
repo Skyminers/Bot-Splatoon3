@@ -1,5 +1,6 @@
-import httpx
 import json
+
+import httpx
 import urllib3
 
 from .translation import (
@@ -9,7 +10,6 @@ from .translation import (
     list_salmonrun_mode,
 )
 from .utils import *
-from .imageProcesser import get_stages
 
 schedule_res = None
 http = urllib3.PoolManager()
@@ -50,6 +50,7 @@ def get_coop_info(all=None):
             sch["setting"]["coopStage"]["name"],
             sch["setting"]["coopStage"]["image"]["url"],
             get_trans_stage(sch["setting"]["coopStage"]["id"]),
+            "打工地图",
         )
 
     # 取装备信息
@@ -59,6 +60,7 @@ def get_coop_info(all=None):
                 sch["setting"]["weapons"][i]["name"],
                 sch["setting"]["weapons"][i]["image"]["url"],
                 get_trans_weapon(sch["setting"]["weapons"][i]["__splatoon3ink_id"]),
+                "武器",
             )
             for i in range(4)
         ]
@@ -163,21 +165,22 @@ def get_coop_info(all=None):
 
 
 # 取 图 信息
-def get_stage_info(num_list=None, stage_mode=None):
+def get_stage_info(num_list=None, contest_match=None, rule_match=None):
     if num_list is None:
         num_list = [0]
     schedule = get_schedule_data()
     get_trans_data()
-    contest_match = None
-    rule_match = None
-    if stage_mode is not None:
-        if len(stage_mode) == 2:
-            contest_match = map_contest[stage_mode[:2]]
-        elif len(stage_mode) == 4:
-            contest_match = map_contest[stage_mode[2:]]
-            rule_match = map_rule[stage_mode[:2]]
+    # 竞赛 规则
+    if contest_match != None and contest_match != "":
+        new_contest_match = dict_contest[contest_match]
+    else:
+        new_contest_match = contest_match
+    if rule_match != None and rule_match != "":
+        new_rule_match = dict_rule[rule_match]
+    else:
+        new_rule_match = rule_match
 
-    return schedule, num_list, contest_match, rule_match
+    return schedule, num_list, new_contest_match, new_rule_match
 
 
 if __name__ == "__main__":

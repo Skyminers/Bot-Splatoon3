@@ -1,3 +1,5 @@
+import re
+
 from nonebot import on_command, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
@@ -6,198 +8,205 @@ from nonebot.matcher import Matcher
 from .image import (
     get_save_temp_image,
     get_coop_stages_image,
-    get_random_weapon,
+    get_random_weapon_image,
     get_stages_image,
 )
+from .utils import multiple_replace, dict_contest, dict_rule
 
-matcher_select_stage = on_regex("[0-9]+图", priority=10, block=True)
-matcher_select_stage_mode_rule = on_regex(
-    "[0-9]+(区域|推塔|蛤蜊|抢鱼|塔楼|鱼虎)(挑战|真格|开放|组排|排排|X段|x段)", priority=10, block=True
-)
-matcher_select_stage_mode = on_regex(
-    "[0-9]+(挑战|真格|开放|组排|排排|涂地|涂涂|X段|x段)", priority=10, block=True
-)
-matcher_select_all_mode_rule = on_regex(
-    "全部(区域|推塔|蛤蜊|抢鱼|塔楼|鱼虎)(挑战|真格|开放|组排|排排|X段|x段)", priority=10, block=True
-)
-matcher_select_all_mode = on_regex(
-    "全部(挑战|真格|开放|组排|排排|涂地|涂涂|X段|x段)", priority=10, block=True
-)
+# 图 触发器  正则内需要涵盖所有的同义词
+matcher_stage_group = on_regex("^[\\\/\.。]?[0-9]*(全部)?下*图+$", priority=10, block=True)
 
-matcher_coop = on_command(
-    "工", aliases={"打工", "鲑鱼跑", "bigrun", "big run", "团队打工"}, priority=10, block=True
-)
-matcher_all_coop = on_command(
-    "全部工",
-    aliases={"全部打工", "全部鲑鱼跑", "全部bigrun", "全部big run", "全部团队打工"},
+# 对战 触发器
+matcher_stage = on_regex(
+    "^[\\\/\.。]?[0-9]*(全部)?下*(区域|推塔|抢塔|塔楼|蛤蜊|抢鱼|鱼虎|涂地|涂涂|挑战|真格|开放|组排|排排|pp|PP|X段|x段|X赛|x赛){1,2}$",
     priority=10,
     block=True,
 )
 
-matcher_stage_group = on_command("图", priority=10, block=True)
-matcher_stage_group2 = on_command("图图", priority=10, block=True)
-matcher_stage_next1 = on_command("下图", priority=10, block=True)
-matcher_stage_next12 = on_command("下图图", aliases={"下下图"}, priority=10, block=True)
-matcher_random_weapon = on_command("随机武器", priority=10, block=True)
+# 打工 触发器
+matcher_coop = on_regex(
+    "^[\\\/\.。]?(全部)?(工|打工|鲑鱼跑|bigrun|big run|团队打工)$",
+    priority=10,
+    block=True,
+)
 
-matcher_help = on_command("帮助", aliases={"help"}, priority=10, block=True)
-
-
-# 随机武器
-@matcher_random_weapon.handle()
-async def _(matcher: Matcher, event: MessageEvent):
-    plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_random_weapon
-    # 获取图片
-    weapon1 = None
-    weapon2 = None
-    img = get_save_temp_image(plain_text, func, weapon1, weapon2)
-    # 发送消息
-    await matcher.finish(MessageSegment.image(file=img, cache=False))
+# 其他命令 触发器
+matcher_else = on_regex("^[\\\/\.。]?(帮助|help|随机武器)$", priority=10, block=True)
 
 
-# 顺序 全部图 模式
-@matcher_select_all_mode.handle()
-async def _(matcher: Matcher, event: MessageEvent):
-    plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_stages_image
-    # 获取图片
-    num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-    stage_mode = plain_text[-2:]
-    img = get_save_temp_image(plain_text, func, num_list, stage_mode)
-    # 发送消息
-    await matcher.finish(
-        MessageSegment.image(
-            file=img,
-            cache=False,
-        )
-    )
-
-
-# 顺序 全部图 模式 规则
-@matcher_select_all_mode_rule.handle()
-async def _(matcher: Matcher, event: MessageEvent):
-    plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_stages_image
-    # 获取图片
-    num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-    stage_mode = plain_text[-4:]
-    img = get_save_temp_image(plain_text, func, num_list, stage_mode)
-    # 发送消息
-    await matcher.finish(
-        MessageSegment.image(
-            file=img,
-            cache=False,
-        )
-    )
-
-
-# 顺序  模式 规则
-@matcher_select_stage_mode_rule.handle()
-async def _(matcher: Matcher, event: MessageEvent):
-    plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_stages_image
-    # 获取图片
-    num_list = list(set([int(x) for x in plain_text[:-4]]))
-    num_list.sort()
-    stage_mode = plain_text[-4:]
-    img = get_save_temp_image(plain_text, func, num_list, stage_mode)
-    # 发送消息
-    if img is None:
-        msg = "好像没有符合要求的地图模式>_<"
-        # else:
-        msg = MessageSegment.image(
-            file=img,
-            cache=False,
-        )
-    await matcher.finish(msg)
-
-
-# 顺序 图 模式
-@matcher_select_stage_mode.handle()
-async def _(matcher: Matcher, event: MessageEvent):
-    plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_stages_image
-    # 获取图片
-    num_list = list(set([int(x) for x in plain_text[:-2]]))
-    num_list.sort()
-    stage_mode = plain_text[-2:]
-    img = get_save_temp_image(plain_text, func, num_list, stage_mode)
-    # 发送消息
-    if img is None:
-        msg = "好像没有符合要求的地图模式>_<"
-    else:
-        msg = MessageSegment.image(
-            file=img,
-            cache=False,
-        )
-    await matcher.finish(msg)
-
-
-# 顺序 图
-@matcher_select_stage.handle()
-async def _(matcher: Matcher, event: MessageEvent):
-    plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_stages_image
-    # 获取图片
-    num_list = list(
-        set([int(x) for x in event.get_message().extract_plain_text()[:-1]])
-    )
-    num_list.sort()
-    stage_mode = None
-    img = get_save_temp_image(plain_text, func, num_list, stage_mode)
-    # 发送消息
-    await matcher.finish(
-        MessageSegment.image(
-            file=img,
-            cache=False,
-        )
-    )
-
-
-# 工
-@matcher_coop.handle()
-async def _(matcher: Matcher, event: MessageEvent):
-    plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_coop_stages_image
-    # 获取图片
-    all = False
-    img = get_save_temp_image(plain_text, func, all)
-    # 发送消息
-    await matcher.finish(MessageSegment.image(file=img, cache=False))
-
-
-# 全部工
-@matcher_all_coop.handle()
-async def _(matcher: Matcher, event: MessageEvent):
-    plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_coop_stages_image
-    # 获取图片
-    all = True
-    img = get_save_temp_image(plain_text, func, all)
-    # 发送消息
-    await matcher.finish(MessageSegment.image(file=img, cache=False))
-
-
-# 图
+# 图 触发器处理 二次判断正则前，已经进行了同义词替换，二次正则只需要判断最终词
 @matcher_stage_group.handle()
 async def _(matcher: Matcher, event: MessageEvent):
     plain_text = event.get_message().extract_plain_text().strip()
+    # 触发关键词  同义文本替换
+    plain_text = multiple_replace(plain_text)
+    print("nonebot_plugin_splatoon3: 同义文本替换后触发词为:" + plain_text + "\n")
+    # 判断是否满足进一步正则
+    num_list = []
+    contest_match = None
+    rule_match = None
+    flag_match = False
+    # 顺序 单图
+    if re.search("^[0-9]+图$", plain_text):
+        num_list = list(set([int(x) for x in plain_text[:-1]]))
+        num_list.sort()
+        flag_match = True
+    elif re.search("^下{1,11}图$", plain_text):
+        re_list = re.findall("下", plain_text)
+        num_list = list(set([len(re_list)]))
+        num_list.sort()
+        stage_mode = None
+        flag_match = True
+    # 多图
+    elif re.search("^下?图{1,11}$", plain_text):
+        re_list = re.findall("图", plain_text)
+        lens = len(re_list)
+        # 渲染太慢了，限制查询数量
+        if lens > 5:
+            lens = 5
+        num_list = list(set([x for x in range(lens)]))
+        num_list.sort()
+        if "下" in plain_text:
+            num_list.pop(0)
+        flag_match = True
+    elif re.search("^全部图*$", plain_text):
+        # 渲染太慢了，限制查询数量
+        num_list = [0, 1, 2, 3, 4, 5]
+        flag_match = True
+    # 如果有匹配
+    if flag_match:
+        # 传递函数指针
+        func = get_stages_image
+        # 获取图片
+        img = get_save_temp_image(plain_text, func, num_list, contest_match, rule_match)
+        # 发送消息
+        await matcher.finish(
+            MessageSegment.image(
+                file=img,
+                cache=False,
+            )
+        )
+
+
+# 对战 触发器处理
+@matcher_stage.handle()
+async def _(matcher: Matcher, event: MessageEvent):
+    plain_text = event.get_message().extract_plain_text().strip()
+    # 触发关键词  同义文本替换  同时替换.。\/ 等前缀触发词
+    plain_text = multiple_replace(plain_text)
+    print("nonebot_plugin_splatoon3: 同义文本替换后触发词为:" + plain_text)
+    # 判断是否满足进一步正则
+    num_list = []
+    contest_match = None
+    rule_match = None
+    flag_match = False
+    # 双筛选  规则  竞赛
+    if re.search("^[0-9]*(全部)?(区域|蛤蜊|塔楼|鱼虎)(挑战|开放|X段)$", plain_text):
+        if "全部" in plain_text:
+            num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        else:
+            if len(plain_text) == 2:
+                num_list = [0]
+            else:
+                num_list = list(set([int(x) for x in plain_text[:-4]]))
+                num_list.sort()
+        stage_mode = plain_text[-4:]
+        contest_match = dict_contest[stage_mode[2:]]
+        rule_match = stage_mode[:2]
+        flag_match = True
+    # 双筛选  竞赛  规则
+    elif re.search("^[0-9]*(全部)?(挑战|开放|X段)(区域|蛤蜊|塔楼|鱼虎)$", plain_text):
+        if "全部" in plain_text:
+            num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        else:
+            if len(plain_text) == 2:
+                num_list = [0]
+            else:
+                num_list = list(set([int(x) for x in plain_text[:-4]]))
+                num_list.sort()
+        stage_mode = plain_text[-4:]
+        contest_match = stage_mode[:2]
+        rule_match = stage_mode[2:]
+        flag_match = True
+    # 单筛选  竞赛
+    elif re.search("^[0-9]*(全部)?(挑战|开放|X段|涂地)$", plain_text):
+        if "全部" in plain_text:
+            num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        else:
+            if len(plain_text) == 2:
+                num_list = [0]
+            else:
+                num_list = list(set([int(x) for x in plain_text[:-2]]))
+                num_list.sort()
+
+        stage_mode = plain_text[-2:]
+        contest_match = stage_mode
+        rule_match = None
+        flag_match = True
+    # 单筛选 下 竞赛
+    elif re.search("^下{1,11}(挑战|开放|X段|涂地)$", plain_text):
+        re_list = re.findall("下", plain_text)
+        lens = len(re_list)
+        num_list = list(set([lens]))
+        num_list.sort()
+        stage_mode = plain_text[-2:]
+        contest_match = stage_mode
+        rule_match = None
+        flag_match = True
+    # 单筛选  模式
+    elif re.search("^[0-9]*(全部)?(区域|蛤蜊|塔楼|鱼虎)$", plain_text):
+        if "全部" in plain_text:
+            num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        else:
+            if len(plain_text) == 2:
+                num_list = [0]
+            else:
+                num_list = list(set([int(x) for x in plain_text[:-2]]))
+                num_list.sort()
+        stage_mode = plain_text[-2:]
+        rule_match = stage_mode
+        contest_match = None
+        flag_match = True
+    # 单筛选 下 模式
+    elif re.search("^下{1,11}(区域|蛤蜊|塔楼|鱼虎)$", plain_text):
+        re_list = re.findall("下", plain_text)
+        lens = len(re_list)
+        num_list = list(set([lens]))
+        stage_mode = plain_text[-2:]
+        contest_match = None
+        rule_match = stage_mode
+        flag_match = True
+
+    # 如果有匹配
+    if flag_match:
+        # 传递函数指针
+        func = get_stages_image
+        # 获取图片
+        img = get_save_temp_image(plain_text, func, num_list, contest_match, rule_match)
+        # 发送消息
+        await matcher.finish(
+            MessageSegment.image(
+                file=img,
+                cache=False,
+            )
+        )
+
+
+# 打工 触发器处理
+@matcher_coop.handle()
+async def _(matcher: Matcher, event: MessageEvent):
+    plain_text = event.get_message().extract_plain_text().strip()
+    # 触发关键词  同义文本替换
+    plain_text = multiple_replace(plain_text)
+    print("nonebot_plugin_splatoon3: 同义文本替换后触发词为:" + plain_text + "\n")
+    # 判断是否满足进一步正则
+    all = False
+    if "全部" in plain_text:
+        all = True
     # 传递函数指针
-    func = get_stages_image
+    func = get_coop_stages_image
     # 获取图片
-    num_list = [0]
-    num_list.sort()
-    stage_mode = None
-    img = get_save_temp_image(plain_text, func, num_list, stage_mode)
+    img = get_save_temp_image(plain_text, func, all)
     # 发送消息
     await matcher.finish(
         MessageSegment.image(
@@ -207,75 +216,20 @@ async def _(matcher: Matcher, event: MessageEvent):
     )
 
 
-# 图图
-@matcher_stage_group2.handle()
+# 其他命令 触发器处理
+@matcher_else.handle()
 async def _(matcher: Matcher, event: MessageEvent):
     plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_stages_image
-    # 获取图片
-    num_list = [0, 1]
-    num_list.sort()
-    stage_mode = None
-    img = get_save_temp_image(plain_text, func, num_list, stage_mode)
-    # 发送消息
-    await matcher.finish(
-        MessageSegment.image(
-            file=img,
-            cache=False,
-        )
-    )
-
-
-# 下图
-@matcher_stage_next1.handle()
-async def _(matcher: Matcher, event: MessageEvent):
-    plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_stages_image
-    # 获取图片
-    num_list = [1]
-    num_list.sort()
-    stage_mode = None
-    img = get_save_temp_image(plain_text, func, num_list, stage_mode)
-    # 发送消息
-    await matcher.finish(
-        MessageSegment.image(
-            file=img,
-            cache=False,
-        )
-    )
-
-
-# 下下图
-@matcher_stage_next12.handle()
-async def _(matcher: Matcher, event: MessageEvent):
-    plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_stages_image
-    # 获取图片
-    num_list = [1, 2]
-    num_list.sort()
-    stage_mode = None
-    img = get_save_temp_image(plain_text, func, num_list, stage_mode)
-    # 发送消息
-    await matcher.finish(
-        MessageSegment.image(
-            file=img,
-            cache=False,
-        )
-    )
-
-
-# 帮助菜单
-@matcher_help.handle()
-async def _(matcher: Matcher, event: MessageEvent):
-    plain_text = event.get_message().extract_plain_text().strip()
-    # 传递函数指针
-    func = get_random_weapon
-    # 获取图片
-    weapon1 = None
-    weapon2 = None
-    img = get_save_temp_image(plain_text, func, weapon1, weapon2)
-    # 发送消息
-    await matcher.finish(MessageSegment.image(file=img, cache=False))
+    # 触发关键词  同义文本替换
+    plain_text = multiple_replace(plain_text)
+    print("nonebot_plugin_splatoon3: 同义文本替换后触发词为:" + plain_text + "\n")
+    # 判断是否满足进一步正则
+    # 随机武器
+    if re.search("^随机武器$", plain_text):
+        # 这个功能不能进行缓存，必须实时生成图
+        # 获取图片
+        weapon1 = None
+        weapon2 = None
+        img = get_random_weapon_image(weapon1, weapon2)
+        # 发送消息
+        await matcher.finish(MessageSegment.image(file=img, cache=False))
