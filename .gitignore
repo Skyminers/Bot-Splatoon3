@@ -2,3 +2,4 @@
 /.idea
 #/nonebot_plugin_splatoon3/data/image
 /nonebot_plugin_splatoon3/__pycache__
+__init__.py

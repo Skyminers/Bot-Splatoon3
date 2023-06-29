@@ -8,7 +8,7 @@ from nonebot.log import logger
 
 from .translation import get_trans_stage, get_trans_game_mode
 from .utils import *
-from .imageManager import ImageManager
+from .image_db import ImageDB
 
 # 根路径
 cur_path = os.path.dirname(__file__)
@@ -21,7 +21,7 @@ weapon_folder = os.path.join(cur_path, "staticData", "weapon")
 ttf_path = os.path.join(cur_path, "staticData", "SplatoonFontFix.otf")
 ttf_path_chinese = os.path.join(cur_path, "staticData", "Text.ttf")
 
-imageManager = ImageManager()
+imageDB = ImageDB()
 http = urllib3.PoolManager()
 
 
@@ -51,14 +51,12 @@ def get_file_url(url):
 
 # 向数据库新增或读取素材图片二进制文件
 def get_save_file(img: ImageInfo):
-    res = imageManager.get_img_data(img.name)
+    res = imageDB.get_img_data(img.name)
     if not res:
         image_data = get_file_url(img.url)
         if len(image_data) != 0:
-            logger.info(
-                "[ImageManager] new image {}".format(img.name)
-            )
-            imageManager.add_or_modify_IMAGE_DATA(
+            logger.info("[ImageDB] new image {}".format(img.name))
+            imageDB.add_or_modify_IMAGE_DATA(
                 img.name, image_data, img.zh_name, img.source_type
             )
         return Image.open(io.BytesIO(image_data))
@@ -495,11 +493,12 @@ def get_coop_stages(stage, weapon, time, boss, mode):
     weapon_size = (90, 90)
     boss_size = (40, 40)
     mode_size = (40, 40)
-    swim_lap_size = (60, 40)
 
     # 创建纯色背景
-    image_background = Image.new("RGBA", bg_size, (14, 203, 146))
-    bg_mask = get_file("打工蒙版").resize((bg_size[0] // 2, bg_size[1] // 2))
+    image_background_rgb = dict_bg_rgb["打工"]
+    image_background = Image.new("RGBA", bg_size, image_background_rgb)
+    bg_mask_size = (300, 200)
+    bg_mask = get_file("打工蒙版").resize(bg_mask_size)
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
     # 绘制小鲑鱼

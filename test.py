@@ -1,11 +1,11 @@
 from nonebot_plugin_splatoon3.image import *
 
 # 测试打工图片
-# res = get_coop_stages_image(True)
-# # res.show()
-# image = image_to_base64(res)
-# file = open("../output/coop.jpg", "wb")
-# file.write(image)
+res = get_coop_stages_image(True)
+# res.show()
+image = image_to_base64(res)
+file = open("../output/coop.jpg", "wb")
+file.write(image)
 
 #
 # # 测试 图
@@ -48,7 +48,7 @@ num_list.sort()
 rule_match = None
 contest_match = None
 # func = get_stages_image
-res = get_stages_image(num_list, contest_match, rule_match)
+# res = get_stages_image(num_list, contest_match, rule_match)
 res.show()
 # file = open("../output/stage.jpg", "wb")
 # file.write(res)

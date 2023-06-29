@@ -8,11 +8,11 @@ DATABASE_path = Path(os.path.join(os.path.dirname(__file__), "data", "image"))
 DATABASE = Path(DATABASE_path, "image.db")
 
 
-class ImageManager:
+class ImageDB:
     _has_init = False
 
     def __init__(self):
-        if not ImageManager._has_init:
+        if not ImageDB._has_init:
             if not DATABASE_path.exists():
                 DATABASE.mkdir(parents=True)
             if not DATABASE.exists():
@@ -23,6 +23,16 @@ class ImageManager:
                 self.database_path = DATABASE
                 self.conn = sqlite3.connect(self.database_path)
             logger.info("图片数据库连接！")
+
+    # 载入插件时，清空合成图片缓存表
+    def clean_image_temp(self):
+        if DATABASE_path.exists():
+            # 数据库文件存在时
+            c = self.conn.cursor()
+            # 清空合成图片缓存表
+            c.execute("delete from IMAGE_TEMP;")
+            self.conn.commit()
+            logger.info("数据库合成图片缓存数据已清空！")
 
     # 关闭数据库
     def close(self):

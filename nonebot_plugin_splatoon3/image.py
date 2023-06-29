@@ -5,7 +5,7 @@ from nonebot.log import logger
 from .data_source import get_coop_info, get_stage_info, get_screenshot
 from .imageProcesser import (
     get_coop_stages,
-    imageManager,
+    imageDB,
     image_to_base64,
     get_stages,
     get_random_weapon,
@@ -72,21 +72,15 @@ def get_expire_time():
 
 # 向数据库新增或读取图片二进制  缓存图片
 def get_save_temp_image(trigger_word, func, *args):
-    res = imageManager.get_img_temp(trigger_word)
+    res = imageDB.get_img_temp(trigger_word)
     image: bytes
     if not res:
         # 重新生成图片并写入
         image_data = func(*args)
         image = image_to_base64(image_data)
         if len(image) != 0:
-            logger.info(
-                "[ImageManager] new temp image {}".format(
-                    trigger_word
-                )
-            )
-            imageManager.add_or_modify_IMAGE_TEMP(
-                trigger_word, image, get_expire_time()
-            )
+            logger.info("[ImageDB] new temp image {}".format(trigger_word))
+            imageDB.add_or_modify_IMAGE_TEMP(trigger_word, image, get_expire_time())
         return image
     else:
         # 判断时间是否过期
@@ -97,14 +91,8 @@ def get_save_temp_image(trigger_word, func, *args):
             image_data = func(*args)
             image = image_to_base64(image_data)
             if len(image) != 0:
-                logger.info(
-                    "[ImageManager] update temp image {}".format(
-                        trigger_word
-                    )
-                )
-                imageManager.add_or_modify_IMAGE_TEMP(
-                    trigger_word, image, get_expire_time()
-                )
+                logger.info("[ImageDB] update temp image {}".format(trigger_word))
+                imageDB.add_or_modify_IMAGE_TEMP(trigger_word, image, get_expire_time())
             return image
         logger.info("数据库内存在时效范围内的缓存图片，将从数据库读取缓存图片")
         return image_to_base64(Image.open(io.BytesIO(res[0])))

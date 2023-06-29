@@ -18,12 +18,14 @@ schedule_res = None
 http = urllib3.PoolManager()
 _browser = None
 
+
 # 初始化 browser 并唤起
 async def init_browser() -> Browser:
     global _browser
     p = await async_playwright().start()
     _browser = await p.chromium.launch()
     return _browser
+
 
 # 获取目前唤起的 brower
 async def get_browser() -> Browser:
@@ -32,13 +34,13 @@ async def get_browser() -> Browser:
         _browser = await init_browser()
     return _browser
 
+
 # 通过 browser 获取 shoturl 中的网页截图
 async def get_screenshot(shoturl, shotpath=None):
     # playwright 要求不能有多个 browser 被同时唤起
     browser = await get_browser()
     context = await browser.new_context(
-        viewport={"width": 1480, "height": 900},
-        locale="zh-CH"
+        viewport={"width": 1480, "height": 900}, locale="zh-CH"
     )
     page = await context.new_page()
     await page.set_viewport_size({"width": 1480, "height": 900})
@@ -53,6 +55,7 @@ async def get_screenshot(shoturl, shotpath=None):
         return await page.screenshot(full_page=True)
     finally:
         await context.close()
+
 
 # 取日程数据
 def get_schedule_data():
@@ -100,7 +103,8 @@ def get_coop_info(all=None):
                 sch["setting"]["weapons"][i]["image"]["url"],
                 get_trans_weapon(sch["setting"]["weapons"][i]["__splatoon3ink_id"]),
                 "武器",
-            ) for i in range(4)
+            )
+            for i in range(4)
         ]
 
     # 取时间信息
@@ -115,8 +119,12 @@ def get_coop_info(all=None):
 
     # 校验普通打工时间，是否在特殊打工模式之后
     def check_salmonrun_time(start_time, special_mode_start_time):
-        st = datetime.datetime.strptime(start_time, "%m-%d %H:%M")
-        su_st = datetime.datetime.strptime(special_mode_start_time, "%m-%d %H:%M")
+        # 输入时间都缺少年份，需要手动补充一个年份后还原为date对象
+        year = datetime.datetime.now().year
+        start_time = str(year) + "-" + start_time
+        special_mode_start_time = str(year) + "-" + special_mode_start_time
+        st = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M")
+        su_st = datetime.datetime.strptime(special_mode_start_time, "%Y-%m-%d %H:%M")
         if st > su_st:
             return True
         return False
@@ -163,11 +171,10 @@ def get_coop_info(all=None):
         for k, v in enumerate(time):
             start_time = v.split(" - ")[0]
             if check_salmonrun_time(start_time, special_mode_start_time):
-                insert_idx = k
+                insert_idx = k - 1
                 need_offset = True
         if not need_offset:
             insert_idx = len(time)
-
         # 插入数据
         stage.insert(insert_idx, get_stage_image_info(schedule[0]))
         weapon.insert(insert_idx, get_weapon_image_info(schedule[0]))
