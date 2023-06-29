@@ -1,8 +1,6 @@
-import csv
 import os
 import sqlite3
 from pathlib import Path
-from typing import Union
 
 DATABASE_path = Path(os.path.join(os.path.dirname(__file__), "data", "image"))
 DATABASE = Path(DATABASE_path, "image.db")
@@ -37,7 +35,8 @@ class ImageManager:
                     id INTEGER PRIMARY KEY AUTOINCREMENT ,
                     image_name Char(30) UNIQUE,
                     image_data BLOB,
-                    image_zh_name Char(30)
+                    image_zh_name Char(30),
+                    image_source_type Char(30)
                 );"""
         )
         # 一次只能执行一条sql语句
@@ -52,26 +51,26 @@ class ImageManager:
         self.conn.commit()
 
     # 添加或修改 图片数据表
-    def add_or_modify_IMAGE_DATA(self, image_name: str, image_data, image_zh_name: str):
+    def add_or_modify_IMAGE_DATA(
+        self, image_name: str, image_data, image_zh_name: str, image_source_type: str
+    ):
         sql = f"select * from IMAGE_DATA where image_name=?"
         c = self.conn.cursor()
         c.execute(sql, (image_name,))
         data = c.fetchone()
         if not data:  # create user
-            sql = f"INSERT INTO IMAGE_DATA (image_data, image_zh_name,image_name) VALUES (?, ?, ?);"
+            sql = f"INSERT INTO IMAGE_DATA (image_data, image_zh_name,image_source_type,image_name) VALUES (?, ?,?, ?);"
         else:
-            sql = (
-                f"UPDATE IMAGE_DATA set image_data=?,image_zh_name=? where image_name=?"
-            )
+            sql = f"UPDATE IMAGE_DATA set image_data=?,image_zh_name=?,image_source_type=? where image_name=?"
             image_name = data[0]
 
-        c.execute(sql, (image_data, image_zh_name, image_name))
+        c.execute(sql, (image_data, image_zh_name, image_source_type, image_name))
         self.conn.commit()
 
     # 取图片信息(图片二进制数据)
     # return value: visible_fc, visible_card, fc_code, card
     def get_img_data(self, image_name) -> []:
-        sql = f"select image_data,image_zh_name from IMAGE_DATA where image_name=?"
+        sql = f"select image_data,image_zh_name,image_source_type from IMAGE_DATA where image_name=?"
         c = self.conn.cursor()
         c.execute(sql, (image_name,))
         data = c.fetchone()
