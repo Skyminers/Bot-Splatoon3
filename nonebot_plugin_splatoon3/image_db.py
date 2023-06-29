@@ -4,6 +4,8 @@ from pathlib import Path
 
 from nonebot.log import logger
 
+from nonebot_plugin_splatoon3.utils import WeaponData
+
 DATABASE_path = Path(os.path.join(os.path.dirname(__file__), "data", "image"))
 DATABASE = Path(DATABASE_path, "image.db")
 
@@ -42,6 +44,8 @@ class ImageDB:
     # 创建表
     def _create_table(self):
         c = self.conn.cursor()
+        # 一次只能执行一条sql语句
+        # 创建图片素材数据库
         c.execute(
             """CREATE TABLE IMAGE_DATA(
                     id INTEGER PRIMARY KEY AUTOINCREMENT ,
@@ -51,13 +55,32 @@ class ImageDB:
                     image_source_type Char(30)
                 );"""
         )
-        # 一次只能执行一条sql语句
+        # 创建合成图片缓存数据库
         c.execute(
             """CREATE TABLE IMAGE_TEMP(
                     id INTEGER PRIMARY KEY AUTOINCREMENT ,
                     trigger_word Char(30) UNIQUE,
                     image_data BLOB,
                     image_expire_time TEXT
+                );"""
+        )
+        # 创建图片素材数据库
+        c.execute(
+            """CREATE TABLE Weapon_Data(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT ,
+                    name Char(30) UNIQUE,
+                    image BLOB,
+                    sub_name Char(30),
+                    sub_image BLOB,
+                    special_name Char(30),
+                    special_image BLOB,
+                    special_points int,
+                    level int,
+                    weapon_class Char(30),
+                    weapon_class_image BLOB,
+                    zh_name Char(30),
+                    zh_sub_name Char(30),
+                    zh_special_name Char(30)
                 );"""
         )
         self.conn.commit()
@@ -74,8 +97,6 @@ class ImageDB:
             sql = f"INSERT INTO IMAGE_DATA (image_data, image_zh_name,image_source_type,image_name) VALUES (?, ?,?, ?);"
         else:
             sql = f"UPDATE IMAGE_DATA set image_data=?,image_zh_name=?,image_source_type=? where image_name=?"
-            image_name = data[0]
-
         c.execute(sql, (image_data, image_zh_name, image_source_type, image_name))
         self.conn.commit()
 
@@ -101,7 +122,6 @@ class ImageDB:
             sql = f"INSERT INTO IMAGE_TEMP ( image_data,image_expire_time,trigger_word) VALUES (?, ?, ?);"
         else:
             sql = f"UPDATE IMAGE_TEMP set image_data=?,image_expire_time=? where trigger_word=?"
-            image_name = data[0]
 
         c.execute(sql, (image_data, image_expire_time, trigger_word))
         self.conn.commit()
@@ -117,3 +137,68 @@ class ImageDB:
         data = c.fetchone()
         self.conn.commit()
         return data
+
+    # 添加或修改 武器数据表
+    def add_or_modify_Weapon_Data(self, weapon: WeaponData):
+        sql = f"select * from Weapon_Data where name=?"
+        c = self.conn.cursor()
+        c.execute(sql, (weapon.weapon_name,))
+        data = c.fetchone()
+        if not data:  # create user
+            sql = (
+                f"INSERT INTO Weapon_Data (image,sub_name,sub_image,special_name,special_image,special_points,"
+                f"level,weapon_class,weapon_class_image,zh_name,zh_sub_name,zh_special_name,name) "
+                f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);"
+            )
+        else:
+            sql = (
+                f"UPDATE Weapon_Data set image=?,sub_name=?,sub_image=?,special_name=?,special_image=?,"
+                f"special_points=?,level=?,weapon_class=?,weapon_class_image=?,zh_name=?,zh_sub_name=?,"
+                f"zh_special_name=? where name=?"
+            )
+        c.execute(
+            sql,
+            (
+                weapon.image,
+                weapon.sub_name,
+                weapon.sub_image,
+                weapon.special_name,
+                weapon.special_image,
+                weapon.special_points,
+                weapon.level,
+                weapon.weapon_class,
+                weapon.weapon_class_image,
+                weapon.zh_name,
+                weapon.zh_sub_name,
+                weapon.zh_special_name,
+                weapon.name,
+            ),
+        )
+        self.conn.commit()
+
+    # 取武器数据
+    def get_weapon_data(self, weapon_name) -> WeaponData:
+        sql = (
+            f"select name,image,sub_name,sub_image,special_name,special_image,special_points,level,weapon_class,"
+            f"weapon_class_image,zh_name,zh_sub_name,zh_special_name from Weapon_Data where name=?"
+        )
+        c = self.conn.cursor()
+        c.execute(sql, (weapon_name,))
+        row = c.fetchone()
+        weapon = WeaponData(
+            row[0],
+            row[1],
+            row[2],
+            row[3],
+            row[4],
+            row[5],
+            row[6],
+            row[7],
+            row[8],
+            row[9],
+            row[10],
+            row[11],
+            row[12],
+        )
+        self.conn.commit()
+        return weapon

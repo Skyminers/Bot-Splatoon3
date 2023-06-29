@@ -65,6 +65,39 @@ class ImageInfo:
         self.source_type = source_type
 
 
+# 类 数据库 Weapon_Data
+class WeaponData:
+    def __init__(
+        self,
+        name,
+        image,
+        sub_name,
+        sub_image,
+        special_name,
+        special_image,
+        special_points,
+        level,
+        weapon_class,
+        weapon_class_image,
+        zh_name,
+        zh_sub_name,
+        zh_special_name,
+    ):
+        self.name = name
+        self.image = image
+        self.sub_name = sub_name
+        self.sub_image = sub_image
+        self.special_name = special_name
+        self.special_image = special_image
+        self.special_points = special_points
+        self.level = level
+        self.weapon_class = weapon_class
+        self.weapon_class_image = weapon_class_image
+        self.zh_name = zh_name
+        self.zh_sub_name = zh_sub_name
+        self.zh_special_name = zh_special_name
+
+
 # 批量替换文本
 def multiple_replace(text):
     for key in dict_keyword_replace:
