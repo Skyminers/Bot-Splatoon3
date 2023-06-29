@@ -67,21 +67,18 @@ class ImageInfo:
 
 # 类 数据库 Weapon_Data
 class WeaponData:
+    # zh 字段暂且预留，方便后续翻译的进行
+    # 为了便于先进行 INFO 信息的查询，image 字段默认留空
     def __init__(
         self,
-        name,
-        image,
-        sub_name,
-        sub_image,
-        special_name,
-        special_image,
-        special_points,
-        level,
-        weapon_class,
-        weapon_class_image,
-        zh_name,
-        zh_sub_name,
-        zh_special_name,
+        name, sub_name, special_name, special_points, level, weapon_class,
+        image=None,
+        sub_image=None,
+        special_image=None,
+        weapon_class_image=None,
+        zh_name="None",
+        zh_sub_name="None",
+        zh_special_name="None",
     ):
         self.name = name
         self.image = image

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from nonebot.log import logger
 
-from nonebot_plugin_splatoon3.utils import WeaponData
+from .utils import WeaponData
 
 DATABASE_path = Path(os.path.join(os.path.dirname(__file__), "data", "image"))
 DATABASE = Path(DATABASE_path, "image.db")
@@ -17,13 +17,9 @@ class ImageDB:
         if not ImageDB._has_init:
             if not DATABASE_path.exists():
                 DATABASE.mkdir(parents=True)
-            if not DATABASE.exists():
-                self.database_path = DATABASE
-                self.conn = sqlite3.connect(self.database_path)
-                self._create_table()
-            else:
-                self.database_path = DATABASE
-                self.conn = sqlite3.connect(self.database_path)
+            self.database_path = DATABASE
+            self.conn = sqlite3.connect(self.database_path)
+            self._create_table()
             logger.info("图片数据库连接！")
 
     # 载入插件时，清空合成图片缓存表
@@ -47,7 +43,7 @@ class ImageDB:
         # 一次只能执行一条sql语句
         # 创建图片素材数据库
         c.execute(
-            """CREATE TABLE IMAGE_DATA(
+            """CREATE TABLE IF NOT EXISTS IMAGE_DATA(
                     id INTEGER PRIMARY KEY AUTOINCREMENT ,
                     image_name Char(30) UNIQUE,
                     image_data BLOB,
@@ -57,32 +53,39 @@ class ImageDB:
         )
         # 创建合成图片缓存数据库
         c.execute(
-            """CREATE TABLE IMAGE_TEMP(
+            """CREATE TABLE IF NOT EXISTS IMAGE_TEMP(
                     id INTEGER PRIMARY KEY AUTOINCREMENT ,
                     trigger_word Char(30) UNIQUE,
                     image_data BLOB,
                     image_expire_time TEXT
                 );"""
         )
-        # 创建图片素材数据库
+        # 创建武器信息数据库
         c.execute(
-            """CREATE TABLE Weapon_Data(
+            """CREATE TABLE IF NOT EXISTS WEAPON_INFO(
                     id INTEGER PRIMARY KEY AUTOINCREMENT ,
                     name Char(30) UNIQUE,
                     image BLOB,
                     sub_name Char(30),
-                    sub_image BLOB,
                     special_name Char(30),
-                    special_image BLOB,
                     special_points int,
                     level int,
                     weapon_class Char(30),
-                    weapon_class_image BLOB,
                     zh_name Char(30),
                     zh_sub_name Char(30),
                     zh_special_name Char(30)
                 );"""
         )
+        # 创建武器图片数据库
+        c.execute(
+            """CREATE TABLE IF NOT EXISTS WEAPON_IMAGES(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name Char(30),
+                    type Char(30),
+                    image BLOB
+                );"""
+        )
+        # 创建
         self.conn.commit()
 
     # 添加或修改 图片数据表
@@ -139,35 +142,31 @@ class ImageDB:
         return data
 
     # 添加或修改 武器数据表
-    def add_or_modify_Weapon_Data(self, weapon: WeaponData):
-        sql = f"select * from Weapon_Data where name=?"
+    def add_or_modify_weapon_info(self, weapon: WeaponData):
+        sql = f"select * from WEAPON_INFO where name=?"
         c = self.conn.cursor()
-        c.execute(sql, (weapon.weapon_name,))
+        c.execute(sql, (weapon.name,))
         data = c.fetchone()
         if not data:  # create user
             sql = (
-                f"INSERT INTO Weapon_Data (image,sub_name,sub_image,special_name,special_image,special_points,"
-                f"level,weapon_class,weapon_class_image,zh_name,zh_sub_name,zh_special_name,name) "
-                f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);"
+                f"INSERT INTO WEAPON_INFO (sub_name,special_name,special_points,"
+                f"level,weapon_class,zh_name,zh_sub_name,zh_special_name,name) "
+                f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
             )
         else:
             sql = (
-                f"UPDATE Weapon_Data set image=?,sub_name=?,sub_image=?,special_name=?,special_image=?,"
-                f"special_points=?,level=?,weapon_class=?,weapon_class_image=?,zh_name=?,zh_sub_name=?,"
+                f"UPDATE WEAPON_INFO set sub_name=?,special_name=?,"
+                f"special_points=?,level=?,weapon_class=?,zh_name=?,zh_sub_name=?,"
                 f"zh_special_name=? where name=?"
             )
         c.execute(
             sql,
             (
-                weapon.image,
                 weapon.sub_name,
-                weapon.sub_image,
                 weapon.special_name,
-                weapon.special_image,
                 weapon.special_points,
                 weapon.level,
                 weapon.weapon_class,
-                weapon.weapon_class_image,
                 weapon.zh_name,
                 weapon.zh_sub_name,
                 weapon.zh_special_name,
@@ -177,10 +176,10 @@ class ImageDB:
         self.conn.commit()
 
     # 取武器数据
-    def get_weapon_data(self, weapon_name) -> WeaponData:
+    def get_weapon_info(self, weapon_name) -> WeaponData:
         sql = (
-            f"select name,image,sub_name,sub_image,special_name,special_image,special_points,level,weapon_class,"
-            f"weapon_class_image,zh_name,zh_sub_name,zh_special_name from Weapon_Data where name=?"
+            f"select name,sub_name,special_name,special_points,level,weapon_class,"
+            f"zh_name,zh_sub_name,zh_special_name from WEAPON_INFO where name=?"
         )
         c = self.conn.cursor()
         c.execute(sql, (weapon_name,))
@@ -196,9 +195,37 @@ class ImageDB:
             row[7],
             row[8],
             row[9],
-            row[10],
-            row[11],
-            row[12],
         )
         self.conn.commit()
         return weapon
+
+    # 取武器图片数据
+    # type_name = (main|sub|special|class)
+    def add_or_modify_weapon_images(self, name, type_name, image):
+        sql = f"select * from WEAPON_IMAGES where name=?"
+        c = self.conn.cursor()
+        c.execute(sql, (name,))
+        data = c.fetchone()
+        if not data:  # create user
+            sql = (
+                f"INSERT INTO WEAPON_IMAGES (image, name, type) VALUES (?, ?, ?);"
+            )
+        else:
+            # 需要使用两个条件进行判定，因为有重名图片
+            sql = (
+                f"UPDATE WEAPON_IMAGES set image=? where name=? AND type=?"
+            )
+        c.execute(sql, (image, name, type_name))
+        self.conn.commit()
+
+    # 取武器图片数据
+    def get_weapon_image(self, name, type_name) -> []:
+        sql = (
+            f"select image from WEAPON_IMAGES where name=? AND type=?"
+        )
+        c = self.conn.cursor()
+        # 需要使用两个条件进行判定，因为有重名图片
+        c.execute(sql, (name, type_name))
+        data = c.fetchone()
+        self.conn.commit()
+        return data
