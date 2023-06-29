@@ -2,6 +2,8 @@ import json
 
 import httpx
 import urllib3
+
+from nonebot.log import logger
 from playwright.async_api import Browser, async_playwright
 
 from .translation import (
@@ -46,8 +48,8 @@ async def get_screenshot(shoturl, shotpath=None):
             return await page.screenshot()
         else:
             await page.screenshot(path=shotpath)
-    except Exception:
-        print("Error in screenshot")
+    except Exception as e:
+        logger.error("Screenshot failed")
         return await page.screenshot(full_page=True)
     finally:
         await context.close()
@@ -69,7 +71,7 @@ def get_schedule_data():
 
     global schedule_res
     if schedule_res is None or check_expire_schedule(schedule_res):
-        print("nonebot_plugin_splatoon3: 重新请求:日程数据")
+        logger.info("重新请求:日程数据")
         with httpx.Client() as client:
             result = client.get("https://splatoon3.ink/data/schedules.json")
             schedule_res = json.load(result)
@@ -99,7 +101,6 @@ def get_coop_info(all=None):
                 get_trans_weapon(sch["setting"]["weapons"][i]["__splatoon3ink_id"]),
                 "武器",
             )
-            for i in range(4)
         ]
 
     # 取时间信息

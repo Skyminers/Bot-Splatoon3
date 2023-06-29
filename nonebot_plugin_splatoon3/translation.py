@@ -1,6 +1,8 @@
 import json
 import httpx
 
+from nonebot.log import logger
+
 from .utils import get_time_ymd
 
 # 翻译字典
@@ -24,7 +26,7 @@ def get_trans_data():
     global trans_res
     global trans_res_save_ymd
     if trans_res is None or check_expire_trans(trans_res_save_ymd):
-        print("nonebot_plugin_splatoon3: 重新请求:翻译文本")
+        logger.info("重新请求:翻译文本")
         with httpx.Client() as client:
             result = client.get("https://splatoon3.ink/data/locale/zh-CN.json")
             trans_res = json.load(result)

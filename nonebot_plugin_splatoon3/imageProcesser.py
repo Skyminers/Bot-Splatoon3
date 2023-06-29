@@ -4,6 +4,7 @@ import random
 from io import BytesIO
 import urllib3
 from PIL import Image, ImageDraw, ImageFont
+from nonebot.log import logger
 
 from .translation import get_trans_stage, get_trans_game_mode
 from .utils import *
@@ -54,8 +55,8 @@ def get_save_file(img: ImageInfo):
     if not res:
         image_data = get_file_url(img.url)
         if len(image_data) != 0:
-            print(
-                "nonebot_plugin_splatoon3: [ImageManager] new image {}".format(img.name)
+            logger.info(
+                "[ImageManager] new image {}".format(img.name)
             )
             imageManager.add_or_modify_IMAGE_DATA(
                 img.name, image_data, img.zh_name, img.source_type

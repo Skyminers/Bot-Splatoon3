@@ -4,6 +4,7 @@ from nonebot import on_command, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
+from nonebot.log import logger
 
 from .image import (
     get_save_temp_image,
@@ -41,7 +42,7 @@ async def _(matcher: Matcher, event: MessageEvent):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换
     plain_text = multiple_replace(plain_text)
-    print("nonebot_plugin_splatoon3: 同义文本替换后触发词为:" + plain_text + "\n")
+    logger.info("同义文本替换后触发词为:" + plain_text + "\n")
     # 判断是否满足进一步正则
     num_list = []
     contest_match = None
@@ -95,7 +96,7 @@ async def _(matcher: Matcher, event: MessageEvent):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换  同时替换.。\/ 等前缀触发词
     plain_text = multiple_replace(plain_text)
-    print("nonebot_plugin_splatoon3: 同义文本替换后触发词为:" + plain_text)
+    logger.info("同义文本替换后触发词为:" + plain_text)
     # 判断是否满足进一步正则
     num_list = []
     contest_match = None
@@ -199,7 +200,7 @@ async def _(matcher: Matcher, event: MessageEvent):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换
     plain_text = multiple_replace(plain_text)
-    print("nonebot_plugin_splatoon3: 同义文本替换后触发词为:" + plain_text + "\n")
+    logger.info("nonebot_plugin_splatoon3: 同义文本替换后触发词为:" + plain_text + "\n")
     # 判断是否满足进一步正则
     all = False
     if "全部" in plain_text:
@@ -223,7 +224,7 @@ async def _(matcher: Matcher, event: MessageEvent):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换
     plain_text = multiple_replace(plain_text)
-    print("nonebot_plugin_splatoon3: 同义文本替换后触发词为:" + plain_text + "\n")
+    logger.info("nonebot_plugin_splatoon3: 同义文本替换后触发词为:" + plain_text + "\n")
     # 判断是否满足进一步正则
     # 随机武器
     if re.search("^随机武器$", plain_text):

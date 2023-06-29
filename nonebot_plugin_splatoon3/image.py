@@ -1,5 +1,7 @@
 import datetime
 
+from nonebot.log import logger
+
 from .data_source import get_coop_info, get_stage_info, get_screenshot
 from .imageProcesser import (
     get_coop_stages,
@@ -30,9 +32,9 @@ def get_stages_image(*args):
     num_list = args[0]
     contest_match = args[1]
     rule_match = args[2]
-    print("nonebot_plugin_splatoon3: num_list为:" + str(num_list))
-    print("nonebot_plugin_splatoon3: contest_match为:" + str(contest_match))
-    print("nonebot_plugin_splatoon3: rule_match为:" + str(rule_match))
+    logger.info("num_list为:" + str(num_list))
+    logger.info("contest_match为:" + str(contest_match))
+    logger.info("rule_match为:" + str(rule_match))
     # 获取数据
     schedule, new_num_list, new_contest_match, new_rule_match = get_stage_info(
         num_list, contest_match, rule_match
@@ -77,8 +79,8 @@ def get_save_temp_image(trigger_word, func, *args):
         image_data = func(*args)
         image = image_to_base64(image_data)
         if len(image) != 0:
-            print(
-                "nonebot_plugin_splatoon3: [ImageManager] new temp image {}".format(
+            logger.info(
+                "[ImageManager] new temp image {}".format(
                     trigger_word
                 )
             )
@@ -95,8 +97,8 @@ def get_save_temp_image(trigger_word, func, *args):
             image_data = func(*args)
             image = image_to_base64(image_data)
             if len(image) != 0:
-                print(
-                    "nonebot_plugin_splatoon3: [ImageManager] update temp image {}".format(
+                logger.info(
+                    "[ImageManager] update temp image {}".format(
                         trigger_word
                     )
                 )
@@ -104,5 +106,5 @@ def get_save_temp_image(trigger_word, func, *args):
                     trigger_word, image, get_expire_time()
                 )
             return image
-        print("nonebot_plugin_splatoon3: 数据库内存在时效范围内的缓存图片，将从数据库读取缓存图片")
+        logger.info("数据库内存在时效范围内的缓存图片，将从数据库读取缓存图片")
         return image_to_base64(Image.open(io.BytesIO(res[0])))

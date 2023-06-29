@@ -2,6 +2,8 @@ import os
 import sqlite3
 from pathlib import Path
 
+from nonebot.log import logger
+
 DATABASE_path = Path(os.path.join(os.path.dirname(__file__), "data", "image"))
 DATABASE = Path(DATABASE_path, "image.db")
 
@@ -20,12 +22,12 @@ class ImageManager:
             else:
                 self.database_path = DATABASE
                 self.conn = sqlite3.connect(self.database_path)
-            print("nonebot_plugin_splatoon3: 图片数据库连接！")
+            logger.info("图片数据库连接！")
 
     # 关闭数据库
     def close(self):
         self.conn.close()
-        print("nonebot_plugin_splatoon3: 图片数据库关闭")
+        logger.info("图片数据库关闭")
 
     # 创建表
     def _create_table(self):
