@@ -39,6 +39,11 @@ def reload_weapon_info():
             weapon_data.zh_sub_name = dict_weapon_sub_trans[weapon_data.sub_name]
         if weapon_data.special_name in dict_weapon_special_trans:
             weapon_data.zh_special_name = dict_weapon_special_trans[weapon_data.special_name]
+        logger.info("Reload Weapon data: {}, {}, {}, {}".format(
+                    weapon_data.name,
+                    weapon_data.sub_name,
+                    weapon_data.special_name,
+                    weapon_data.weapon_class))
         imageDB.add_or_modify_weapon_info(weapon_data)
         names = [weapon_data.name, weapon_data.sub_name, weapon_data.special_name, weapon_data.weapon_class]
         type_names = ['Main', 'Sub', 'Special', 'Class']

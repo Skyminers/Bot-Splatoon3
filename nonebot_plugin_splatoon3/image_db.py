@@ -200,9 +200,9 @@ class ImageDB:
     # 取武器图片数据
     # type_name = (main|sub|special|class)
     def add_or_modify_weapon_images(self, name, type_name, image):
-        sql = f"select * from WEAPON_IMAGES where name=?"
+        sql = f"select * from WEAPON_IMAGES where name=? AND type=?"
         c = self.conn.cursor()
-        c.execute(sql, (name,))
+        c.execute(sql, (name, type_name))
         data = c.fetchone()
         if not data:  # create user
             sql = (
