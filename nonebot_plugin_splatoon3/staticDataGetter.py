@@ -13,7 +13,7 @@ from .translation import (
 weapon_url = "https://splatoonwiki.org/wiki/List_of_weapons_in_Splatoon_3"
 
 
-# 重载武器数据，包括：武器图片，副武器图片，大招图片，武器配置信息
+# 爬取wiki数据 来重载武器数据，包括：武器图片，副武器图片，大招图片，武器配置信息
 def reload_weapon_info():
     global weapon_url
     response = requests.get(weapon_url)
@@ -51,7 +51,9 @@ def reload_weapon_info():
             weapon_data.zh_special_name = dict_weapon_special_trans[
                 weapon_data.special_name
             ]
+        # 数据库新增 装备信息
         imageDB.add_or_modify_weapon_info(weapon_data)
+        # 数据库新增 装备图片
         names = [
             weapon_data.name,
             weapon_data.sub_name,
@@ -73,13 +75,13 @@ def reload_weapon_info():
             )
 
 
-# 向数据库新增武器图片二进制文件
+# 向数据库新增 武器图片 二进制文件
 def push_weapon_images(img: ImageInfo):
     res = imageDB.get_weapon_image(img.name, img.source_type)
     if not res:
         image_data = get_file_url(img.url)
         if len(image_data) != 0:
-            logger.info("[ImageDB] new image {}".format(img.name))
+            logger.info("[ImageDB] new weapon image {}".format(img.name))
             imageDB.add_or_modify_weapon_images(
                 img.name,
                 img.source_type,
