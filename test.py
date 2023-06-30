@@ -1,11 +1,12 @@
 from nonebot_plugin_splatoon3.image import *
+from nonebot_plugin_splatoon3.staticDataGetter import reload_weapon_info
 
 # 测试打工图片
 res = get_coop_stages_image(True)
-# res.show()
-image = image_to_base64(res)
-file = open("../output/coop.jpg", "wb")
-file.write(image)
+res.show()
+
+# 测试重载武器数据
+# reload_weapon_info()
 
 #
 # # 测试 图
@@ -38,17 +39,14 @@ file.write(image)
 
 
 # 测试nonebot 对战 命令文本触发
-plain_text = "全部图"
-# 传递函数指针
-num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-# num_list = list(set([int(x) for x in plain_text[:-2]]))
-num_list.sort()
-
-# stage_mode = plain_text[-2:]
-rule_match = None
-contest_match = None
-# func = get_stages_image
+# plain_text = "全部图"
+#
+# num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+# # num_list = list(set([int(x) for x in plain_text[:-2]]))
+# num_list.sort()
+#
+# # stage_mode = plain_text[-2:]
+# rule_match = None
+# contest_match = None
 # res = get_stages_image(num_list, contest_match, rule_match)
-res.show()
-# file = open("../output/stage.jpg", "wb")
-# file.write(res)
+# res.show()

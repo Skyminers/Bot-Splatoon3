@@ -61,7 +61,7 @@ def get_save_file(img: ImageInfo):
             )
         return Image.open(io.BytesIO(image_data))
     else:
-        return Image.open(io.BytesIO(res[0]))
+        return Image.open(io.BytesIO(res.get("image_data")))
 
 
 # 取文件路径
