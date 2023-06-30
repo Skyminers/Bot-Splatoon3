@@ -205,22 +205,16 @@ class ImageDB:
         c.execute(sql, (name,))
         data = c.fetchone()
         if not data:  # create user
-            sql = (
-                f"INSERT INTO WEAPON_IMAGES (image, name, type) VALUES (?, ?, ?);"
-            )
+            sql = f"INSERT INTO WEAPON_IMAGES (image, name, type) VALUES (?, ?, ?);"
         else:
             # 需要使用两个条件进行判定，因为有重名图片
-            sql = (
-                f"UPDATE WEAPON_IMAGES set image=? where name=? AND type=?"
-            )
+            sql = f"UPDATE WEAPON_IMAGES set image=? where name=? AND type=?"
         c.execute(sql, (image, name, type_name))
         self.conn.commit()
 
     # 取武器图片数据
     def get_weapon_image(self, name, type_name) -> []:
-        sql = (
-            f"select image from WEAPON_IMAGES where name=? AND type=?"
-        )
+        sql = f"select image from WEAPON_IMAGES where name=? AND type=?"
         c = self.conn.cursor()
         # 需要使用两个条件进行判定，因为有重名图片
         c.execute(sql, (name, type_name))

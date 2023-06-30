@@ -14,11 +14,9 @@ dict_trans = {
     "TURF_WAR": "占地对战",
 }
 
-dict_weapon_trans = {
+dict_weapon_trans = {}
 
-}
-
-# 翻译字典 装备 副武器
+# 规范翻译字典 装备 副武器
 dict_weapon_sub_trans = {
     "Splat Bomb": "斯普拉炸弹",
     "Suction Bomb": "吸盘炸弹",
@@ -36,7 +34,7 @@ dict_weapon_sub_trans = {
     "Torpedo": "鱼雷",
 }
 
-# 翻译字典 装备 大招
+# 规范翻译字典 装备 大招
 dict_weapon_special_trans = {
     "Trizooka": "终极发射",
     "Big Bubbler": "巨大防护罩",
@@ -55,6 +53,21 @@ dict_weapon_special_trans = {
     "Tacticooler": "能量站",
     "Super Chump": "诱饵烟花",
     "Kraken Royale": "帝王鱿鱼",
+}
+
+# 规范翻译字典 装备 大招
+dict_weapon_class_trans = {
+    "Shooter": "射击枪",
+    "Blaster": "爆破枪",
+    "Brella": "伞",
+    "Brush": "笔刷",
+    "Charger": "狙击枪",
+    "Dualie": "双枪",
+    "Roller": "滚筒",
+    "Slosher": "泼桶",
+    "Splatana": "刮水刀",
+    "Splatling": "旋转枪",
+    "Stringer": "弓",
 }
 
 # 鲑鱼跑模式
