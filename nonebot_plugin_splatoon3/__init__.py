@@ -15,6 +15,7 @@ from .image import (
 from .imageProcesser import imageDB
 from .utils import multiple_replace, dict_contest, dict_rule
 from .data_source import get_screenshot
+from .adminMatcher import matcher_admin
 
 # 初始化插件时清空合成图片缓存表
 imageDB.clean_image_temp()
