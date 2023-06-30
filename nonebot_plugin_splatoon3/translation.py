@@ -14,6 +14,49 @@ dict_trans = {
     "TURF_WAR": "占地对战",
 }
 
+dict_weapon_trans = {
+
+}
+
+# 翻译字典 装备 副武器
+dict_weapon_sub_trans = {
+    "Splat Bomb": "斯普拉炸弹",
+    "Suction Bomb": "吸盘炸弹",
+    "Burst Bomb": "快速炸弹",
+    "Sprinkler": "洒墨器",
+    "Splash Wall": "斯普拉防护墙",
+    "Fizzy Bomb": "碳酸炸弹",
+    "Curling Bomb": "冰壶炸弹",
+    "Autobomb": "机器人炸弹",
+    "Squid Beakon": "跳跃信标",
+    "Point Sensor": "定点侦测器",
+    "Ink Mine": "墨汁陷阱",
+    "Toxic Mist": "毒雾",
+    "Angle Shooter": "标线器",
+    "Torpedo": "鱼雷",
+}
+
+# 翻译字典 装备 大招
+dict_weapon_special_trans = {
+    "Trizooka": "终极发射",
+    "Big Bubbler": "巨大防护罩",
+    "Zipcaster": "触手喷射",
+    "Tenta Missiles": "多重导弹",
+    "Ink Storm": "墨雨云",
+    "Booyah Bomb": "赞气弹",
+    "Wave Breaker": "弹跳声呐",
+    "Ink Vac": "吸墨机",
+    "Killer Wail 5.1": "喇叭辐射5.1ch",
+    "Inkjet": "喷射背包",
+    "Ultra Stamp": "终极印章",
+    "Crab Tank": "螃蟹坦克",
+    "Reefslider": "鲨鱼坐骑",
+    "Triple Inkstrike": "三重龙卷风",
+    "Tacticooler": "能量站",
+    "Super Chump": "诱饵烟花",
+    "Kraken Royale": "帝王鱿鱼",
+}
+
 # 鲑鱼跑模式
 list_salmonrun_mode = ["一般打工", "团队打工", "大型跑"]
 

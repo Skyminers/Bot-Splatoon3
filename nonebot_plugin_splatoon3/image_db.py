@@ -65,7 +65,6 @@ class ImageDB:
             """CREATE TABLE IF NOT EXISTS WEAPON_INFO(
                     id INTEGER PRIMARY KEY AUTOINCREMENT ,
                     name Char(30) UNIQUE,
-                    image BLOB,
                     sub_name Char(30),
                     special_name Char(30),
                     special_points int,
@@ -185,16 +184,15 @@ class ImageDB:
         c.execute(sql, (weapon_name,))
         row = c.fetchone()
         weapon = WeaponData(
-            row[0],
-            row[1],
-            row[2],
-            row[3],
-            row[4],
-            row[5],
-            row[6],
-            row[7],
-            row[8],
-            row[9],
+            name=row[0],
+            sub_name=row[1],
+            special_name=row[2],
+            special_points=row[3],
+            level=row[4],
+            weapon_class=row[5],
+            zh_name=row[6],
+            zh_sub_name=row[7],
+            zh_special_name=row[8],
         )
         self.conn.commit()
         return weapon
