@@ -6,11 +6,15 @@ import urllib3
 from nonebot.log import logger
 from playwright.async_api import Browser, async_playwright
 
+from .imageProcesser import imageDB
 from .translation import (
     get_trans_stage,
     get_trans_weapon,
     get_trans_data,
     list_salmonrun_mode,
+    dict_contest_trans,
+    dict_rule_trans,
+    image_type,
 )
 from .utils import *
 
@@ -79,7 +83,7 @@ def get_schedule_data():
 
 
 # 取 打工 信息
-def get_coop_info(all=None):
+def get_coop_info(_all=None):
     # 取地图信息
     def get_stage_image_info(sch):  # sch为schedule[idx]
         return ImageInfo(
@@ -139,7 +143,7 @@ def get_coop_info(all=None):
     boss = []
     mode = []
     schedule = regular_schedule
-    if not all:
+    if not _all:
         # 只输出两排
         for i in range(2):
             stage.append(get_stage_image_info(schedule[i]))
@@ -204,6 +208,46 @@ def get_coop_info(all=None):
     return stage, weapon, time, boss, mode
 
 
+# 取 装备信息
+def get_weapon_info(list_weapon: list):
+    weapon1 = []
+    weapon2 = []
+    for v in list_weapon:
+        _type = v["type"]
+        name = v["name"]
+        zh_weapon_class = ""
+        zh_weapon_sub = ""
+        zh_weapon_special = ""
+        if _type == image_type[3]:
+            # class
+            zh_weapon_class = name
+        elif _type == image_type[1]:
+            # sub
+            zh_weapon_sub = name
+        elif _type == image_type[2]:
+            # special
+            zh_weapon_special = name
+        weaponData = imageDB.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special)
+        weaponData2 = imageDB.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special)
+        # 获取图片数据
+        # Main
+        weaponData.image = imageDB.get_weapon_image(weaponData.name, image_type[0]).get("image")
+        weaponData2.image = imageDB.get_weapon_image(weaponData2.name, image_type[0]).get("image")
+        # Sub
+        weaponData.sub_image = imageDB.get_weapon_image(weaponData.sub_name, image_type[1]).get("image")
+        weaponData2.sub_image = imageDB.get_weapon_image(weaponData2.sub_name, image_type[1]).get("image")
+        # Special
+        weaponData.special_image = imageDB.get_weapon_image(weaponData.special_name, image_type[2]).get("image")
+        weaponData2.special_image = imageDB.get_weapon_image(weaponData2.special_name, image_type[2]).get("image")
+        # Class
+        weaponData.weapon_class_image = imageDB.get_weapon_image(weaponData.weapon_class, image_type[3]).get("image")
+        weaponData2.weapon_class_image = imageDB.get_weapon_image(weaponData2.weapon_class, image_type[3]).get("image")
+        # 添加
+        weapon1.append(weaponData)
+        weapon2.append(weaponData2)
+    return weapon1, weapon2
+
+
 # 取 图 信息
 def get_stage_info(num_list=None, contest_match=None, rule_match=None):
     if num_list is None:
@@ -212,11 +256,11 @@ def get_stage_info(num_list=None, contest_match=None, rule_match=None):
     get_trans_data()
     # 竞赛 规则
     if contest_match != None and contest_match != "":
-        new_contest_match = dict_contest[contest_match]
+        new_contest_match = dict_contest_trans[contest_match]
     else:
         new_contest_match = contest_match
     if rule_match != None and rule_match != "":
-        new_rule_match = dict_rule[rule_match]
+        new_rule_match = dict_rule_trans[rule_match]
     else:
         new_rule_match = rule_match
 

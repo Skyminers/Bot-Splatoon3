@@ -56,9 +56,7 @@ def get_save_file(img: ImageInfo):
         image_data = get_file_url(img.url)
         if len(image_data) != 0:
             logger.info("[ImageDB] new image {}".format(img.name))
-            imageDB.add_or_modify_IMAGE_DATA(
-                img.name, image_data, img.zh_name, img.source_type
-            )
+            imageDB.add_or_modify_IMAGE_DATA(img.name, image_data, img.zh_name, img.source_type)
         return Image.open(io.BytesIO(image_data))
     else:
         return Image.open(io.BytesIO(res.get("image_data")))
@@ -90,9 +88,7 @@ def circle_corner(img, radii):
     alpha = Image.new("L", img.size, 255)
     alpha.paste(circle.crop((0, 0, radii, radii)), (0, 0))  # 左上角
     alpha.paste(circle.crop((radii, 0, radii * 2, radii)), (w - radii, 0))  # 右上角
-    alpha.paste(
-        circle.crop((radii, radii, radii * 2, radii * 2)), (w - radii, h - radii)
-    )  # 右下角
+    alpha.paste(circle.crop((radii, radii, radii * 2, radii * 2)), (w - radii, h - radii))  # 右下角
     alpha.paste(circle.crop((0, radii, radii, radii * 2)), (0, h - radii))  # 左下角
 
     img.putalpha(alpha)  # 白色区域透明可见，黑色区域不可见
@@ -101,10 +97,10 @@ def circle_corner(img, radii):
 
 # 图片 平铺填充
 def tiled_fill(big_image, small_image):
-    catImWidth, catImHeigh = big_image.size
-    faceImWidth, faceImHeigh = small_image.size
-    for left in range(0, catImWidth, faceImWidth):  # 横纵两个方向上用两个for循环实现平铺效果
-        for top in range(0, catImHeigh, faceImHeigh):
+    big_image_w, big_image_h = big_image.size
+    small_image_w, small_image_h = small_image.size
+    for left in range(0, big_image_w, small_image_w):  # 横纵两个方向上用两个for循环实现平铺效果
+        for top in range(0, big_image_h, small_image_h):
             paste_with_a(big_image, small_image, (left, top))
     return big_image
 
@@ -264,27 +260,16 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
                 cnt += 1
                 count_match_data += 1
         if contest_match is None or contest_match == "Ranked Challenge":
-            if (
-                rule_match is None
-                or rule_match
-                == ranked[idx]["bankaraMatchSettings"][0]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
                 cnt += 1
                 count_match_data += 1
         if contest_match is None or contest_match == "Ranked Open":
-            if (
-                rule_match is None
-                or rule_match
-                == ranked[idx]["bankaraMatchSettings"][1]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
                 cnt += 1
                 count_match_data += 1
 
         if contest_match is None or contest_match == "X Schedule":
-            if (
-                rule_match is None
-                or rule_match == xschedule[idx]["xMatchSetting"]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == xschedule[idx]["xMatchSetting"]["vsRule"]["rule"]:
                 cnt += 1
                 count_match_data += 1
 
@@ -351,11 +336,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
 
         # 第二排绘制 默认为真格区域
         if contest_match is None or contest_match == "Ranked Challenge":
-            if (
-                rule_match is None
-                or rule_match
-                == ranked[idx]["bankaraMatchSettings"][0]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
                 count_match_data += 1
                 stage = ranked[idx]["bankaraMatchSettings"][0]["vsStages"]
                 ranked_challenge_card = get_stage_card(
@@ -383,11 +364,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
 
         # 第三排绘制 默认为真格开放
         if contest_match is None or contest_match == "Ranked Open":
-            if (
-                rule_match is None
-                or rule_match
-                == ranked[idx]["bankaraMatchSettings"][1]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
                 count_match_data += 1
                 stage = ranked[idx]["bankaraMatchSettings"][1]["vsStages"]
                 ranked_challenge_card = get_stage_card(
@@ -415,10 +392,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
 
         # 第四排绘制 默认为X赛
         if contest_match is None or contest_match == "X Schedule":
-            if (
-                rule_match is None
-                or rule_match == xschedule[idx]["xMatchSetting"]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == xschedule[idx]["xMatchSetting"]["vsRule"]["rule"]:
                 count_match_data += 1
                 stage = xschedule[idx]["xMatchSetting"]["vsStages"]
                 ranked_challenge_card = get_stage_card(
@@ -450,9 +424,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
             start_time = time_converter(regular[idx]["startTime"])
             end_time = time_converter(regular[idx]["endTime"])
             # 绘制时间表头
-            time_head_bg = get_time_head_bg(
-                time_head_bg_size, date_time, start_time, end_time
-            )
+            time_head_bg = get_time_head_bg(time_head_bg_size, date_time, start_time, end_time)
             # 贴到大图上
             time_head_bg_pos = (
                 (background_size[0] - time_head_bg_size[0]) // 2,
@@ -536,9 +508,7 @@ def get_coop_stages(stage, weapon, time, boss, mode):
             # 绘制武器底图
             weapon_bg_img = Image.new("RGBA", weapon_size, (30, 30, 30))
             # 绘制武器图片
-            weapon_image = get_save_file(val_weapon).resize(
-                weapon_size, Image.ANTIALIAS
-            )
+            weapon_image = get_save_file(val_weapon).resize(weapon_size, Image.ANTIALIAS)
             paste_with_a(weapon_bg_img, weapon_image, (0, 0))
             coop_stage_bg.paste(weapon_bg_img, (120 * pos_weapon + 20, 60 + 160 * pos))
     for pos, val in enumerate(boss):

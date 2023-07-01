@@ -2,8 +2,8 @@ from nonebot_plugin_splatoon3.image import *
 from nonebot_plugin_splatoon3.staticDataGetter import reload_weapon_info
 
 # 测试打工图片
-res = get_coop_stages_image(True)
-res.show()
+# res = get_coop_stages_image(True)
+# res.show()
 
 # 测试重载武器数据
 # reload_weapon_info()
@@ -50,3 +50,8 @@ res.show()
 # contest_match = None
 # res = get_stages_image(num_list, contest_match, rule_match)
 # res.show()
+
+
+# 测试新版随机武器
+plain_text = "随机武器 泡 泡 泡 泡"
+res = get_random_weapon_image(plain_text)

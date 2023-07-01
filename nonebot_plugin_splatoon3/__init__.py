@@ -12,8 +12,9 @@ from .image import (
     get_random_weapon_image,
     get_stages_image,
 )
+from .translation import dict_contest_trans, dict_rule_trans, dict_keyword_replace
 from .imageProcesser import imageDB
-from .utils import multiple_replace, dict_contest, dict_rule
+from .utils import multiple_replace
 from .data_source import get_screenshot
 from .adminMatcher import matcher_admin
 
@@ -38,9 +39,7 @@ matcher_coop = on_regex(
 )
 
 # 其他命令 触发器
-matcher_else = on_regex(
-    "^[\\\/\.。]?(帮助|help|随机武器|装备|衣服|祭典|活动)$", priority=10, block=True
-)
+matcher_else = on_regex("^[\\\/\.。]?(帮助|help|(随机武器).*|装备|衣服|祭典|活动)$", priority=10, block=True)
 
 
 # 图 触发器处理 二次判断正则前，已经进行了同义词替换，二次正则只需要判断最终词
@@ -48,7 +47,7 @@ matcher_else = on_regex(
 async def _(matcher: Matcher, event: MessageEvent):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换
-    plain_text = multiple_replace(plain_text)
+    plain_text = multiple_replace(plain_text, dict_keyword_replace)
     logger.info("同义文本替换后触发词为:" + plain_text + "\n")
     # 判断是否满足进一步正则
     num_list = []
@@ -102,7 +101,7 @@ async def _(matcher: Matcher, event: MessageEvent):
 async def _(matcher: Matcher, event: MessageEvent):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换  同时替换.。\/ 等前缀触发词
-    plain_text = multiple_replace(plain_text)
+    plain_text = multiple_replace(plain_text, dict_keyword_replace)
     logger.info("同义文本替换后触发词为:" + plain_text)
     # 判断是否满足进一步正则
     num_list = []
@@ -120,7 +119,7 @@ async def _(matcher: Matcher, event: MessageEvent):
                 num_list = list(set([int(x) for x in plain_text[:-4]]))
                 num_list.sort()
         stage_mode = plain_text[-4:]
-        contest_match = dict_contest[stage_mode[2:]]
+        contest_match = dict_contest_trans[stage_mode[2:]]
         rule_match = stage_mode[:2]
         flag_match = True
     # 双筛选  竞赛  规则
@@ -206,16 +205,16 @@ async def _(matcher: Matcher, event: MessageEvent):
 async def _(matcher: Matcher, event: MessageEvent):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换
-    plain_text = multiple_replace(plain_text)
+    plain_text = multiple_replace(plain_text, dict_keyword_replace)
     logger.info("同义文本替换后触发词为:" + plain_text + "\n")
     # 判断是否满足进一步正则
-    all = False
+    _all = False
     if "全部" in plain_text:
-        all = True
+        _all = True
     # 传递函数指针
     func = get_coop_stages_image
     # 获取图片
-    img = get_save_temp_image(plain_text, func, all)
+    img = get_save_temp_image(plain_text, func, _all)
     # 发送消息
     await matcher.finish(
         MessageSegment.image(
@@ -230,18 +229,15 @@ async def _(matcher: Matcher, event: MessageEvent):
 async def _(matcher: Matcher, event: MessageEvent):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换
-    plain_text = multiple_replace(plain_text)
+    plain_text = multiple_replace(plain_text, dict_keyword_replace)
     logger.info("同义文本替换后触发词为:" + plain_text + "\n")
     # 判断是否满足进一步正则
     # 随机武器
-    if re.search("^随机武器$", plain_text):
+    if re.search("^随机武器.*$", plain_text):
         # 这个功能不能进行缓存，必须实时生成图
-        # 获取图片
-        weapon1 = None
-        weapon2 = None
-        img = get_random_weapon_image(weapon1, weapon2)
+        img = get_random_weapon_image(plain_text)
         # 发送消息
-        await matcher.finish(MessageSegment.image(file=img, cache=False))
+        # await matcher.finish(MessageSegment.image(file=img, cache=False))
     elif re.search("^祭典$", plain_text):
         # 获取祭典，网页图片中含有倒计时，不适合进行缓存
         # 速度较慢，可以考虑后续从 json 自行生成，后续的分支都是网页截图

@@ -72,7 +72,8 @@ class ImageDB:
                     weapon_class Char(30),
                     zh_name Char(30),
                     zh_sub_name Char(30),
-                    zh_special_name Char(30)
+                    zh_special_name Char(30),
+                    zh_weapon_class Char(30)
                 );"""
         )
         # 创建武器图片数据库
@@ -88,9 +89,7 @@ class ImageDB:
         self.conn.commit()
 
     # 添加或修改 图片数据表
-    def add_or_modify_IMAGE_DATA(
-        self, image_name: str, image_data, image_zh_name: str, image_source_type: str
-    ):
+    def add_or_modify_IMAGE_DATA(self, image_name: str, image_data, image_zh_name: str, image_source_type: str):
         sql = f"select * from IMAGE_DATA where image_name=?"
         c = self.conn.cursor()
         c.execute(sql, (image_name,))
@@ -110,7 +109,7 @@ class ImageDB:
         c.execute(sql, (image_name,))
         # 单行查询结果
         row = c.fetchone()
-        if not row == None:
+        if row is not None:
             # 查询有结果时将查询结果转换为字典
             result = dict(zip([column[0] for column in c.description], row))
         else:
@@ -119,9 +118,7 @@ class ImageDB:
         return result
 
     # 添加或修改 图片缓存表
-    def add_or_modify_IMAGE_TEMP(
-        self, trigger_word: str, image_data, image_expire_time: str
-    ):
+    def add_or_modify_IMAGE_TEMP(self, trigger_word: str, image_data, image_expire_time: str):
         sql = f"select * from IMAGE_TEMP where trigger_word=?"
         c = self.conn.cursor()
         c.execute(sql, (trigger_word,))
@@ -137,14 +134,12 @@ class ImageDB:
     # 取图片缓存(图片二进制数据)
     # return value: visible_fc, visible_card, fc_code, card
     def get_img_temp(self, trigger_word) -> dict:
-        sql = (
-            f"select image_data,image_expire_time from IMAGE_TEMP where trigger_word=?"
-        )
+        sql = f"select image_data,image_expire_time from IMAGE_TEMP where trigger_word=?"
         c = self.conn.cursor()
         c.execute(sql, (trigger_word,))
         # 单行查询结果
         row = c.fetchone()
-        if not row == None:
+        if not row is None:
             # 查询有结果时将查询结果转换为字典
             result = dict(zip([column[0] for column in c.description], row))
         else:
@@ -152,7 +147,7 @@ class ImageDB:
         self.conn.commit()
         return result
 
-    # 添加或修改 武器数据表
+    # 添加或修改 武器信息表
     def add_or_modify_weapon_info(self, weapon: WeaponData):
         sql = f"select * from WEAPON_INFO where name=?"
         c = self.conn.cursor()
@@ -161,14 +156,14 @@ class ImageDB:
         if not data:  # create user
             sql = (
                 f"INSERT INTO WEAPON_INFO (sub_name,special_name,special_points,"
-                f"level,weapon_class,zh_name,zh_sub_name,zh_special_name,name) "
+                f"level,weapon_class,zh_name,zh_sub_name,zh_special_name,zh_weapon_class,name) "
                 f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
             )
         else:
             sql = (
                 f"UPDATE WEAPON_INFO set sub_name=?,special_name=?,"
                 f"special_points=?,level=?,weapon_class=?,zh_name=?,zh_sub_name=?,"
-                f"zh_special_name=? where name=?"
+                f"zh_special_name=?,zh_weapon_class=? where name=?"
             )
         c.execute(
             sql,
@@ -181,22 +176,25 @@ class ImageDB:
                 weapon.zh_name,
                 weapon.zh_sub_name,
                 weapon.zh_special_name,
+                weapon.zh_weapon_class,
                 weapon.name,
             ),
         )
         self.conn.commit()
 
-    # 取 武器信息
-    def get_weapon_info(self, weapon_name) -> WeaponData:
+    # 条件查询 武器信息 并随机输出一条结果
+    def get_weapon_info(self, zh_weapon_class, zh_sub_name, zh_special_name) -> WeaponData:
+        # 故意创建一个无结果的where方便后续sql拼接
         sql = (
             f"select name,sub_name,special_name,special_points,level,weapon_class,"
-            f"zh_name,zh_sub_name,zh_special_name from WEAPON_INFO where name=?"
+            f"zh_name,zh_sub_name,zh_special_name,zh_weapon_class from WEAPON_INFO where "
+            f"zh_weapon_class=? or zh_sub_name=? or zh_special_name=? ORDER BY RANDOM() LIMIT 1"
         )
         c = self.conn.cursor()
-        c.execute(sql, (weapon_name,))
+        c.execute(sql, (zh_weapon_class, zh_sub_name, zh_special_name))
         row = c.fetchone()
         weapon: WeaponData
-        if not row == None:
+        if row is not None:
             # 查询有结果时将查询结果转换为字典
             result = dict(zip([column[0] for column in c.description], row))
             weapon = WeaponData(
@@ -209,9 +207,11 @@ class ImageDB:
                 zh_name=result.get("zh_name"),
                 zh_sub_name=result.get("zh_sub_name"),
                 zh_special_name=result.get("zh_special_name"),
+                zh_weapon_class=result.get("zh_weapon_class"),
             )
         else:
             weapon = None
+            logger.error("查询武器失败，请检查武器数据表WEAPON_INFO和WEAPON_IMAGES内是否存在数据")
         self.conn.commit()
         return weapon
 
@@ -238,7 +238,7 @@ class ImageDB:
         c.execute(sql, (name, type_name))
         # 单行查询结果
         row = c.fetchone()
-        if not row == None:
+        if row is not None:
             # 查询有结果时将查询结果转换为字典
             result = dict(zip([column[0] for column in c.description], row))
         else:
