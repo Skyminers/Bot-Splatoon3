@@ -1,4 +1,6 @@
 import datetime
+import json
+import random
 
 from nonebot.log import logger
 
@@ -9,6 +11,7 @@ from .imageProcesser import (
     image_to_base64,
     get_stages,
     get_random_weapon,
+    old_get_random_weapon,
 )
 
 from PIL import Image
@@ -49,7 +52,7 @@ def old_get_random_weapon_image(*args):
     weapon1 = args[0]
     weapon2 = args[1]
     # 绘制图片
-    image = get_random_weapon(weapon1, weapon2)
+    image = old_get_random_weapon(weapon1, weapon2)
     return image_to_base64(image)
 
 
@@ -59,7 +62,10 @@ def get_random_weapon_image(*args):
     # 判断是否有空格
     list_weapon = []
     # 是否携带参数
-    if " " in plain_text:
+    if "完全随机" in plain_text:
+        for v in range(4):
+            list_weapon.append({"type": "zh_father_class", "name": ""})
+    elif " " in plain_text:
         args = plain_text.split(" ")
         args = args[1:]
         # 如果参数超出
@@ -68,22 +74,28 @@ def get_random_weapon_image(*args):
         for v in args:
             _type, name = weapon_semantic_word_conversion(v)
             list_weapon.append({"type": _type, "name": name})
-        # 如果数量不够四个,用随机class来填充
+        # 如果数量不够四个,用随机大类组别来填充
         if len(list_weapon) < 4:
             for v in range(4 - len(list_weapon)):
                 _type, name = weapon_semantic_word_conversion("")
                 list_weapon.append({"type": _type, "name": name})
     else:
-        # 四个全部用随机组别填充
+        # 四个全部用随机大类组别填充
         for v in range(4):
             _type, name = weapon_semantic_word_conversion("")
             list_weapon.append({"type": _type, "name": name})
+    # 日志输出组别list信息
+    logger.info("武器筛选条件为:" + json.dumps(list_weapon, ensure_ascii=False))
     # 按照 list_weapon 要求随机从sql数据库查找数据
     weapon1, weapon2 = get_weapon_info(list_weapon)
+    # 进行乱序
+    random.shuffle(weapon1)
+    random.shuffle(weapon2)
 
     # 绘制图片
-    # image = get_random_weapon(list_weapon)
-    # return image_to_base64(image)
+    image = get_random_weapon(weapon1, weapon2)
+    # return image
+    return image_to_base64(image)
 
 
 # 计算过期时间 字符串 精确度为 ymdh

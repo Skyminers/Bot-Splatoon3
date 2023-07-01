@@ -53,5 +53,6 @@ from nonebot_plugin_splatoon3.staticDataGetter import reload_weapon_info
 
 
 # 测试新版随机武器
-plain_text = "随机武器 泡 泡 泡 泡"
+plain_text = "随机武器 nice弹"
 res = get_random_weapon_image(plain_text)
+res.show()

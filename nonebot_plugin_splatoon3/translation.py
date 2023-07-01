@@ -9,7 +9,7 @@ from .utils import get_time_ymd
 trans_res = None
 trans_res_save_ymd: str
 # 图片类型
-image_type = ["Main", "Sub", "Special", "Class"]
+image_type = ["Main", "Sub", "Special", "Class", "Father_Class"]
 
 
 # 取翻译数据
@@ -71,8 +71,12 @@ def weapon_semantic_word_conversion(word: str):
         return word_type[1], dict_weapon_sub.get(word)
     if word in dict_weapon_special:
         return word_type[2], dict_weapon_special.get(word)
-    # 没有任何匹配时，取随机类别
-    return word_type[3], random.choice(list(dict_weapon_class.values()))
+    # 没有任何匹配时，取随机大类别
+    # 遍历values
+    father_class_list = []
+    for v in dict_weapon_class.values():
+        father_class_list.append(dict_weapon_father_class_trans.get(v))
+    return word_type[4], random.choice(list(father_class_list))
 
 
 # 翻译字典
@@ -181,6 +185,21 @@ dict_weapon_class_trans = {
     "Stringer": "弓",
 }
 
+# 武器类别 归属大类
+dict_weapon_father_class_trans = {
+    "射击枪": "近距离",
+    "爆破枪": "中距离",
+    "伞": "近距离",
+    "笔刷": "近距离",
+    "狙击枪": "长距离",
+    "双枪": "近距离",
+    "滚筒": "近距离",
+    "泼桶": "中距离",
+    "刮水刀": "中距离",
+    "旋转枪": "长距离",
+    "弓": "长距离",
+}
+
 # 语义化字典 装备 副武器
 dict_weapon_sub = {
     "斯普拉炸弹": "斯普拉炸弹",
@@ -203,6 +222,7 @@ dict_weapon_sub = {
     "冰壶": "冰壶炸弹",
     "机器人炸弹": "机器人炸弹",
     "小鸡雷": "机器人炸弹",
+    "小鸡": "机器人炸弹",
     "跳跃信标": "跳跃信标",
     "跳点": "跳跃信标",
     "信标": "跳跃信标",

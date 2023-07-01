@@ -40,6 +40,7 @@ class WeaponData:
         zh_sub_name="None",
         zh_special_name="None",
         zh_weapon_class="None",
+        zh_father_class="None",
     ):
         self.name = name
         self.image = image
@@ -55,6 +56,7 @@ class WeaponData:
         self.zh_sub_name = zh_sub_name
         self.zh_special_name = zh_special_name
         self.zh_weapon_class = zh_weapon_class
+        self.zh_father_class = zh_father_class
 
 
 # 批量替换文本

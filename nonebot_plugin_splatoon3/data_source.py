@@ -218,6 +218,7 @@ def get_weapon_info(list_weapon: list):
         zh_weapon_class = ""
         zh_weapon_sub = ""
         zh_weapon_special = ""
+        zh_father_class = ""
         if _type == image_type[3]:
             # class
             zh_weapon_class = name
@@ -227,8 +228,11 @@ def get_weapon_info(list_weapon: list):
         elif _type == image_type[2]:
             # special
             zh_weapon_special = name
-        weaponData = imageDB.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special)
-        weaponData2 = imageDB.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special)
+        elif _type == image_type[4]:
+            # father_class
+            zh_father_class = name
+        weaponData = imageDB.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special, zh_father_class)
+        weaponData2 = imageDB.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special, zh_father_class)
         # 获取图片数据
         # Main
         weaponData.image = imageDB.get_weapon_image(weaponData.name, image_type[0]).get("image")

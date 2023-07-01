@@ -237,7 +237,7 @@ async def _(matcher: Matcher, event: MessageEvent):
         # 这个功能不能进行缓存，必须实时生成图
         img = get_random_weapon_image(plain_text)
         # 发送消息
-        # await matcher.finish(MessageSegment.image(file=img, cache=False))
+        await matcher.finish(MessageSegment.image(file=img, cache=False))
     elif re.search("^祭典$", plain_text):
         # 获取祭典，网页图片中含有倒计时，不适合进行缓存
         # 速度较慢，可以考虑后续从 json 自行生成，后续的分支都是网页截图

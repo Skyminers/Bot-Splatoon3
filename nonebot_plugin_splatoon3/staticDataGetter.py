@@ -10,6 +10,7 @@ from .translation import (
     dict_weapon_main_trans,
     dict_weapon_class_trans,
     image_type,
+    dict_weapon_father_class_trans,
 )
 
 # 爬取地址
@@ -41,7 +42,7 @@ def reload_weapon_info():
             zh_sub_name="None",
             zh_special_name="None",
         )
-        # 主武器，副武器，大招，武器类别，取翻译字典
+        # 主武器，副武器，大招，武器类别，武器父类别 取翻译字典
         if weapon_data.name in dict_weapon_main_trans:
             weapon_data.zh_name = dict_weapon_main_trans[weapon_data.name]
         if weapon_data.sub_name in dict_weapon_sub_trans:
@@ -50,6 +51,7 @@ def reload_weapon_info():
             weapon_data.zh_special_name = dict_weapon_special_trans[weapon_data.special_name]
         if weapon_data.weapon_class in dict_weapon_class_trans:
             weapon_data.zh_weapon_class = dict_weapon_class_trans[weapon_data.weapon_class]
+            weapon_data.zh_father_class = dict_weapon_father_class_trans[weapon_data.zh_weapon_class]
         logger.info(
             "Reload Weapon data: {}, {}, {}, {}".format(
                 weapon_data.name, weapon_data.sub_name, weapon_data.special_name, weapon_data.weapon_class

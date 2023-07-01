@@ -530,8 +530,71 @@ def get_coop_stages(stage, weapon, time, boss, mode):
     return image_background
 
 
-# 随机武器
-def get_random_weapon(weapon1: [] = None, weapon2: [] = None):
+# 绘制一排武器
+def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb):
+    main_size = (120, 120)
+    sub_size = (55, 55)
+    special_size = (55, 55)
+    # 单张武器背景
+    weapon_bg_size = (150, 220)
+
+    _, weapon_card_bg = circle_corner(Image.new("RGBA", weapon_card_bg_size, rgb), radii=20)
+    # 遍历进行贴图
+    for i, v in enumerate(weapon):
+        v: WeaponData
+        # 单张武器背景
+        weapon_bg = Image.new("RGBA", weapon_bg_size, (80, 80, 80, 255))
+        _, weapon_bg = circle_corner(weapon_bg, radii=20)
+        # 主武器
+        main_image_bg = Image.new("RGBA", main_size, (30, 30, 30, 255))
+        main_image = Image.open(io.BytesIO(v.image)).resize(main_size, Image.ANTIALIAS)
+        main_image_bg_pos = ((weapon_bg_size[0] - main_size[0]) // 2, 10)
+        # _, main_image = circle_corner(main_image, radii=16)
+        main_image_bg.paste(main_image, (0, 0))
+        # 副武器
+        sub_image_bg = Image.new("RGBA", sub_size, (60, 60, 60, 255))
+        sub_image = Image.open(io.BytesIO(v.sub_image)).resize(sub_size, Image.ANTIALIAS)
+        sub_image_bg_pos = (main_image_bg_pos[0], main_image_bg_pos[1] + main_size[1] + 10)
+        # _, sub_image = circle_corner(sub_image, radii=16)
+        sub_image_bg.paste(sub_image, (0, 0))
+        # 大招
+        special_image_bg = Image.new("RGBA", special_size, (30, 30, 30, 255))
+        special_image = Image.open(io.BytesIO(v.special_image)).resize(special_size, Image.ANTIALIAS)
+        special_image_bg_pos = (main_image_bg_pos[0] + main_size[0] - special_size[0], sub_image_bg_pos[1])
+        # _, special_image = circle_corner(special_image, radii=16)
+        special_image_bg.paste(special_image, (0, 0))
+        # 贴到单个武器背景
+        weapon_bg.paste(main_image, main_image_bg_pos)
+        weapon_bg.paste(sub_image, sub_image_bg_pos)
+        weapon_bg.paste(special_image, special_image_bg_pos)
+        # 将武器背景贴到武器区域
+        # weapon_card_bg.paste(weapon_bg, ((weapon_bg_size[0]+10) * i + 10, 5))
+        paste_with_a(
+            weapon_card_bg,
+            weapon_bg,
+            ((weapon_bg_size[0] + 10) * i + 10, (weapon_card_bg_size[1] - weapon_bg_size[1]) // 2),
+        )
+    return weapon_card_bg
+
+
+# 绘制 随机武器
+def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
+    # 底图
+    image_background_size = (660, 500)
+    _, image_background = circle_corner(get_file("背景2").resize(image_background_size), radii=20)
+    # 绘制上下两块武器区域
+    weapon_card_bg_size = (image_background_size[0] - 10, (image_background_size[1] - 10) // 2)
+    top_weapon_card = get_weapon_card(weapon1, weapon_card_bg_size, (234, 255, 62))
+    down_weapon_card = get_weapon_card(weapon2, weapon_card_bg_size, (96, 58, 255))
+    # 将武器区域贴到最下层背景
+    paste_with_a(image_background, top_weapon_card, (5, 5))
+    paste_with_a(image_background, down_weapon_card, (5, (image_background_size[1]) // 2))
+
+    return image_background
+
+
+# 旧版函数 随机武器
+def old_get_random_weapon(weapon1: [] = None, weapon2: [] = None):
     # 取两组随机武器
     if weapon1 is None:
         weapon1 = random.sample(os.listdir(weapon_folder), k=4)

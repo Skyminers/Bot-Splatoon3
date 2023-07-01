@@ -73,7 +73,8 @@ class ImageDB:
                     zh_name Char(30),
                     zh_sub_name Char(30),
                     zh_special_name Char(30),
-                    zh_weapon_class Char(30)
+                    zh_weapon_class Char(30),
+                    zh_father_class Char(30)
                 );"""
         )
         # 创建武器图片数据库
@@ -156,14 +157,14 @@ class ImageDB:
         if not data:  # create user
             sql = (
                 f"INSERT INTO WEAPON_INFO (sub_name,special_name,special_points,"
-                f"level,weapon_class,zh_name,zh_sub_name,zh_special_name,zh_weapon_class,name) "
+                f"level,weapon_class,zh_name,zh_sub_name,zh_special_name,zh_weapon_class,zh_father_class,name) "
                 f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
             )
         else:
             sql = (
                 f"UPDATE WEAPON_INFO set sub_name=?,special_name=?,"
                 f"special_points=?,level=?,weapon_class=?,zh_name=?,zh_sub_name=?,"
-                f"zh_special_name=?,zh_weapon_class=? where name=?"
+                f"zh_special_name=?,zh_weapon_class=?,zh_father_class=? where name=?"
             )
         c.execute(
             sql,
@@ -177,21 +178,24 @@ class ImageDB:
                 weapon.zh_sub_name,
                 weapon.zh_special_name,
                 weapon.zh_weapon_class,
+                weapon.zh_father_class,
                 weapon.name,
             ),
         )
         self.conn.commit()
 
     # 条件查询 武器信息 并随机输出一条结果
-    def get_weapon_info(self, zh_weapon_class, zh_sub_name, zh_special_name) -> WeaponData:
-        # 故意创建一个无结果的where方便后续sql拼接
+    def get_weapon_info(self, zh_weapon_class, zh_sub_name, zh_special_name, zh_father_class) -> WeaponData:
+        # 故意创建一个全部结果的where方便后续sql拼接
         sql = (
             f"select name,sub_name,special_name,special_points,level,weapon_class,"
-            f"zh_name,zh_sub_name,zh_special_name,zh_weapon_class from WEAPON_INFO where "
-            f"zh_weapon_class=? or zh_sub_name=? or zh_special_name=? ORDER BY RANDOM() LIMIT 1"
+            f"zh_name,zh_sub_name,zh_special_name,zh_weapon_class,zh_father_class from WEAPON_INFO where"
         )
+        if zh_weapon_class == "" and zh_sub_name == "" and zh_special_name == "" and zh_father_class == "":
+            sql += " 1=1 or"
+        sql += " zh_weapon_class=? or zh_father_class=? or zh_sub_name=? or zh_special_name=? ORDER BY RANDOM() LIMIT 1"
         c = self.conn.cursor()
-        c.execute(sql, (zh_weapon_class, zh_sub_name, zh_special_name))
+        c.execute(sql, (zh_weapon_class, zh_father_class, zh_sub_name, zh_special_name))
         row = c.fetchone()
         weapon: WeaponData
         if row is not None:
@@ -208,6 +212,7 @@ class ImageDB:
                 zh_sub_name=result.get("zh_sub_name"),
                 zh_special_name=result.get("zh_special_name"),
                 zh_weapon_class=result.get("zh_weapon_class"),
+                zh_father_class=result.get("zh_father_class"),
             )
         else:
             weapon = None
