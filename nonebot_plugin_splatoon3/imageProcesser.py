@@ -17,6 +17,8 @@ cur_path = os.path.dirname(__file__)
 image_folder = os.path.join(cur_path, "staticData", "ImageData")
 # 武器文件夹
 weapon_folder = os.path.join(cur_path, "staticData", "weapon")
+#地图文件夹
+stage_folder = os.path.join(cur_path, 'staticData', 'stage')
 # 字体
 ttf_path = os.path.join(cur_path, "staticData", "SplatoonFontFix.otf")
 ttf_path_chinese = os.path.join(cur_path, "staticData", "Text.ttf")
@@ -561,27 +563,36 @@ def get_coop_stages(stage, weapon, time, boss, mode):
 
 
 # 随机武器
+# 随机武器
 def get_random_weapon(weapon1: [] = None, weapon2: [] = None):
-    # 取两组随机武器
     if weapon1 is None:
         weapon1 = random.sample(os.listdir(weapon_folder), k=4)
     if weapon2 is None:
         weapon2 = random.sample(os.listdir(weapon_folder), k=4)
-    weapon_size = (122, 158)
-    _, image_background = circle_corner(get_file("背景").resize((620, 420)), radii=20)
+    
+    weapon_size = (128, 128)
+    _, image_background = circle_corner(get_file('background').resize((620, 600)), radii=20)
     dr = ImageDraw.Draw(image_background)
     font = ImageFont.truetype(ttf_path, 50)
-    # 绘制中间vs和长横线
-    dr.text((278, 160), "VS", font=font, fill="#FFFFFF")
+    dr.text((278, 160), 'VS', font=font, fill="#FFFFFF")
+    modes = ["涂地", "蛤蜊", "鱼虎", "塔楼", "区域"]
+    mode = random.choice(modes)
+    font2 = ImageFont.truetype(ttf_path_chinese, 50)
+    dr.text((420, 440), mode, font=font2, fill="#FFFFFF")
     dr.line([(18, 210), (270, 210)], fill="#FFFFFF", width=4)
     dr.line([(350, 210), (602, 210)], fill="#FFFFFF", width=4)
-    # 遍历进行贴图
+    
     for i in range(4):
         image = get_weapon(weapon1[i]).resize(weapon_size, Image.ANTIALIAS)
         image_background.paste(image, ((160 * i + 5), 20))
         image = get_weapon(weapon2[i]).resize(weapon_size, Image.ANTIALIAS)
         image_background.paste(image, ((160 * i + 5), 20 + 220))
-
+    
+    stage_image = Image.open(os.path.join(stage_folder, random.choice(os.listdir(stage_folder))))
+    # 在下方增加舞台图片
+    stage_size = (320, 180)
+    image_background.paste(stage_image.resize(stage_size, Image.ANTIALIAS), (5, 400))
+    
     return image_background
 
 
