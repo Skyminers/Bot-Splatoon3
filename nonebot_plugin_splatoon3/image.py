@@ -83,8 +83,10 @@ def get_save_temp_image(trigger_word, func, *args):
             imageDB.add_or_modify_IMAGE_TEMP(trigger_word, image, get_expire_time())
         return image
     else:
+        image_expire_time = res.get("image_expire_time")
+        image_data = res.get("image_data")
         # 判断时间是否过期
-        expire_time = datetime.datetime.strptime(res[1], time_format_ymdh)
+        expire_time = datetime.datetime.strptime(image_expire_time, time_format_ymdh)
         time_now = datetime.datetime.now()
         if time_now > expire_time:
             # 重新生成图片并写入
@@ -95,4 +97,4 @@ def get_save_temp_image(trigger_word, func, *args):
                 imageDB.add_or_modify_IMAGE_TEMP(trigger_word, image, get_expire_time())
             return image
         logger.info("数据库内存在时效范围内的缓存图片，将从数据库读取缓存图片")
-        return image_to_base64(Image.open(io.BytesIO(res[0])))
+        return image_to_base64(Image.open(io.BytesIO(image_data)))

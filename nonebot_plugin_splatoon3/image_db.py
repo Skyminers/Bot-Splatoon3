@@ -104,13 +104,19 @@ class ImageDB:
 
     # 取图片信息(图片二进制数据)
     # return value: visible_fc, visible_card, fc_code, card
-    def get_img_data(self, image_name) -> []:
+    def get_img_data(self, image_name) -> dict:
         sql = f"select image_data,image_zh_name,image_source_type from IMAGE_DATA where image_name=?"
         c = self.conn.cursor()
         c.execute(sql, (image_name,))
-        data = c.fetchone()
+        # 单行查询结果
+        row = c.fetchone()
+        if not row == None:
+            # 查询有结果时将查询结果转换为字典
+            result = dict(zip([column[0] for column in c.description], row))
+        else:
+            result = None
         self.conn.commit()
-        return data
+        return result
 
     # 添加或修改 图片缓存表
     def add_or_modify_IMAGE_TEMP(
@@ -130,15 +136,21 @@ class ImageDB:
 
     # 取图片缓存(图片二进制数据)
     # return value: visible_fc, visible_card, fc_code, card
-    def get_img_temp(self, trigger_word) -> []:
+    def get_img_temp(self, trigger_word) -> dict:
         sql = (
             f"select image_data,image_expire_time from IMAGE_TEMP where trigger_word=?"
         )
         c = self.conn.cursor()
         c.execute(sql, (trigger_word,))
-        data = c.fetchone()
+        # 单行查询结果
+        row = c.fetchone()
+        if not row == None:
+            # 查询有结果时将查询结果转换为字典
+            result = dict(zip([column[0] for column in c.description], row))
+        else:
+            result = None
         self.conn.commit()
-        return data
+        return result
 
     # 添加或修改 武器数据表
     def add_or_modify_weapon_info(self, weapon: WeaponData):
@@ -174,7 +186,7 @@ class ImageDB:
         )
         self.conn.commit()
 
-    # 取武器数据
+    # 取 武器信息
     def get_weapon_info(self, weapon_name) -> WeaponData:
         sql = (
             f"select name,sub_name,special_name,special_points,level,weapon_class,"
@@ -183,21 +195,27 @@ class ImageDB:
         c = self.conn.cursor()
         c.execute(sql, (weapon_name,))
         row = c.fetchone()
-        weapon = WeaponData(
-            name=row[0],
-            sub_name=row[1],
-            special_name=row[2],
-            special_points=row[3],
-            level=row[4],
-            weapon_class=row[5],
-            zh_name=row[6],
-            zh_sub_name=row[7],
-            zh_special_name=row[8],
-        )
+        weapon: WeaponData
+        if not row == None:
+            # 查询有结果时将查询结果转换为字典
+            result = dict(zip([column[0] for column in c.description], row))
+            weapon = WeaponData(
+                name=result.get("name"),
+                sub_name=result.get("sub_name"),
+                special_name=result.get("special_name"),
+                special_points=result.get("special_points"),
+                level=result.get("level"),
+                weapon_class=result.get("weapon_class"),
+                zh_name=result.get("zh_name"),
+                zh_sub_name=result.get("zh_sub_name"),
+                zh_special_name=result.get("zh_special_name"),
+            )
+        else:
+            weapon = None
         self.conn.commit()
         return weapon
 
-    # 取武器图片数据
+    # 添加或更新 武器图片数据
     # type_name = (main|sub|special|class)
     def add_or_modify_weapon_images(self, name, type_name, image):
         sql = f"select * from WEAPON_IMAGES where name=? AND type=?"
@@ -205,25 +223,25 @@ class ImageDB:
         c.execute(sql, (name, type_name))
         data = c.fetchone()
         if not data:  # create user
-            sql = (
-                f"INSERT INTO WEAPON_IMAGES (image, name, type) VALUES (?, ?, ?);"
-            )
+            sql = f"INSERT INTO WEAPON_IMAGES (image, name, type) VALUES (?, ?, ?);"
         else:
             # 需要使用两个条件进行判定，因为有重名图片
-            sql = (
-                f"UPDATE WEAPON_IMAGES set image=? where name=? AND type=?"
-            )
+            sql = f"UPDATE WEAPON_IMAGES set image=? where name=? AND type=?"
         c.execute(sql, (image, name, type_name))
         self.conn.commit()
 
     # 取武器图片数据
-    def get_weapon_image(self, name, type_name) -> []:
-        sql = (
-            f"select image from WEAPON_IMAGES where name=? AND type=?"
-        )
+    def get_weapon_image(self, name, type_name) -> dict:
+        sql = f"select image from WEAPON_IMAGES where name=? AND type=?"
         c = self.conn.cursor()
         # 需要使用两个条件进行判定，因为有重名图片
         c.execute(sql, (name, type_name))
-        data = c.fetchone()
+        # 单行查询结果
+        row = c.fetchone()
+        if not row == None:
+            # 查询有结果时将查询结果转换为字典
+            result = dict(zip([column[0] for column in c.description], row))
+        else:
+            result = None
         self.conn.commit()
-        return data
+        return result
