@@ -56,9 +56,7 @@ def get_save_file(img: ImageInfo):
         image_data = get_file_url(img.url)
         if len(image_data) != 0:
             logger.info("[ImageDB] new image {}".format(img.name))
-            imageDB.add_or_modify_IMAGE_DATA(
-                img.name, image_data, img.zh_name, img.source_type
-            )
+            imageDB.add_or_modify_IMAGE_DATA(img.name, image_data, img.zh_name, img.source_type)
         return Image.open(io.BytesIO(image_data))
     else:
         return Image.open(io.BytesIO(res.get("image_data")))
@@ -90,9 +88,7 @@ def circle_corner(img, radii):
     alpha = Image.new("L", img.size, 255)
     alpha.paste(circle.crop((0, 0, radii, radii)), (0, 0))  # 左上角
     alpha.paste(circle.crop((radii, 0, radii * 2, radii)), (w - radii, 0))  # 右上角
-    alpha.paste(
-        circle.crop((radii, radii, radii * 2, radii * 2)), (w - radii, h - radii)
-    )  # 右下角
+    alpha.paste(circle.crop((radii, radii, radii * 2, radii * 2)), (w - radii, h - radii))  # 右下角
     alpha.paste(circle.crop((0, radii, radii, radii * 2)), (0, h - radii))  # 左下角
 
     img.putalpha(alpha)  # 白色区域透明可见，黑色区域不可见
@@ -101,10 +97,10 @@ def circle_corner(img, radii):
 
 # 图片 平铺填充
 def tiled_fill(big_image, small_image):
-    catImWidth, catImHeigh = big_image.size
-    faceImWidth, faceImHeigh = small_image.size
-    for left in range(0, catImWidth, faceImWidth):  # 横纵两个方向上用两个for循环实现平铺效果
-        for top in range(0, catImHeigh, faceImHeigh):
+    big_image_w, big_image_h = big_image.size
+    small_image_w, small_image_h = small_image.size
+    for left in range(0, big_image_w, small_image_w):  # 横纵两个方向上用两个for循环实现平铺效果
+        for top in range(0, big_image_h, small_image_h):
             paste_with_a(big_image, small_image, (left, top))
     return big_image
 
@@ -264,27 +260,16 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
                 cnt += 1
                 count_match_data += 1
         if contest_match is None or contest_match == "Ranked Challenge":
-            if (
-                rule_match is None
-                or rule_match
-                == ranked[idx]["bankaraMatchSettings"][0]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
                 cnt += 1
                 count_match_data += 1
         if contest_match is None or contest_match == "Ranked Open":
-            if (
-                rule_match is None
-                or rule_match
-                == ranked[idx]["bankaraMatchSettings"][1]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
                 cnt += 1
                 count_match_data += 1
 
         if contest_match is None or contest_match == "X Schedule":
-            if (
-                rule_match is None
-                or rule_match == xschedule[idx]["xMatchSetting"]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == xschedule[idx]["xMatchSetting"]["vsRule"]["rule"]:
                 cnt += 1
                 count_match_data += 1
 
@@ -351,11 +336,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
 
         # 第二排绘制 默认为真格区域
         if contest_match is None or contest_match == "Ranked Challenge":
-            if (
-                rule_match is None
-                or rule_match
-                == ranked[idx]["bankaraMatchSettings"][0]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
                 count_match_data += 1
                 stage = ranked[idx]["bankaraMatchSettings"][0]["vsStages"]
                 ranked_challenge_card = get_stage_card(
@@ -383,11 +364,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
 
         # 第三排绘制 默认为真格开放
         if contest_match is None or contest_match == "Ranked Open":
-            if (
-                rule_match is None
-                or rule_match
-                == ranked[idx]["bankaraMatchSettings"][1]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
                 count_match_data += 1
                 stage = ranked[idx]["bankaraMatchSettings"][1]["vsStages"]
                 ranked_challenge_card = get_stage_card(
@@ -415,10 +392,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
 
         # 第四排绘制 默认为X赛
         if contest_match is None or contest_match == "X Schedule":
-            if (
-                rule_match is None
-                or rule_match == xschedule[idx]["xMatchSetting"]["vsRule"]["rule"]
-            ):
+            if rule_match is None or rule_match == xschedule[idx]["xMatchSetting"]["vsRule"]["rule"]:
                 count_match_data += 1
                 stage = xschedule[idx]["xMatchSetting"]["vsStages"]
                 ranked_challenge_card = get_stage_card(
@@ -450,9 +424,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
             start_time = time_converter(regular[idx]["startTime"])
             end_time = time_converter(regular[idx]["endTime"])
             # 绘制时间表头
-            time_head_bg = get_time_head_bg(
-                time_head_bg_size, date_time, start_time, end_time
-            )
+            time_head_bg = get_time_head_bg(time_head_bg_size, date_time, start_time, end_time)
             # 贴到大图上
             time_head_bg_pos = (
                 (background_size[0] - time_head_bg_size[0]) // 2,
@@ -536,9 +508,7 @@ def get_coop_stages(stage, weapon, time, boss, mode):
             # 绘制武器底图
             weapon_bg_img = Image.new("RGBA", weapon_size, (30, 30, 30))
             # 绘制武器图片
-            weapon_image = get_save_file(val_weapon).resize(
-                weapon_size, Image.ANTIALIAS
-            )
+            weapon_image = get_save_file(val_weapon).resize(weapon_size, Image.ANTIALIAS)
             paste_with_a(weapon_bg_img, weapon_image, (0, 0))
             coop_stage_bg.paste(weapon_bg_img, (120 * pos_weapon + 20, 60 + 160 * pos))
     for pos, val in enumerate(boss):
@@ -560,8 +530,71 @@ def get_coop_stages(stage, weapon, time, boss, mode):
     return image_background
 
 
-# 随机武器
-def get_random_weapon(weapon1: [] = None, weapon2: [] = None):
+# 绘制一排武器
+def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb):
+    main_size = (120, 120)
+    sub_size = (55, 55)
+    special_size = (55, 55)
+    # 单张武器背景
+    weapon_bg_size = (150, 220)
+
+    _, weapon_card_bg = circle_corner(Image.new("RGBA", weapon_card_bg_size, rgb), radii=20)
+    # 遍历进行贴图
+    for i, v in enumerate(weapon):
+        v: WeaponData
+        # 单张武器背景
+        weapon_bg = Image.new("RGBA", weapon_bg_size, (80, 80, 80, 255))
+        _, weapon_bg = circle_corner(weapon_bg, radii=20)
+        # 主武器
+        main_image_bg = Image.new("RGBA", main_size, (30, 30, 30, 255))
+        main_image = Image.open(io.BytesIO(v.image)).resize(main_size, Image.ANTIALIAS)
+        main_image_bg_pos = ((weapon_bg_size[0] - main_size[0]) // 2, 10)
+        # _, main_image = circle_corner(main_image, radii=16)
+        main_image_bg.paste(main_image, (0, 0))
+        # 副武器
+        sub_image_bg = Image.new("RGBA", sub_size, (60, 60, 60, 255))
+        sub_image = Image.open(io.BytesIO(v.sub_image)).resize(sub_size, Image.ANTIALIAS)
+        sub_image_bg_pos = (main_image_bg_pos[0], main_image_bg_pos[1] + main_size[1] + 10)
+        # _, sub_image = circle_corner(sub_image, radii=16)
+        sub_image_bg.paste(sub_image, (0, 0))
+        # 大招
+        special_image_bg = Image.new("RGBA", special_size, (30, 30, 30, 255))
+        special_image = Image.open(io.BytesIO(v.special_image)).resize(special_size, Image.ANTIALIAS)
+        special_image_bg_pos = (main_image_bg_pos[0] + main_size[0] - special_size[0], sub_image_bg_pos[1])
+        # _, special_image = circle_corner(special_image, radii=16)
+        special_image_bg.paste(special_image, (0, 0))
+        # 贴到单个武器背景
+        weapon_bg.paste(main_image, main_image_bg_pos)
+        weapon_bg.paste(sub_image, sub_image_bg_pos)
+        weapon_bg.paste(special_image, special_image_bg_pos)
+        # 将武器背景贴到武器区域
+        # weapon_card_bg.paste(weapon_bg, ((weapon_bg_size[0]+10) * i + 10, 5))
+        paste_with_a(
+            weapon_card_bg,
+            weapon_bg,
+            ((weapon_bg_size[0] + 10) * i + 10, (weapon_card_bg_size[1] - weapon_bg_size[1]) // 2),
+        )
+    return weapon_card_bg
+
+
+# 绘制 随机武器
+def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
+    # 底图
+    image_background_size = (660, 500)
+    _, image_background = circle_corner(get_file("背景2").resize(image_background_size), radii=20)
+    # 绘制上下两块武器区域
+    weapon_card_bg_size = (image_background_size[0] - 10, (image_background_size[1] - 10) // 2)
+    top_weapon_card = get_weapon_card(weapon1, weapon_card_bg_size, (234, 255, 62))
+    down_weapon_card = get_weapon_card(weapon2, weapon_card_bg_size, (96, 58, 255))
+    # 将武器区域贴到最下层背景
+    paste_with_a(image_background, top_weapon_card, (5, 5))
+    paste_with_a(image_background, down_weapon_card, (5, (image_background_size[1]) // 2))
+
+    return image_background
+
+
+# 旧版函数 随机武器
+def old_get_random_weapon(weapon1: [] = None, weapon2: [] = None):
     # 取两组随机武器
     if weapon1 is None:
         weapon1 = random.sample(os.listdir(weapon_folder), k=4)

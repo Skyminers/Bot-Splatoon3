@@ -1,27 +1,32 @@
 import datetime
+import json
+import random
 
 from nonebot.log import logger
 
-from .data_source import get_coop_info, get_stage_info, get_screenshot
+from .data_source import get_coop_info, get_stage_info, get_screenshot, get_weapon_info
 from .imageProcesser import (
     get_coop_stages,
     imageDB,
     image_to_base64,
     get_stages,
     get_random_weapon,
+    old_get_random_weapon,
 )
 
 from PIL import Image
 import io
+
+from .translation import weapon_semantic_word_conversion
 
 time_format_ymdh = "%Y-%m-%dT%H"
 
 
 # 取 打工图片
 def get_coop_stages_image(*args):
-    all = args[0]
+    _all = args[0]
     # 获取数据
-    stage, weapon, time, boss, mode = get_coop_info(all)
+    stage, weapon, time, boss, mode = get_coop_info(_all)
     # 绘制图片
     image = get_coop_stages(stage, weapon, time, boss, mode)
     return image
@@ -36,20 +41,60 @@ def get_stages_image(*args):
     logger.info("contest_match为:" + str(contest_match))
     logger.info("rule_match为:" + str(rule_match))
     # 获取数据
-    schedule, new_num_list, new_contest_match, new_rule_match = get_stage_info(
-        num_list, contest_match, rule_match
-    )
+    schedule, new_num_list, new_contest_match, new_rule_match = get_stage_info(num_list, contest_match, rule_match)
     # 绘制图片
     image = get_stages(schedule, new_num_list, new_contest_match, new_rule_match)
     return image
 
 
-# 取 随机武器图片 不能进行缓存，这个需要实时生成
-def get_random_weapon_image(*args):
+# 取 旧版 随机武器图片 不能进行缓存，这个需要实时生成
+def old_get_random_weapon_image(*args):
     weapon1 = args[0]
     weapon2 = args[1]
     # 绘制图片
+    image = old_get_random_weapon(weapon1, weapon2)
+    return image_to_base64(image)
+
+
+# 取 新版 随机武器图片 不能进行缓存，这个需要实时生成
+def get_random_weapon_image(*args):
+    plain_text = args[0]
+    # 判断是否有空格
+    list_weapon = []
+    # 是否携带参数
+    if "完全随机" in plain_text:
+        for v in range(4):
+            list_weapon.append({"type": "zh_father_class", "name": ""})
+    elif " " in plain_text:
+        args = plain_text.split(" ")
+        args = args[1:]
+        # 如果参数超出
+        if len(args) > 4:
+            args = args[:4]
+        for v in args:
+            _type, name = weapon_semantic_word_conversion(v)
+            list_weapon.append({"type": _type, "name": name})
+        # 如果数量不够四个,用随机大类组别来填充
+        if len(list_weapon) < 4:
+            for v in range(4 - len(list_weapon)):
+                _type, name = weapon_semantic_word_conversion("")
+                list_weapon.append({"type": _type, "name": name})
+    else:
+        # 四个全部用随机大类组别填充
+        for v in range(4):
+            _type, name = weapon_semantic_word_conversion("")
+            list_weapon.append({"type": _type, "name": name})
+    # 日志输出组别list信息
+    logger.info("武器筛选条件为:" + json.dumps(list_weapon, ensure_ascii=False))
+    # 按照 list_weapon 要求随机从sql数据库查找数据
+    weapon1, weapon2 = get_weapon_info(list_weapon)
+    # 进行乱序
+    random.shuffle(weapon1)
+    random.shuffle(weapon2)
+
+    # 绘制图片
     image = get_random_weapon(weapon1, weapon2)
+    # return image
     return image_to_base64(image)
 
 
