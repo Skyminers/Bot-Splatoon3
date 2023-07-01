@@ -39,9 +39,7 @@ async def get_browser() -> Browser:
 async def get_screenshot(shoturl, shotpath=None):
     # playwright 要求不能有多个 browser 被同时唤起
     browser = await get_browser()
-    context = await browser.new_context(
-        viewport={"width": 1480, "height": 900}, locale="zh-CH"
-    )
+    context = await browser.new_context(viewport={"width": 1480, "height": 900}, locale="zh-CH")
     page = await context.new_page()
     await page.set_viewport_size({"width": 1480, "height": 900})
     await page.goto(shoturl)
@@ -61,12 +59,8 @@ async def get_screenshot(shoturl, shotpath=None):
 def get_schedule_data():
     # 校验过期日程
     def check_expire_schedule(schedule):
-        st = datetime.datetime.strptime(
-            schedule["regularSchedules"]["nodes"][0]["startTime"], "%Y-%m-%dT%H:%M:%SZ"
-        )
-        ed = datetime.datetime.strptime(
-            schedule["regularSchedules"]["nodes"][0]["endTime"], "%Y-%m-%dT%H:%M:%SZ"
-        )
+        st = datetime.datetime.strptime(schedule["regularSchedules"]["nodes"][0]["startTime"], "%Y-%m-%dT%H:%M:%SZ")
+        ed = datetime.datetime.strptime(schedule["regularSchedules"]["nodes"][0]["endTime"], "%Y-%m-%dT%H:%M:%SZ")
         nw = datetime.datetime.now() - datetime.timedelta(hours=8)
         if st < nw < ed:
             return False
@@ -171,8 +165,9 @@ def get_coop_info(all=None):
         for k, v in enumerate(time):
             start_time = v.split(" - ")[0]
             if check_salmonrun_time(start_time, special_mode_start_time):
-                insert_idx = k - 1
+                insert_idx = k
                 need_offset = True
+                break
         if not need_offset:
             insert_idx = len(time)
         # 插入数据
@@ -195,7 +190,7 @@ def get_coop_info(all=None):
             if check_salmonrun_time(start_time, special_mode_start_time):
                 insert_idx = k
                 need_offset = True
-
+                break
         if not need_offset:
             insert_idx = len(time)
         # 插入数据
