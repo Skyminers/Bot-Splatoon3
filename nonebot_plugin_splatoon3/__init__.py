@@ -11,6 +11,7 @@ from .image import (
     get_coop_stages_image,
     get_random_weapon_image,
     get_stages_image,
+    get_weapon_info_test,
 )
 from .translation import dict_keyword_replace
 from .imageProcesser import imageDB
@@ -235,9 +236,14 @@ async def _(matcher: Matcher, event: MessageEvent):
     # 随机武器
     if re.search("^随机武器.*$", plain_text):
         # 这个功能不能进行缓存，必须实时生成图
-        img = get_random_weapon_image(plain_text)
-        # 发送消息
-        await matcher.finish(MessageSegment.image(file=img, cache=False))
+        # 测试数据库能否取到武器数据
+        if not get_weapon_info_test():
+            msg = "请机器人管理员先发送 更新武器数据 更新本地武器数据库后，才能使用随机武器功能"
+            await matcher.finish(MessageSegment.text(msg))
+        else:
+            img = get_random_weapon_image(plain_text)
+            # 发送消息
+            await matcher.finish(MessageSegment.image(file=img, cache=False))
     elif re.search("^祭典$", plain_text):
         # 获取祭典，网页图片中含有倒计时，不适合进行缓存
         # 速度较慢，可以考虑后续从 json 自行生成，后续的分支都是网页截图

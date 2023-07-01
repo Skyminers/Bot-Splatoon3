@@ -98,6 +98,15 @@ def get_random_weapon_image(*args):
     return image_to_base64(image)
 
 
+# 测试武器数据库能否取到数据
+def get_weapon_info_test():
+    res = imageDB.get_weapon_info("", "", "", "")
+    if res is not None:
+        return True
+    else:
+        return False
+
+
 # 计算过期时间 字符串 精确度为 ymdh
 def get_expire_time():
     # 计算过期时间

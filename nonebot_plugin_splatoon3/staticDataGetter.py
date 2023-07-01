@@ -79,6 +79,7 @@ def reload_weapon_info():
                 zh_name=None,  # 多余项忽略
             )
         )
+    return True
 
 
 # 网页爬取图片信息
