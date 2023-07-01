@@ -12,7 +12,7 @@ from .image import (
     get_random_weapon_image,
     get_stages_image,
 )
-from .translation import dict_contest_trans, dict_rule_trans, dict_keyword_replace
+from .translation import dict_keyword_replace
 from .imageProcesser import imageDB
 from .utils import multiple_replace
 from .data_source import get_screenshot
@@ -119,7 +119,7 @@ async def _(matcher: Matcher, event: MessageEvent):
                 num_list = list(set([int(x) for x in plain_text[:-4]]))
                 num_list.sort()
         stage_mode = plain_text[-4:]
-        contest_match = dict_contest_trans[stage_mode[2:]]
+        contest_match = stage_mode[2:]
         rule_match = stage_mode[:2]
         flag_match = True
     # 双筛选  竞赛  规则
