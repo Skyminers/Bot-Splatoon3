@@ -11,7 +11,7 @@ from .translation import (
 )
 
 weapon_url = "https://splatoonwiki.org/wiki/List_of_weapons_in_Splatoon_3"
-
+base_url = "https://splatoonwiki.org/wiki"
 
 # 爬取wiki数据 来重载武器数据，包括：武器图片，副武器图片，大招图片，武器配置信息
 def reload_weapon_info():
@@ -48,9 +48,12 @@ def reload_weapon_info():
         if weapon_data.sub_name in dict_weapon_sub_trans:
             weapon_data.zh_sub_name = dict_weapon_sub_trans[weapon_data.sub_name]
         if weapon_data.special_name in dict_weapon_special_trans:
-            weapon_data.zh_special_name = dict_weapon_special_trans[
-                weapon_data.special_name
-            ]
+            weapon_data.zh_special_name = dict_weapon_special_trans[weapon_data.special_name]
+        logger.info("Reload Weapon data: {}, {}, {}, {}".format(
+                    weapon_data.name,
+                    weapon_data.sub_name,
+                    weapon_data.special_name,
+                    weapon_data.weapon_class))
         # 数据库新增 装备信息
         imageDB.add_or_modify_weapon_info(weapon_data)
         # 数据库新增 装备图片
@@ -60,20 +63,32 @@ def reload_weapon_info():
             weapon_data.special_name,
             weapon_data.weapon_class,
         ]
-        type_names = ["main", "sub", "special", "class"]
+        type_names = ['Main', 'Sub', 'Special', 'Class']
         ids = [0, 3, 4, 8]
-        for i in range(4):
-            # 主武器图片、副武器图片、大招图片、类型图片
-            push_weapon_images(
-                ImageInfo(
-                    name=names[i],
-                    url="https:"
-                    + weapon_info[ids[i]].contents[0].contents[0].attrs["src"],
-                    source_type=type_names[i],
-                    zh_name=None,  # 多余项忽略
-                )
-            )
+        for i in range(3):
+            # 主武器图片、副武器图片、大招图片
+            get_image_info(ImageInfo(
+                name=names[i],
+                url=None,
+                source_type=type_names[i],
+                zh_name=None  # 多余项忽略
+            ))
+        # 类型图片，没有找到 File 页面
+        push_weapon_images(ImageInfo(
+            name=names[3],
+            url='https:' + weapon_info[ids[3]].contents[0].contents[0].attrs['src'],
+            source_type=type_names[3],
+            zh_name=None  # 多余项忽略
+        ))
 
+
+def get_image_info(imageInfo: ImageInfo):
+    global base_url
+    url = base_url + '/File:S3_Weapon_{}_{}.png'.format(imageInfo.source_type, imageInfo.name.replace(" ", "_"))
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+    imageInfo.url = "https:" + soup.select_one("#file > a > img").attrs['src']
+    push_weapon_images(imageInfo)
 
 # 向数据库新增 武器图片 二进制文件
 def push_weapon_images(img: ImageInfo):
