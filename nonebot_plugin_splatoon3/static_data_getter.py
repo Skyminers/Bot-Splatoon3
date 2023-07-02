@@ -2,14 +2,14 @@ import httpx
 
 from bs4 import BeautifulSoup
 from nonebot.log import logger
-from .imageProcesser import imageDB, get_file_url
-from .utils import WeaponData, ImageInfo
+from .image_processer import imageDB, get_file_url
+from ._class import WeaponData, ImageInfo
 from .translation import (
     dict_weapon_sub_trans,
     dict_weapon_special_trans,
     dict_weapon_main_trans,
     dict_weapon_class_trans,
-    image_type,
+    weapon_image_type,
     dict_weapon_father_class_trans,
 )
 
@@ -69,13 +69,13 @@ def reload_weapon_info():
         ids = [0, 3, 4, 8]
         for i in range(3):
             # 主武器图片、副武器图片、大招图片
-            get_image_info(ImageInfo(name=names[i], url=None, source_type=image_type[i], zh_name=None))  # 多余项忽略
+            get_image_info(ImageInfo(name=names[i], url=None, source_type=weapon_image_type[i], zh_name=None))  # 多余项忽略
         # 类型图片，没有找到 File 页面
         push_weapon_images(
             ImageInfo(
                 name=names[3],
                 url="https:" + weapon_info[ids[3]].contents[0].contents[0].attrs["src"],
-                source_type=image_type[3],
+                source_type=weapon_image_type[3],
                 zh_name=None,  # 多余项忽略
             )
         )

@@ -1,10 +1,8 @@
 import os
 import sqlite3
 from pathlib import Path
-
 from nonebot.log import logger
-
-from .utils import WeaponData
+from ._class import WeaponData
 
 DATABASE_path = Path(os.path.join(os.path.dirname(__file__), "data", "image"))
 DATABASE = Path(DATABASE_path, "image.db")
@@ -140,7 +138,7 @@ class ImageDB:
         c.execute(sql, (trigger_word,))
         # 单行查询结果
         row = c.fetchone()
-        if not row is None:
+        if row is not None:
             # 查询有结果时将查询结果转换为字典
             result = dict(zip([column[0] for column in c.description], row))
         else:
@@ -158,7 +156,7 @@ class ImageDB:
             sql = (
                 f"INSERT INTO WEAPON_INFO (sub_name,special_name,special_points,"
                 f"level,weapon_class,zh_name,zh_sub_name,zh_special_name,zh_weapon_class,zh_father_class,name) "
-                f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
+                f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
             )
         else:
             sql = (

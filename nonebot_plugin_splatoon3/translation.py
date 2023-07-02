@@ -3,13 +3,12 @@ import random
 import httpx
 
 from nonebot.log import logger
-
 from .utils import get_time_ymd
 
 trans_res = None
 trans_res_save_ymd: str
-# 图片类型
-image_type = ["Main", "Sub", "Special", "Class", "Father_Class"]
+# 武器图片类型
+weapon_image_type = ["Main", "Sub", "Special", "Class", "Father_Class"]
 
 
 # 取翻译数据
@@ -63,7 +62,7 @@ def get_trans_game_mode(text):
 
 # 装备 语义词转换,并返回语义词类别
 def weapon_semantic_word_conversion(word: str):
-    word_type = image_type
+    word_type = weapon_image_type
     # 判断这个语义词是属于 类别，副武器，大招
     if word in dict_weapon_class:
         return word_type[3], dict_weapon_class.get(word)

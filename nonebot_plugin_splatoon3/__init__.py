@@ -1,6 +1,6 @@
 import re
 
-from nonebot import on_command, on_regex
+from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
@@ -14,10 +14,10 @@ from .image import (
     get_weapon_info_test,
 )
 from .translation import dict_keyword_replace
-from .imageProcesser import imageDB
+from .image_processer import imageDB
 from .utils import multiple_replace
 from .data_source import get_screenshot
-from .adminMatcher import matcher_admin
+from .admin_matcher import matcher_admin
 
 # 初始化插件时清空合成图片缓存表
 imageDB.clean_image_temp()
@@ -64,7 +64,6 @@ async def _(matcher: Matcher, event: MessageEvent):
         re_list = re.findall("下", plain_text)
         num_list = list(set([len(re_list)]))
         num_list.sort()
-        stage_mode = None
         flag_match = True
     # 多图
     elif re.search("^下?图{1,11}$", plain_text):
@@ -247,11 +246,11 @@ async def _(matcher: Matcher, event: MessageEvent):
     elif re.search("^祭典$", plain_text):
         # 获取祭典，网页图片中含有倒计时，不适合进行缓存
         # 速度较慢，可以考虑后续从 json 自行生成，后续的分支都是网页截图
-        img = await get_screenshot(shoturl="https://splatoon3.ink/splatfests")
+        img = await get_screenshot(shot_url="https://splatoon3.ink/splatfests")
         await matcher.finish(MessageSegment.image(file=img, cache=False))
     elif re.search("^活动$", plain_text):
-        img = await get_screenshot(shoturl="https://splatoon3.ink/challenges")
+        img = await get_screenshot(shot_url="https://splatoon3.ink/challenges")
         await matcher.finish(MessageSegment.image(file=img, cache=False))
     elif re.search("^装备$", plain_text):
-        img = await get_screenshot(shoturl="https://splatoon3.ink/gear")
+        img = await get_screenshot(shot_url="https://splatoon3.ink/gear")
         await matcher.finish(MessageSegment.image(file=img, cache=False))

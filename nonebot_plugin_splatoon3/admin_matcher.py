@@ -1,14 +1,13 @@
 import re
 
-from nonebot import on_command, on_regex
+from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
-from nonebot.log import logger
 from nonebot.permission import SUPERUSER
 
-from .staticDataGetter import reload_weapon_info
-from .imageProcesser import imageDB
+from .static_data_getter import reload_weapon_info
+from .image_processer import imageDB
 
 matcher_admin = on_regex("^[\\\/\.。]?(重载武器数据|更新武器数据|清空图片缓存)$", priority=10, block=True, permission=SUPERUSER)
 
