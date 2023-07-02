@@ -1,4 +1,5 @@
 import datetime
+import cfscrape
 
 # 背景 rgb颜色
 dict_bg_rgb = {
@@ -9,6 +10,17 @@ dict_bg_rgb = {
     "打工": (14, 203, 146),
     "活动": (223, 42, 119),
 }
+
+
+# cf get
+def cf_http_get(url: str):
+    # 实例化一个create_scraper对象
+    scraper = cfscrape.create_scraper()
+    # 请求报错，可以加上时延
+    # scraper = cfscrape.create_scraper(delay = 6)
+    # 获取网页内容
+    res = scraper.get(url)
+    return res
 
 
 # 批量替换文本

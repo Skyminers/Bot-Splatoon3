@@ -2,8 +2,8 @@ from nonebot_plugin_splatoon3.image import *
 from nonebot_plugin_splatoon3.static_data_getter import reload_weapon_info
 
 # 测试打工图片
-# res = get_coop_stages_image(True)
-# res.show()
+res = get_coop_stages_image(True)
+res.show()
 
 # 测试重载武器数据
 # reload_weapon_info()
