@@ -453,12 +453,25 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
 
 # 绘制 打工地图
 def get_coop_stages(stage, weapon, time, boss, mode):
+    # 校验是否需要绘制小鲑鱼(现在时间处于该打工时间段内)
+    def check_coop_fish(_time):
+        start_time = _time.split(" - ")[0]
+        # 输入时间都缺少年份，需要手动补充一个年份后还原为date对象
+        year = datetime.datetime.now().year
+        start_time = str(year) + "-" + start_time
+        now_time = datetime.datetime.now()
+        st = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M")
+        if st < now_time:
+            return True
+        return False
+
     top_size_pos = (0, -2)
     bg_size = (800, len(stage) * 162 + top_size_pos[1])
     stage_bg_size = (300, 160)
     weapon_size = (90, 90)
     boss_size = (40, 40)
     mode_size = (40, 40)
+    coop_fish_size = (36, 48)
 
     # 创建纯色背景
     image_background_rgb = dict_bg_rgb["打工"]
@@ -467,11 +480,6 @@ def get_coop_stages(stage, weapon, time, boss, mode):
     bg_mask = get_file("打工蒙版").resize(bg_mask_size)
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
-    # 绘制小鲑鱼
-    coop_fish_size = (36, 48)
-    coop_fish_img = get_file("小鲑鱼").resize(coop_fish_size)
-    coop_fish_img_pos = (6, 8)
-    paste_with_a(image_background, coop_fish_img, coop_fish_img_pos)
 
     # 绘制地图信息
     coop_stage_bg = Image.new("RGBA", (bg_size[0], bg_size[1] + 2), (0, 0, 0, 0))
@@ -482,6 +490,11 @@ def get_coop_stages(stage, weapon, time, boss, mode):
         time_text_pos = (40, 5 + pos * 160)
         time_text_size = font.getsize(val)
         dr.text(time_text_pos, val, font=font, fill="#FFFFFF")
+        if check_coop_fish(val):
+            # 现在时间处于打工时间段内，绘制小鲑鱼
+            coop_fish_img = get_file("小鲑鱼").resize(coop_fish_size)
+            coop_fish_img_pos = (6, 8 + pos * 160)
+            paste_with_a(coop_stage_bg, coop_fish_img, coop_fish_img_pos)
     for pos, val in enumerate(stage):
         # 绘制打工地图
         stage_bg = get_save_file(val).resize(stage_bg_size, Image.ANTIALIAS)
