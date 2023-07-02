@@ -1,11 +1,11 @@
 import io
 import os
-import random
 from io import BytesIO
 import urllib3
 from PIL import Image, ImageDraw, ImageFont
 from nonebot.log import logger
 
+from ._class import WeaponData, ImageInfo
 from .translation import get_trans_stage, get_trans_game_mode
 from .utils import *
 from .image_db import ImageDB
@@ -158,7 +158,7 @@ def get_stage_card(
 ):
     _, image_background = circle_corner(get_file("背景").resize(img_size), radii=20)
 
-    ## 绘制两张地图
+    # 绘制两张地图
     # 计算尺寸，加载图片
     stage_size = (int(img_size[0] * 0.48), int(img_size[1] * 0.7))
     image_left = get_save_file(stage1).resize(stage_size, Image.ANTIALIAS)
@@ -183,7 +183,7 @@ def get_stage_card(
     )
     image_background.paste(image_right, next_stage_pos, mask=image_alpha)
 
-    ## 绘制地图中文名及文字背景
+    # 绘制地图中文名及文字背景
     # 左半地图名
     stage_name_bg = get_stage_name_bg(stage1.zh_name, 30)
     stage_name_bg_size = stage_name_bg.size
@@ -214,7 +214,7 @@ def get_stage_card(
     )
     paste_with_a(image_background, image_icon, stage_mid_pos)
 
-    ## 绘制模式文本
+    # 绘制模式文本
     # 空白尺寸
     blank_size = (img_size[0], start_stage_pos[1])
     drawer = ImageDraw.Draw(image_background)
@@ -440,18 +440,6 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
                 (0, time_head_bg_pos[1] + time_head_bg_size[1]),
             )
 
-        # if contest_match is None or contest_match == 'League':
-        #     if rule_match is None or rule_match == league[idx]['rule']['name']:
-        #         league_card = get_stage_card(
-        #             league[idx]['stage_a']['name'],
-        #             league[idx]['stage_b']['name'],
-        #             'League',
-        #             league[idx]['rule']['name'],
-        #             time_converter(league[idx]['start_time']),
-        #             time_converter(league[idx]['end_time']),
-        #         )
-        #         paste_with_a(background, league_card, (10, pos))
-        #         pos += 340
     # 圆角化
     _, image_background = circle_corner(image_background, radii=16)
     return image_background
@@ -594,28 +582,28 @@ def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
 
 
 # 旧版函数 随机武器
-def old_get_random_weapon(weapon1: [] = None, weapon2: [] = None):
-    # 取两组随机武器
-    if weapon1 is None:
-        weapon1 = random.sample(os.listdir(weapon_folder), k=4)
-    if weapon2 is None:
-        weapon2 = random.sample(os.listdir(weapon_folder), k=4)
-    weapon_size = (122, 158)
-    _, image_background = circle_corner(get_file("背景").resize((620, 420)), radii=20)
-    dr = ImageDraw.Draw(image_background)
-    font = ImageFont.truetype(ttf_path, 50)
-    # 绘制中间vs和长横线
-    dr.text((278, 160), "VS", font=font, fill="#FFFFFF")
-    dr.line([(18, 210), (270, 210)], fill="#FFFFFF", width=4)
-    dr.line([(350, 210), (602, 210)], fill="#FFFFFF", width=4)
-    # 遍历进行贴图
-    for i in range(4):
-        image = get_weapon(weapon1[i]).resize(weapon_size, Image.ANTIALIAS)
-        image_background.paste(image, ((160 * i + 5), 20))
-        image = get_weapon(weapon2[i]).resize(weapon_size, Image.ANTIALIAS)
-        image_background.paste(image, ((160 * i + 5), 20 + 220))
-
-    return image_background
+# def old_get_random_weapon(weapon1: [] = None, weapon2: [] = None):
+#     # 取两组随机武器
+#     if weapon1 is None:
+#         weapon1 = random.sample(os.listdir(weapon_folder), k=4)
+#     if weapon2 is None:
+#         weapon2 = random.sample(os.listdir(weapon_folder), k=4)
+#     weapon_size = (122, 158)
+#     _, image_background = circle_corner(get_file("背景").resize((620, 420)), radii=20)
+#     dr = ImageDraw.Draw(image_background)
+#     font = ImageFont.truetype(ttf_path, 50)
+#     # 绘制中间vs和长横线
+#     dr.text((278, 160), "VS", font=font, fill="#FFFFFF")
+#     dr.line([(18, 210), (270, 210)], fill="#FFFFFF", width=4)
+#     dr.line([(350, 210), (602, 210)], fill="#FFFFFF", width=4)
+#     # 遍历进行贴图
+#     for i in range(4):
+#         image = get_weapon(weapon1[i]).resize(weapon_size, Image.ANTIALIAS)
+#         image_background.paste(image, ((160 * i + 5), 20))
+#         image = get_weapon(weapon2[i]).resize(weapon_size, Image.ANTIALIAS)
+#         image_background.paste(image, ((160 * i + 5), 20 + 220))
+#
+#     return image_background
 
 
 # 文本图片  弃用函数

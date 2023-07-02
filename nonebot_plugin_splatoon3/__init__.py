@@ -1,6 +1,6 @@
 import re
 
-from nonebot import on_command, on_regex
+from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
@@ -11,12 +11,13 @@ from .image import (
     get_coop_stages_image,
     get_random_weapon_image,
     get_stages_image,
+    get_weapon_info_test,
 )
 from .translation import dict_keyword_replace
-from .imageProcesser import imageDB
+from .image_processer import imageDB
 from .utils import multiple_replace
 from .data_source import get_screenshot
-from .adminMatcher import matcher_admin
+from .admin_matcher import matcher_admin
 
 # 初始化插件时清空合成图片缓存表
 imageDB.clean_image_temp()
@@ -63,7 +64,6 @@ async def _(matcher: Matcher, event: MessageEvent):
         re_list = re.findall("下", plain_text)
         num_list = list(set([len(re_list)]))
         num_list.sort()
-        stage_mode = None
         flag_match = True
     # 多图
     elif re.search("^下?图{1,11}$", plain_text):
@@ -235,17 +235,22 @@ async def _(matcher: Matcher, event: MessageEvent):
     # 随机武器
     if re.search("^随机武器.*$", plain_text):
         # 这个功能不能进行缓存，必须实时生成图
-        img = get_random_weapon_image(plain_text)
-        # 发送消息
-        await matcher.finish(MessageSegment.image(file=img, cache=False))
+        # 测试数据库能否取到武器数据
+        if not get_weapon_info_test():
+            msg = "请机器人管理员先发送 更新武器数据 更新本地武器数据库后，才能使用随机武器功能"
+            await matcher.finish(MessageSegment.text(msg))
+        else:
+            img = get_random_weapon_image(plain_text)
+            # 发送消息
+            await matcher.finish(MessageSegment.image(file=img, cache=False))
     elif re.search("^祭典$", plain_text):
         # 获取祭典，网页图片中含有倒计时，不适合进行缓存
         # 速度较慢，可以考虑后续从 json 自行生成，后续的分支都是网页截图
-        img = await get_screenshot(shoturl="https://splatoon3.ink/splatfests")
+        img = await get_screenshot(shot_url="https://splatoon3.ink/splatfests")
         await matcher.finish(MessageSegment.image(file=img, cache=False))
     elif re.search("^活动$", plain_text):
-        img = await get_screenshot(shoturl="https://splatoon3.ink/challenges")
+        img = await get_screenshot(shot_url="https://splatoon3.ink/challenges")
         await matcher.finish(MessageSegment.image(file=img, cache=False))
     elif re.search("^装备$", plain_text):
-        img = await get_screenshot(shoturl="https://splatoon3.ink/gear")
+        img = await get_screenshot(shot_url="https://splatoon3.ink/gear")
         await matcher.finish(MessageSegment.image(file=img, cache=False))

@@ -3,15 +3,13 @@ import json
 import random
 
 from nonebot.log import logger
-
-from .data_source import get_coop_info, get_stage_info, get_screenshot, get_weapon_info
-from .imageProcesser import (
+from .data_source import get_coop_info, get_stage_info, get_weapon_info
+from .image_processer import (
     get_coop_stages,
     imageDB,
     image_to_base64,
     get_stages,
     get_random_weapon,
-    old_get_random_weapon,
 )
 
 from PIL import Image
@@ -45,15 +43,6 @@ def get_stages_image(*args):
     # 绘制图片
     image = get_stages(schedule, new_num_list, new_contest_match, new_rule_match)
     return image
-
-
-# 取 旧版 随机武器图片 不能进行缓存，这个需要实时生成
-def old_get_random_weapon_image(*args):
-    weapon1 = args[0]
-    weapon2 = args[1]
-    # 绘制图片
-    image = old_get_random_weapon(weapon1, weapon2)
-    return image_to_base64(image)
 
 
 # 取 新版 随机武器图片 不能进行缓存，这个需要实时生成
@@ -96,6 +85,15 @@ def get_random_weapon_image(*args):
     image = get_random_weapon(weapon1, weapon2)
     # return image
     return image_to_base64(image)
+
+
+# 测试武器数据库能否取到数据
+def get_weapon_info_test():
+    res = imageDB.get_weapon_info("", "", "", "")
+    if res is not None:
+        return True
+    else:
+        return False
 
 
 # 计算过期时间 字符串 精确度为 ymdh
@@ -143,3 +141,12 @@ def get_save_temp_image(trigger_word, func, *args):
             return image
         logger.info("数据库内存在时效范围内的缓存图片，将从数据库读取缓存图片")
         return image_to_base64(Image.open(io.BytesIO(image_data)))
+
+
+# 旧版 取 随机武器图片 不能进行缓存，这个需要实时生成
+# def old_get_random_weapon_image(*args):
+#     weapon1 = args[0]
+#     weapon2 = args[1]
+#     # 绘制图片
+#     image = old_get_random_weapon(weapon1, weapon2)
+#     return image_to_base64(image)
