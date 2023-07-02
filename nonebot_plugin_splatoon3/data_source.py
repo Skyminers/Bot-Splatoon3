@@ -6,7 +6,7 @@ import urllib3
 from nonebot.log import logger
 from playwright.async_api import Browser, async_playwright
 
-from nonebot_plugin_splatoon3._class import ImageInfo
+from ._class import ImageInfo
 from .image_processer import imageDB
 from .translation import (
     get_trans_stage,
@@ -74,11 +74,10 @@ def get_schedule_data():
     global schedule_res
     if schedule_res is None or check_expire_schedule(schedule_res):
         logger.info("重新请求:日程数据")
-        with httpx.Client() as client:
-            result = client.get("https://splatoon3.ink/data/schedules.json")
-            schedule_res = json.load(result)
-            schedule_res = schedule_res["data"]
-            return schedule_res
+        result = cf_http_get("https://splatoon3.ink/data/schedules.json").text
+        schedule_res = json.loads(result)
+        schedule_res = schedule_res["data"]
+        return schedule_res
     else:
         return schedule_res
 
@@ -123,8 +122,8 @@ def get_coop_info(_all=None):
         year = datetime.datetime.now().year
         _start_time = str(year) + "-" + _start_time
         _special_mode_start_time = str(year) + "-" + _special_mode_start_time
-        st = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M")
-        su_st = datetime.datetime.strptime(special_mode_start_time, "%Y-%m-%d %H:%M")
+        st = datetime.datetime.strptime(_start_time, "%Y-%m-%d %H:%M")
+        su_st = datetime.datetime.strptime(_special_mode_start_time, "%Y-%m-%d %H:%M")
         if st > su_st:
             return True
         return False

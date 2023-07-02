@@ -43,7 +43,13 @@ def get_weapon(name):
     return Image.open(os.path.join(weapon_folder, "{}".format(name)))
 
 
-# 网页读文件
+# cf 网站读文件
+def get_cf_file_url(url):
+    r = cf_http_get(url)
+    return r.content
+
+
+# 普通网页读文件
 def get_file_url(url):
     r = http.request("GET", url, timeout=5)
     return r.data
@@ -53,7 +59,7 @@ def get_file_url(url):
 def get_save_file(img: ImageInfo):
     res = imageDB.get_img_data(img.name)
     if not res:
-        image_data = get_file_url(img.url)
+        image_data = get_cf_file_url(img.url)
         if len(image_data) != 0:
             logger.info("[ImageDB] new image {}".format(img.name))
             imageDB.add_or_modify_IMAGE_DATA(img.name, image_data, img.zh_name, img.source_type)

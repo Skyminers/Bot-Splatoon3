@@ -3,7 +3,7 @@ import random
 import httpx
 
 from nonebot.log import logger
-from .utils import get_time_ymd
+from .utils import get_time_ymd, cf_http_get
 
 trans_res = None
 trans_res_save_ymd: str
@@ -17,12 +17,11 @@ def get_trans_data():
     global trans_res_save_ymd
     if trans_res is None or check_expire_trans(trans_res_save_ymd):
         logger.info("重新请求:翻译文本")
-        with httpx.Client() as client:
-            result = client.get("https://splatoon3.ink/data/locale/zh-CN.json")
-            trans_res = json.load(result)
-            # 刷新储存时 时间
-            trans_res_save_ymd = get_time_ymd()
-            return trans_res
+        result = cf_http_get("https://splatoon3.ink/data/locale/zh-CN.json").text
+        trans_res = json.loads(result)
+        # 刷新储存时 时间
+        trans_res_save_ymd = get_time_ymd()
+        return trans_res
     else:
         return trans_res
 
