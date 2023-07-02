@@ -594,28 +594,28 @@ def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
 
 
 # 旧版函数 随机武器
-def old_get_random_weapon(weapon1: [] = None, weapon2: [] = None):
-    # 取两组随机武器
-    if weapon1 is None:
-        weapon1 = random.sample(os.listdir(weapon_folder), k=4)
-    if weapon2 is None:
-        weapon2 = random.sample(os.listdir(weapon_folder), k=4)
-    weapon_size = (122, 158)
-    _, image_background = circle_corner(get_file("背景").resize((620, 420)), radii=20)
-    dr = ImageDraw.Draw(image_background)
-    font = ImageFont.truetype(ttf_path, 50)
-    # 绘制中间vs和长横线
-    dr.text((278, 160), "VS", font=font, fill="#FFFFFF")
-    dr.line([(18, 210), (270, 210)], fill="#FFFFFF", width=4)
-    dr.line([(350, 210), (602, 210)], fill="#FFFFFF", width=4)
-    # 遍历进行贴图
-    for i in range(4):
-        image = get_weapon(weapon1[i]).resize(weapon_size, Image.ANTIALIAS)
-        image_background.paste(image, ((160 * i + 5), 20))
-        image = get_weapon(weapon2[i]).resize(weapon_size, Image.ANTIALIAS)
-        image_background.paste(image, ((160 * i + 5), 20 + 220))
-
-    return image_background
+# def old_get_random_weapon(weapon1: [] = None, weapon2: [] = None):
+#     # 取两组随机武器
+#     if weapon1 is None:
+#         weapon1 = random.sample(os.listdir(weapon_folder), k=4)
+#     if weapon2 is None:
+#         weapon2 = random.sample(os.listdir(weapon_folder), k=4)
+#     weapon_size = (122, 158)
+#     _, image_background = circle_corner(get_file("背景").resize((620, 420)), radii=20)
+#     dr = ImageDraw.Draw(image_background)
+#     font = ImageFont.truetype(ttf_path, 50)
+#     # 绘制中间vs和长横线
+#     dr.text((278, 160), "VS", font=font, fill="#FFFFFF")
+#     dr.line([(18, 210), (270, 210)], fill="#FFFFFF", width=4)
+#     dr.line([(350, 210), (602, 210)], fill="#FFFFFF", width=4)
+#     # 遍历进行贴图
+#     for i in range(4):
+#         image = get_weapon(weapon1[i]).resize(weapon_size, Image.ANTIALIAS)
+#         image_background.paste(image, ((160 * i + 5), 20))
+#         image = get_weapon(weapon2[i]).resize(weapon_size, Image.ANTIALIAS)
+#         image_background.paste(image, ((160 * i + 5), 20 + 220))
+#
+#     return image_background
 
 
 # 文本图片  弃用函数
