@@ -612,7 +612,7 @@ def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb):
         weapon_zh_name = v.zh_name
         zh_name_size = font.getsize(weapon_zh_name)
         # 文字居中
-        zh_name_pos = ((weapon_bg_size[0] - zh_name_size[0]) // 2, weapon_bg_size[1] - 25)
+        zh_name_pos = ((weapon_bg_size[0] - zh_name_size[0]) // 2, weapon_bg_size[1] - zh_name_size[1] - 5)
         dr.text(zh_name_pos, weapon_zh_name, font=font, fill="#FFFFFF")
         # 将武器背景贴到武器区域
         # weapon_card_bg.paste(weapon_bg, ((weapon_bg_size[0]+10) * i + 10, 5))
@@ -632,11 +632,19 @@ def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
     _, image_background = circle_corner(get_file("背景2").resize(image_background_size), radii=20)
     # 绘制上下两块武器区域
     weapon_card_bg_size = (image_background_size[0] - 10, (image_background_size[1] - 10) // 2)
-    top_weapon_card = get_weapon_card(weapon1, weapon_card_bg_size, (234, 255, 62))
-    down_weapon_card = get_weapon_card(weapon2, weapon_card_bg_size, (96, 58, 255))
+    top_weapon_card = get_weapon_card(weapon1, weapon_card_bg_size, dict_bg_rgb["上-武器卡片-黄"])
+    down_weapon_card = get_weapon_card(weapon2, weapon_card_bg_size, dict_bg_rgb["下-武器卡片-蓝"])
     # 将武器区域贴到最下层背景
     paste_with_a(image_background, top_weapon_card, (5, 5))
     paste_with_a(image_background, down_weapon_card, (5, (image_background_size[1]) // 2))
+    # 绘制私房图标
+    private_img_size = (35, 35)
+    private_img_pos = (
+        (image_background_size[0] - private_img_size[0]) // 2,
+        (image_background_size[1] - private_img_size[1]) // 2,
+    )
+    private_img = get_file("private").resize(private_img_size)
+    paste_with_a(image_background, private_img, private_img_pos)
 
     return image_background
 

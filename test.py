@@ -37,23 +37,23 @@ from nonebot_plugin_splatoon3.static_data_getter import reload_weapon_info
 
 
 # # 测试nonebot 对战 命令文本触发
-plain_text = "全部图"
-
-num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-# num_list = list(set([int(x) for x in plain_text[:-2]]))
-num_list.sort()
-
-# stage_mode = plain_text[-2:]
-rule_match = None
-contest_match = None
-res = get_stages_image(num_list, contest_match, rule_match)
-res.show()
+# plain_text = "全部图"
+#
+# num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+# # num_list = list(set([int(x) for x in plain_text[:-2]]))
+# num_list.sort()
+#
+# # stage_mode = plain_text[-2:]
+# rule_match = None
+# contest_match = None
+# res = get_stages_image(num_list, contest_match, rule_match)
+# res.show()
 
 
 # 测试新版随机武器
-# plain_text = "随机武器 nice弹"
-# res = get_random_weapon_image(plain_text)
-# res.show()
+plain_text = "随机武器 nice弹"
+res = get_random_weapon_image(plain_text)
+res.show()
 
 
 # 写出武器翻译字典
