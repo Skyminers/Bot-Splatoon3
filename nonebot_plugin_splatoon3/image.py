@@ -1,21 +1,22 @@
 import datetime
 import json
 import random
+from PIL import Image
+import io
 
 from nonebot.log import logger
 from .data_source import get_coop_info, get_stage_info, get_weapon_info, get_schedule_data
 from .image_processer import (
     get_coop_stages,
-    imageDB,
-    image_to_base64,
     get_stages,
     get_random_weapon,
     get_festival,
     have_festival,
+    get_events,
 )
+from .image_processer_tools import image_to_base64
+from .image_db import imageDB
 
-from PIL import Image
-import io
 
 from .translation import weapon_semantic_word_conversion
 
@@ -54,6 +55,18 @@ def get_festival_image(*args):
     # 如果存在祭典
     if have_festival(festivals):
         image = get_festival(festivals)
+        return image
+    else:
+        return None
+
+
+# 取 活动图片
+def get_events_image(*args):
+    schedule = get_schedule_data()
+    events = schedule["eventSchedules"]["nodes"]
+    # 如果存在活动
+    if len(events) > 0:
+        image = get_events(events)
         return image
     else:
         return None

@@ -33,32 +33,33 @@ def multiple_replace(text, _dict):
     return text
 
 
-# 时间转换 月-日
-def time_converter_yd(time_str):
+# 时间转换 年-月-日 时:分:秒
+def time_converter(time_str) -> datetime:
     # convert time to UTC+8
     dt = datetime.datetime.strptime(time_str, "%Y-%m-%dT%H:%M:%SZ")
     dt += datetime.timedelta(hours=8)
+    return dt
+
+
+# 时间转换 月-日
+def time_converter_yd(time_str):
+    dt = time_converter(time_str)
     return datetime.datetime.strftime(dt, "%m.%d")
 
 
 # 时间转换 时:分
-def time_converter(time_str):
-    # convert time to UTC+8
-    dt = datetime.datetime.strptime(time_str, "%Y-%m-%dT%H:%M:%SZ")
-    dt += datetime.timedelta(hours=8)
+def time_converter_hm(time_str):
+    dt = time_converter(time_str)
     return datetime.datetime.strftime(dt, "%H:%M")
 
 
 # 时间转换 月-日 时:分
-def time_converter_day(time_str):
-    # convert time to UTC+8
-    dt = datetime.datetime.strptime(time_str, "%Y-%m-%dT%H:%M:%SZ")
-    dt += datetime.timedelta(hours=8)
+def time_converter_mdhm(time_str):
+    dt = time_converter(time_str)
     return datetime.datetime.strftime(dt, "%m-%d %H:%M")
 
 
 # 获取年月日
 def get_time_ymd():
-    # convert time to UTC+8
     dt = datetime.datetime.now().strftime("%Y-%m-%d")
     return dt

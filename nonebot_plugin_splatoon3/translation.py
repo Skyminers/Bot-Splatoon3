@@ -13,8 +13,8 @@ trans_eng_res_save_ymd: str
 weapon_image_type = ["Main", "Sub", "Special", "Class", "Father_Class"]
 
 
-# 取翻译数据
-def get_trans_data():
+# 取中文 翻译数据
+def get_trans_cht_data():
     global trans_res
     global trans_res_save_ymd
     if trans_res is None or check_expire_trans(trans_res_save_ymd):
@@ -28,7 +28,7 @@ def get_trans_data():
         return trans_res
 
 
-# 取英文文本数据
+# 取英文 文本数据
 def get_trans_eng_data():
     global trans_eng_res
     global trans_eng_res_save_ymd
@@ -46,7 +46,7 @@ def get_trans_eng_data():
 # 装备由英文名翻译为中文
 def weapons_trans_eng_to_cht(eng_name):
     # 获取两组语言数据
-    cht_data = get_trans_data()
+    cht_data = get_trans_cht_data()
     eng_data = get_trans_eng_data()
     cht_weapons = dict(cht_data["weapons"])
     eng_weapons = dict(eng_data["weapons"])
