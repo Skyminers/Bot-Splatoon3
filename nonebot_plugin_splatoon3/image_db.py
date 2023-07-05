@@ -159,6 +159,11 @@ class ImageDB:
                 f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
             )
         else:
+            # 查询有结果时将查询结果转换为字典
+            result = dict(zip([column[0] for column in c.description], data))
+            # 如果存在中文名便保留原有名称
+            if result.get("zh_name") != "" and result.get("zh_name") != "None":
+                weapon.zh_name = result.get("zh_name")
             sql = (
                 f"UPDATE WEAPON_INFO set sub_name=?,special_name=?,"
                 f"special_points=?,level=?,weapon_class=?,zh_name=?,zh_sub_name=?,"
@@ -185,6 +190,7 @@ class ImageDB:
     # 条件查询 武器信息 并随机输出一条结果
     def get_weapon_info(self, zh_weapon_class, zh_sub_name, zh_special_name, zh_father_class) -> WeaponData:
         # 故意创建一个全部结果的where方便后续sql拼接
+        # 这里的where报错不用管，后续有字符串拼接
         sql = (
             f"select name,sub_name,special_name,special_points,level,weapon_class,"
             f"zh_name,zh_sub_name,zh_special_name,zh_weapon_class,zh_father_class from WEAPON_INFO where"
@@ -218,6 +224,24 @@ class ImageDB:
         self.conn.commit()
         return weapon
 
+    # 查询 全部武器信息
+    def get_all_weapon_info(self) -> dict:
+        sql = f"select name,zh_name from WEAPON_INFO"
+        c = self.conn.cursor()
+        c.execute(sql)
+        rows = c.fetchall()
+        weapon: WeaponData
+        results = []
+        if rows is not None:
+            # 查询有结果时将查询结果转换为字典
+            for row in rows:
+                result = dict(zip([column[0] for column in c.description], row))
+                results.append(result)
+        else:
+            logger.error("查询武器失败，请检查武器数据表WEAPON_INFO和WEAPON_IMAGES内是否存在数据")
+        self.conn.commit()
+        return results
+
     # 添加或更新 武器图片数据
     # type_name = (main|sub|special|class)
     def add_or_modify_weapon_images(self, name, type_name, image):
@@ -248,3 +272,6 @@ class ImageDB:
             result = None
         self.conn.commit()
         return result
+
+
+imageDB = ImageDB()

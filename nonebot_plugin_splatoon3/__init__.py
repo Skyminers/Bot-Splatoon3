@@ -14,7 +14,7 @@ from .image import (
     get_weapon_info_test,
 )
 from .translation import dict_keyword_replace
-from .image_processer import imageDB
+from .image_db import imageDB
 from .utils import multiple_replace
 from .data_source import get_screenshot
 from .admin_matcher import matcher_admin

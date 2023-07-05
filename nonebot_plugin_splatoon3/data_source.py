@@ -7,7 +7,7 @@ from nonebot.log import logger
 from playwright.async_api import Browser, async_playwright
 
 from ._class import ImageInfo
-from .image_processer import imageDB
+from .image_db import imageDB
 from .translation import (
     get_trans_stage,
     get_trans_weapon,
@@ -202,8 +202,7 @@ def get_coop_info(_all=None):
         stage.insert(insert_idx, get_stage_image_info(schedule[0]))
         weapon.insert(insert_idx, get_weapon_image_info(schedule[0]))
         time.insert(insert_idx, get_str_time(schedule[0]))
-        # 团队打工取不到boss信息
-        boss.insert(insert_idx, "")
+        boss.insert(insert_idx, get_str_boss(schedule[0]))
         mode.insert(insert_idx, list_salmonrun_mode[2])
 
     return stage, weapon, time, boss, mode

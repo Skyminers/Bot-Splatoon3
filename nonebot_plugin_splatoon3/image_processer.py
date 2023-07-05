@@ -6,9 +6,10 @@ from PIL import Image, ImageDraw, ImageFont
 from nonebot.log import logger
 
 from ._class import WeaponData, ImageInfo
+from .data_source import get_schedule_data
 from .translation import get_trans_stage, get_trans_game_mode
 from .utils import *
-from .image_db import ImageDB
+from .image_db import imageDB
 
 # 根路径
 cur_path = os.path.dirname(__file__)
@@ -21,7 +22,6 @@ weapon_folder = os.path.join(cur_path, "staticData", "weapon")
 ttf_path = os.path.join(cur_path, "staticData", "SplatoonFontFix.otf")
 ttf_path_chinese = os.path.join(cur_path, "staticData", "Text.ttf")
 
-imageDB = ImageDB()
 http = urllib3.PoolManager()
 
 
@@ -246,19 +246,51 @@ def get_stage_card(
     return image_background
 
 
+# 绘制 祭典地图
+def get_festival(festivals):
+    background_size = (1000, 700)
+    # 取背景rgb颜色
+    bg_rgb = dict_bg_rgb["祭典"]
+    # 创建纯色背景
+    image_background = Image.new("RGBA", background_size, bg_rgb)
+    bg_mask = get_file("祭典蒙版").resize((600, 400))
+    # 填充小图蒙版
+    image_background = tiled_fill(image_background, bg_mask)
+    return image_background
+
+
+# 是否存在祭典   祭典的结构需要遍历判断
+def have_festival(_festivals):
+    for v in _festivals:
+        if v["festMatchSetting"] is not None:
+            return True
+    return False
+
+
 # 绘制 竞赛地图
 def get_stages(schedule, num_list, contest_match=None, rule_match=None):
     # 涂地
     regular = schedule["regularSchedules"]["nodes"]
     # 真格
     ranked = schedule["bankaraSchedules"]["nodes"]
-    # league = schedule['leagueSchedules']['nodes']
     # X段
     xschedule = schedule["xSchedules"]["nodes"]
+    # 活动
+    events = schedule["eventSchedules"]["nodes"]
+    # [0]["leagueMatchSetting"]
+    # ["timePeriods"]
+    # 祭典
+    festivals = schedule["festSchedules"]["nodes"]
+
+    # 如果存在祭典时，转变为输出祭典地图，后续不再进行处理
+    if have_festival(festivals):
+        image = get_festival(festivals)
+        return image
+
     cnt = 0
     time_head_count = 0
     # 计算满足条件的有效数据有多少排
-    for idx in num_list:
+    for i in num_list:
         # 筛选到数据的个数
         count_match_data = 0
         if contest_match is None or contest_match == "Turf War":
@@ -266,16 +298,16 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
                 cnt += 1
                 count_match_data += 1
         if contest_match is None or contest_match == "Ranked Challenge":
-            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
+            if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
                 cnt += 1
                 count_match_data += 1
         if contest_match is None or contest_match == "Ranked Open":
-            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
+            if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
                 cnt += 1
                 count_match_data += 1
 
         if contest_match is None or contest_match == "X Schedule":
-            if rule_match is None or rule_match == xschedule[idx]["xMatchSetting"]["vsRule"]["rule"]:
+            if rule_match is None or rule_match == xschedule[i]["xMatchSetting"]["vsRule"]["rule"]:
                 cnt += 1
                 count_match_data += 1
 
@@ -304,7 +336,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
     image_background = tiled_fill(image_background, bg_mask)
 
     total_pos = 0
-    for idx in num_list:
+    for i in num_list:
         pos = 0
         # 创建一张纯透明图片 用来存放一个时间周期内的多张地图卡片
         background = Image.new("RGBA", background_size, (0, 0, 0, 0))
@@ -316,7 +348,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
             if rule_match is None:
                 count_match_data += 1
 
-                stage = regular[idx]["regularMatchSetting"]["vsStages"]
+                stage = regular[i]["regularMatchSetting"]["vsStages"]
                 regular_card = get_stage_card(
                     ImageInfo(
                         stage[0]["name"],
@@ -332,9 +364,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
                     ),
                     "一般比赛",
                     "Regular",
-                    regular[idx]["regularMatchSetting"]["vsRule"]["rule"],
-                    time_converter(regular[idx]["startTime"]),
-                    time_converter(regular[idx]["endTime"]),
+                    regular[i]["regularMatchSetting"]["vsRule"]["rule"],
+                    time_converter(regular[i]["startTime"]),
+                    time_converter(regular[i]["endTime"]),
                 )
                 paste_with_a(background, regular_card, (10, pos))
                 pos += 340
@@ -342,9 +374,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
 
         # 第二排绘制 默认为真格区域
         if contest_match is None or contest_match == "Ranked Challenge":
-            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
+            if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
                 count_match_data += 1
-                stage = ranked[idx]["bankaraMatchSettings"][0]["vsStages"]
+                stage = ranked[i]["bankaraMatchSettings"][0]["vsStages"]
                 ranked_challenge_card = get_stage_card(
                     ImageInfo(
                         stage[0]["name"],
@@ -360,9 +392,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
                     ),
                     "蛮颓比赛-挑战",
                     "Ranked-Challenge",
-                    ranked[idx]["bankaraMatchSettings"][0]["vsRule"]["rule"],
-                    time_converter(ranked[idx]["startTime"]),
-                    time_converter(ranked[idx]["endTime"]),
+                    ranked[i]["bankaraMatchSettings"][0]["vsRule"]["rule"],
+                    time_converter(ranked[i]["startTime"]),
+                    time_converter(ranked[i]["endTime"]),
                 )
                 paste_with_a(background, ranked_challenge_card, (10, pos))
                 pos += 340
@@ -370,9 +402,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
 
         # 第三排绘制 默认为真格开放
         if contest_match is None or contest_match == "Ranked Open":
-            if rule_match is None or rule_match == ranked[idx]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
+            if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
                 count_match_data += 1
-                stage = ranked[idx]["bankaraMatchSettings"][1]["vsStages"]
+                stage = ranked[i]["bankaraMatchSettings"][1]["vsStages"]
                 ranked_challenge_card = get_stage_card(
                     ImageInfo(
                         stage[0]["name"],
@@ -388,9 +420,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
                     ),
                     "蛮颓比赛-开放",
                     "Ranked-Open",
-                    ranked[idx]["bankaraMatchSettings"][1]["vsRule"]["rule"],
-                    time_converter(ranked[idx]["startTime"]),
-                    time_converter(ranked[idx]["endTime"]),
+                    ranked[i]["bankaraMatchSettings"][1]["vsRule"]["rule"],
+                    time_converter(ranked[i]["startTime"]),
+                    time_converter(ranked[i]["endTime"]),
                 )
                 paste_with_a(background, ranked_challenge_card, (10, pos))
                 pos += 340
@@ -398,9 +430,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
 
         # 第四排绘制 默认为X赛
         if contest_match is None or contest_match == "X Schedule":
-            if rule_match is None or rule_match == xschedule[idx]["xMatchSetting"]["vsRule"]["rule"]:
+            if rule_match is None or rule_match == xschedule[i]["xMatchSetting"]["vsRule"]["rule"]:
                 count_match_data += 1
-                stage = xschedule[idx]["xMatchSetting"]["vsStages"]
+                stage = xschedule[i]["xMatchSetting"]["vsStages"]
                 ranked_challenge_card = get_stage_card(
                     ImageInfo(
                         stage[0]["name"],
@@ -416,9 +448,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
                     ),
                     "X比赛",
                     "X",
-                    xschedule[idx]["xMatchSetting"]["vsRule"]["rule"],
-                    time_converter(xschedule[idx]["startTime"]),
-                    time_converter(xschedule[idx]["endTime"]),
+                    xschedule[i]["xMatchSetting"]["vsRule"]["rule"],
+                    time_converter(xschedule[i]["startTime"]),
+                    time_converter(xschedule[i]["endTime"]),
                 )
                 paste_with_a(background, ranked_challenge_card, (10, pos))
                 pos += 340
@@ -426,9 +458,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
         # 如果有筛选结果，将时间表头贴到底图上
         if count_match_data:
             # 取涂地模式的时间，除举办祭典外，都可用
-            date_time = time_converter_yd(regular[idx]["startTime"])
-            start_time = time_converter(regular[idx]["startTime"])
-            end_time = time_converter(regular[idx]["endTime"])
+            date_time = time_converter_yd(regular[i]["startTime"])
+            start_time = time_converter(regular[i]["startTime"])
+            end_time = time_converter(regular[i]["endTime"])
             # 绘制时间表头
             time_head_bg = get_time_head_bg(time_head_bg_size, date_time, start_time, end_time)
             # 贴到大图上
@@ -543,7 +575,7 @@ def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb):
     sub_size = (55, 55)
     special_size = (55, 55)
     # 单张武器背景
-    weapon_bg_size = (150, 220)
+    weapon_bg_size = (150, 230)
 
     _, weapon_card_bg = circle_corner(Image.new("RGBA", weapon_card_bg_size, rgb), radii=20)
     # 遍历进行贴图
@@ -574,6 +606,14 @@ def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb):
         weapon_bg.paste(main_image, main_image_bg_pos)
         weapon_bg.paste(sub_image, sub_image_bg_pos)
         weapon_bg.paste(special_image, special_image_bg_pos)
+        # 武器名
+        dr = ImageDraw.Draw(weapon_bg)
+        font = ImageFont.truetype(ttf_path_chinese, 16)
+        weapon_zh_name = v.zh_name
+        zh_name_size = font.getsize(weapon_zh_name)
+        # 文字居中
+        zh_name_pos = ((weapon_bg_size[0] - zh_name_size[0]) // 2, weapon_bg_size[1] - 25)
+        dr.text(zh_name_pos, weapon_zh_name, font=font, fill="#FFFFFF")
         # 将武器背景贴到武器区域
         # weapon_card_bg.paste(weapon_bg, ((weapon_bg_size[0]+10) * i + 10, 5))
         paste_with_a(
@@ -581,6 +621,7 @@ def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb):
             weapon_bg,
             ((weapon_bg_size[0] + 10) * i + 10, (weapon_card_bg_size[1] - weapon_bg_size[1]) // 2),
         )
+
     return weapon_card_bg
 
 
