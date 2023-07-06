@@ -117,12 +117,12 @@ def paste_with_a(image_background, image_pasted, pos):
 
 
 # 绘制 地图名称及文字底图
-def get_stage_name_bg(stage_name, font_size=25):
-    stage_name_bg_size = (len(stage_name * font_size) + 16, 30)
+def get_stage_name_bg(stage_name, font_size=24):
+    stage_name_bg_size = (len(stage_name * font_size) + 16, font_size + 10)
     # 新建画布
-    stage_name_bg = Image.new("RGBA", stage_name_bg_size, (0, 0, 0))
+    stage_name_bg = Image.new("RGBA", stage_name_bg_size, (34, 34, 34))
     # 圆角化
-    _, stage_name_bg = circle_corner(stage_name_bg, radii=16)
+    _, stage_name_bg = circle_corner(stage_name_bg, radii=font_size // 2)
     # # 绘制文字
     drawer = ImageDraw.Draw(stage_name_bg)
     ttf = ImageFont.truetype(ttf_path_chinese, font_size)
@@ -131,6 +131,25 @@ def get_stage_name_bg(stage_name, font_size=25):
     text_pos = ((stage_name_bg_size[0] - w) // 2, (stage_name_bg_size[1] - h) // 2)
     drawer.text(text_pos, stage_name, font=ttf, fill=(255, 255, 255))
     return stage_name_bg
+
+
+# 绘制 半透明文字背景
+def get_translucent_name_bg(text, transparency, font_size=24, bg_color=None):
+    ttf = ImageFont.truetype(ttf_path_chinese, font_size)
+    # 文字背景
+    text_bg_size = (len(text) * font_size + 20, font_size + 20)
+    text_bg = get_file("圆角").resize(text_bg_size).convert("RGBA")
+    if bg_color is not None:
+        _, text_bg = circle_corner(Image.new("RGBA", text_bg_size, bg_color), radii=20)
+    _, text_bg = circle_corner(text_bg, radii=text_bg_size[1] // 2)
+    # 调整透明度
+    text_bg = change_image_alpha(text_bg, transparency)
+    drawer = ImageDraw.Draw(text_bg)
+    # 文字居中绘制
+    w, h = ttf.getsize(text)
+    text_pos = ((text_bg_size[0] - w) // 2, (text_bg_size[1] - h) // 2)
+    drawer.text(text_pos, text, font=ttf, fill=(255, 255, 255))
+    return text_bg
 
 
 # 绘制 时间表头
@@ -155,6 +174,19 @@ def have_festival(_festivals):
     for v in _festivals:
         if v["festMatchSetting"] is not None:
             return True
+    return False
+
+
+# 现在是否是祭典
+def now_is_festival(_festivals):
+    now = datetime.datetime.now()
+    for v in _festivals:
+        if v["festMatchSetting"] is not None:
+            # 如果祭典有参数 且现在时间位于这个区间
+            st = time_converter(v["startTime"])
+            et = time_converter(v["endTime"])
+            if st < now < et:
+                return True
     return False
 
 
@@ -337,15 +369,6 @@ def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb, font_color):
     return weapon_card_bg
 
 
-# 改变图片不透明度  值为0-100
-def change_image_alpha(image, transparency):
-    image = image.convert("RGBA")
-    alpha = image.split()[-1]
-    alpha = alpha.point(lambda p: p * transparency // 100)
-    new_image = Image.merge("RGBA", image.split()[:-1] + (alpha,))
-    return new_image
-
-
 # 绘制 活动地图卡片
 def get_event_card(event, event_card_bg_size):
     # 背景
@@ -464,6 +487,15 @@ def draw_grid_transverse_line(draw, pos_list, fill, width, gap):
     x_end, y_end = pos_list[1]
     for x in range(x_begin, x_end, gap):
         draw.line([(x, y_begin), (x + gap / 2, y_begin)], fill=fill, width=width)
+
+
+# 改变图片不透明度  值为0-100
+def change_image_alpha(image, transparency):
+    image = image.convert("RGBA")
+    alpha = image.split()[-1]
+    alpha = alpha.point(lambda p: p * transparency // 100)
+    new_image = Image.merge("RGBA", image.split()[:-1] + (alpha,))
+    return new_image
 
 
 # 旧版函数 随机武器

@@ -3,6 +3,7 @@ import urllib3
 from PIL import Image, ImageDraw, ImageFont
 
 from ._class import WeaponData, ImageInfo
+from .data_source import get_festivals_data
 from .image_processer_tools import (
     get_file,
     tiled_fill,
@@ -17,8 +18,10 @@ from .image_processer_tools import (
     get_event_card,
     change_image_alpha,
     get_event_desc_card,
+    now_is_festival,
+    get_translucent_name_bg,
 )
-from .translation import get_trans_stage, get_trans_cht_data, dict_rule_reverse_trans
+from .translation import get_trans_stage, get_trans_cht_data, dict_rule_reverse_trans, dict_weekday_trans
 from .utils import *
 
 # 根路径
@@ -37,20 +40,82 @@ http = urllib3.PoolManager()
 
 # 绘制 祭典地图
 def get_festival(festivals):
-    background_size = (1000, 700)
+    image_background_size = (1000, 670)
+    group_img_size = (1000, 390)
     # 取背景rgb颜色
     bg_rgb = dict_bg_rgb["祭典"]
     # 创建纯色背景
-    image_background = Image.new("RGBA", background_size, bg_rgb)
+    image_background = Image.new("RGBA", image_background_size, bg_rgb)
     bg_mask = get_file("祭典蒙版").resize((600, 400))
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
+    # 圆角化
+    _, image_background = circle_corner(image_background, radii=16)
+
+    festival = festivals[0]
+    # 获取翻译
+    _id = festival["__splatoon3ink_id"]
+    trans_cht_festival_data = get_trans_cht_data()["festivals"][_id]
+    # 替换为翻译
+    teams_list = []
+    festival["title"] = trans_cht_festival_data["title"]
+    for v in range(3):
+        festival["teams"][v]["teamName"] = trans_cht_festival_data["teams"][v]["teamName"]
+        teams_list.append(festival["teams"][v])
+    # 整理数据
+    title = festival["title"]
+    st = festival["startTime"]
+    et = festival["endTime"]
+    time_text = "{} {}  {} - {} {}  {}".format(
+        time_converter_yd(st),
+        "周" + dict_weekday_trans.get(time_converter_weekday(st)),
+        time_converter_hm(st),
+        time_converter_yd(et),
+        "周" + dict_weekday_trans.get(time_converter_weekday(et)),
+        time_converter_hm(et),
+    )
+    # 绘制标题
+    font_size = 30
+    text_bg = get_translucent_name_bg(title, 80, font_size)
+    text_bg_size = text_bg.size
+    # 贴上文字背景
+    text_bg_pos = ((image_background_size[0] - text_bg_size[0]) // 2, 20)
+    paste_with_a(image_background, text_bg, text_bg_pos)
+    # 绘制阵营图片
+    group_img = get_save_file(ImageInfo(title, festival["image"]["url"], title, "祭典阵营图片")).resize(group_img_size)
+    group_img_pos = (0, text_bg_pos[1] + text_bg_size[1] + 20)
+    paste_with_a(image_background, group_img, group_img_pos)
+    # 绘制阵营名称
+    drawer = ImageDraw.Draw(image_background)
+    pos_w = group_img_size[0] // 6
+    font_size = 24
+    ttf = ImageFont.truetype(ttf_path_chinese, font_size)
+    rectangle_h = 100
+    for k, v in enumerate(teams_list):
+        group_text_bg_rgb = (int(v["color"]["r"] * 100), int(v["color"]["g"] * 100), int(v["color"]["b"] * 100))
+        # 绘制色块对比图
+        satrt_xy = (0 + group_img_size[0] // 3 * k, group_img_pos[1] + group_img_size[1])
+        end_xy = (satrt_xy[0] + group_img_size[0] // 3, satrt_xy[1] + rectangle_h)
+        drawer.rectangle([satrt_xy, end_xy], fill=group_text_bg_rgb)
+        # 绘制阵营名称
+        group_text_bg = get_translucent_name_bg(v["teamName"], 100, font_size, group_text_bg_rgb)
+        w, h = group_text_bg.size
+        group_text_bg_pos = (pos_w - (w // 2), group_img_pos[1] + group_img_size[1] - h - 5)
+        paste_with_a(image_background, group_text_bg, group_text_bg_pos)
+        # 计算下一个
+        pos_w += group_img_size[0] // 3
+    # 绘制时间
+    w, h = ttf.getsize(time_text)
+    # 文字居中绘制
+    time_text_pos = ((image_background_size[0] - w) // 2, group_img_pos[1] + group_img_size[1] + rectangle_h + 20)
+    drawer.text(time_text_pos, time_text, font=ttf, fill=(234, 255, 61))
+
     return image_background
 
 
 # 绘制 活动地图
 def get_events(events):
-    background_size = (1084, 2200)
+    background_size = (1084, 1100 * len(events))
     event_card_bg_size = (background_size[0] - 40, 640)
     # 取背景rgb颜色
     bg_rgb = dict_bg_rgb["活动"]
@@ -121,8 +186,9 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
     # 祭典
     festivals = schedule["festSchedules"]["nodes"]
 
-    # 如果存在祭典时，转变为输出祭典地图，后续不再进行处理
-    if have_festival(festivals):
+    # 如果存在祭典，且当前时间位于祭典，转变为输出祭典地图，后续不再进行处理
+    if have_festival(festivals) and now_is_festival(festivals):
+        festivals = get_festivals_data()["JP"]["data"]["festRecords"]["nodes"]
         image = get_festival(festivals)
         return image
 
@@ -133,28 +199,32 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
         # 筛选到数据的个数
         count_match_data = 0
         if contest_match is None or contest_match == "Turf War":
-            if rule_match is None:
-                cnt += 1
-                count_match_data += 1
+            if regular[i]["regularMatchSetting"] is not None:
+                if rule_match is None:
+                    cnt += 1
+                    count_match_data += 1
         if contest_match is None or contest_match == "Ranked Challenge":
-            if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
-                cnt += 1
-                count_match_data += 1
+            if ranked[i]["bankaraMatchSettings"] is not None:
+                if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
+                    cnt += 1
+                    count_match_data += 1
         if contest_match is None or contest_match == "Ranked Open":
-            if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
-                cnt += 1
-                count_match_data += 1
+            if ranked[i]["bankaraMatchSettings"] is not None:
+                if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
+                    cnt += 1
+                    count_match_data += 1
 
         if contest_match is None or contest_match == "X Schedule":
-            if rule_match is None or rule_match == xschedule[i]["xMatchSetting"]["vsRule"]["rule"]:
-                cnt += 1
-                count_match_data += 1
+            if xschedule[i]["xMatchSetting"] is not None:
+                if rule_match is None or rule_match == xschedule[i]["xMatchSetting"]["vsRule"]["rule"]:
+                    cnt += 1
+                    count_match_data += 1
 
         # 如果有筛选结果,需要加上一个时间卡片
         if count_match_data:
             time_head_count += 1
 
-    if cnt == 0:
+    if cnt == 0 and not have_festival(festivals):
         # 没有搜索结果情况下，用全部list再次调用自身
         num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         return get_stages(schedule, num_list, contest_match, rule_match)
@@ -184,116 +254,120 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
 
         # 第一排绘制 默认为涂地模式
         if contest_match is None or contest_match == "Turf War":
-            if rule_match is None:
-                count_match_data += 1
+            if regular[i]["regularMatchSetting"] is not None:
+                if rule_match is None:
+                    count_match_data += 1
 
-                stage = regular[i]["regularMatchSetting"]["vsStages"]
-                regular_card = get_stage_card(
-                    ImageInfo(
-                        stage[0]["name"],
-                        stage[0]["image"]["url"],
-                        get_trans_stage(stage[0]["id"]),
-                        "对战地图",
-                    ),
-                    ImageInfo(
-                        stage[1]["name"],
-                        stage[1]["image"]["url"],
-                        get_trans_stage(stage[1]["id"]),
-                        "对战地图",
-                    ),
-                    "一般比赛",
-                    "Regular",
-                    regular[i]["regularMatchSetting"]["vsRule"]["rule"],
-                    time_converter_hm(regular[i]["startTime"]),
-                    time_converter_hm(regular[i]["endTime"]),
-                )
-                paste_with_a(background, regular_card, (10, pos))
-                pos += 340
-                total_pos += 340
+                    stage = regular[i]["regularMatchSetting"]["vsStages"]
+                    regular_card = get_stage_card(
+                        ImageInfo(
+                            stage[0]["name"],
+                            stage[0]["image"]["url"],
+                            get_trans_stage(stage[0]["id"]),
+                            "对战地图",
+                        ),
+                        ImageInfo(
+                            stage[1]["name"],
+                            stage[1]["image"]["url"],
+                            get_trans_stage(stage[1]["id"]),
+                            "对战地图",
+                        ),
+                        "一般比赛",
+                        "Regular",
+                        regular[i]["regularMatchSetting"]["vsRule"]["rule"],
+                        time_converter_hm(regular[i]["startTime"]),
+                        time_converter_hm(regular[i]["endTime"]),
+                    )
+                    paste_with_a(background, regular_card, (10, pos))
+                    pos += 340
+                    total_pos += 340
 
         # 第二排绘制 默认为真格区域
         if contest_match is None or contest_match == "Ranked Challenge":
-            if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
-                count_match_data += 1
-                stage = ranked[i]["bankaraMatchSettings"][0]["vsStages"]
-                ranked_challenge_card = get_stage_card(
-                    ImageInfo(
-                        stage[0]["name"],
-                        stage[0]["image"]["url"],
-                        get_trans_stage(stage[0]["id"]),
-                        "对战地图",
-                    ),
-                    ImageInfo(
-                        stage[1]["name"],
-                        stage[1]["image"]["url"],
-                        get_trans_stage(stage[1]["id"]),
-                        "对战地图",
-                    ),
-                    "蛮颓比赛-挑战",
-                    "Ranked-Challenge",
-                    ranked[i]["bankaraMatchSettings"][0]["vsRule"]["rule"],
-                    time_converter_hm(ranked[i]["startTime"]),
-                    time_converter_hm(ranked[i]["endTime"]),
-                )
-                paste_with_a(background, ranked_challenge_card, (10, pos))
-                pos += 340
-                total_pos += 340
+            if ranked[i]["bankaraMatchSettings"] is not None:
+                if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][0]["vsRule"]["rule"]:
+                    count_match_data += 1
+                    stage = ranked[i]["bankaraMatchSettings"][0]["vsStages"]
+                    ranked_challenge_card = get_stage_card(
+                        ImageInfo(
+                            stage[0]["name"],
+                            stage[0]["image"]["url"],
+                            get_trans_stage(stage[0]["id"]),
+                            "对战地图",
+                        ),
+                        ImageInfo(
+                            stage[1]["name"],
+                            stage[1]["image"]["url"],
+                            get_trans_stage(stage[1]["id"]),
+                            "对战地图",
+                        ),
+                        "蛮颓比赛-挑战",
+                        "Ranked-Challenge",
+                        ranked[i]["bankaraMatchSettings"][0]["vsRule"]["rule"],
+                        time_converter_hm(ranked[i]["startTime"]),
+                        time_converter_hm(ranked[i]["endTime"]),
+                    )
+                    paste_with_a(background, ranked_challenge_card, (10, pos))
+                    pos += 340
+                    total_pos += 340
 
         # 第三排绘制 默认为真格开放
         if contest_match is None or contest_match == "Ranked Open":
-            if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
-                count_match_data += 1
-                stage = ranked[i]["bankaraMatchSettings"][1]["vsStages"]
-                ranked_challenge_card = get_stage_card(
-                    ImageInfo(
-                        stage[0]["name"],
-                        stage[0]["image"]["url"],
-                        get_trans_stage(stage[0]["id"]),
-                        "对战地图",
-                    ),
-                    ImageInfo(
-                        stage[1]["name"],
-                        stage[1]["image"]["url"],
-                        get_trans_stage(stage[1]["id"]),
-                        "对战地图",
-                    ),
-                    "蛮颓比赛-开放",
-                    "Ranked-Open",
-                    ranked[i]["bankaraMatchSettings"][1]["vsRule"]["rule"],
-                    time_converter_hm(ranked[i]["startTime"]),
-                    time_converter_hm(ranked[i]["endTime"]),
-                )
-                paste_with_a(background, ranked_challenge_card, (10, pos))
-                pos += 340
-                total_pos += 340
+            if ranked[i]["bankaraMatchSettings"] is not None:
+                if rule_match is None or rule_match == ranked[i]["bankaraMatchSettings"][1]["vsRule"]["rule"]:
+                    count_match_data += 1
+                    stage = ranked[i]["bankaraMatchSettings"][1]["vsStages"]
+                    ranked_challenge_card = get_stage_card(
+                        ImageInfo(
+                            stage[0]["name"],
+                            stage[0]["image"]["url"],
+                            get_trans_stage(stage[0]["id"]),
+                            "对战地图",
+                        ),
+                        ImageInfo(
+                            stage[1]["name"],
+                            stage[1]["image"]["url"],
+                            get_trans_stage(stage[1]["id"]),
+                            "对战地图",
+                        ),
+                        "蛮颓比赛-开放",
+                        "Ranked-Open",
+                        ranked[i]["bankaraMatchSettings"][1]["vsRule"]["rule"],
+                        time_converter_hm(ranked[i]["startTime"]),
+                        time_converter_hm(ranked[i]["endTime"]),
+                    )
+                    paste_with_a(background, ranked_challenge_card, (10, pos))
+                    pos += 340
+                    total_pos += 340
 
         # 第四排绘制 默认为X赛
         if contest_match is None or contest_match == "X Schedule":
-            if rule_match is None or rule_match == xschedule[i]["xMatchSetting"]["vsRule"]["rule"]:
-                count_match_data += 1
-                stage = xschedule[i]["xMatchSetting"]["vsStages"]
-                ranked_challenge_card = get_stage_card(
-                    ImageInfo(
-                        stage[0]["name"],
-                        stage[0]["image"]["url"],
-                        get_trans_stage(stage[0]["id"]),
-                        "对战地图",
-                    ),
-                    ImageInfo(
-                        stage[1]["name"],
-                        stage[1]["image"]["url"],
-                        get_trans_stage(stage[1]["id"]),
-                        "对战地图",
-                    ),
-                    "X比赛",
-                    "X",
-                    xschedule[i]["xMatchSetting"]["vsRule"]["rule"],
-                    time_converter_hm(xschedule[i]["startTime"]),
-                    time_converter_hm(xschedule[i]["endTime"]),
-                )
-                paste_with_a(background, ranked_challenge_card, (10, pos))
-                pos += 340
-                total_pos += 340
+            if xschedule[i]["xMatchSetting"] is not None:
+                if rule_match is None or rule_match == xschedule[i]["xMatchSetting"]["vsRule"]["rule"]:
+                    count_match_data += 1
+                    stage = xschedule[i]["xMatchSetting"]["vsStages"]
+                    ranked_challenge_card = get_stage_card(
+                        ImageInfo(
+                            stage[0]["name"],
+                            stage[0]["image"]["url"],
+                            get_trans_stage(stage[0]["id"]),
+                            "对战地图",
+                        ),
+                        ImageInfo(
+                            stage[1]["name"],
+                            stage[1]["image"]["url"],
+                            get_trans_stage(stage[1]["id"]),
+                            "对战地图",
+                        ),
+                        "X比赛",
+                        "X",
+                        xschedule[i]["xMatchSetting"]["vsRule"]["rule"],
+                        time_converter_hm(xschedule[i]["startTime"]),
+                        time_converter_hm(xschedule[i]["endTime"]),
+                    )
+                    paste_with_a(background, ranked_challenge_card, (10, pos))
+                    pos += 340
+                    total_pos += 340
         # 如果有筛选结果，将时间表头贴到底图上
         if count_match_data:
             # 取涂地模式的时间，除举办祭典外，都可用
