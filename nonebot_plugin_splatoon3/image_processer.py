@@ -15,8 +15,10 @@ from .image_processer_tools import (
     get_weapon_card,
     have_festival,
     get_event_card,
+    change_image_alpha,
+    get_event_desc_card,
 )
-from .translation import get_trans_stage, get_trans_cht_data
+from .translation import get_trans_stage, get_trans_cht_data, dict_rule_reverse_trans
 from .utils import *
 
 # 根路径
@@ -48,7 +50,8 @@ def get_festival(festivals):
 
 # 绘制 活动地图
 def get_events(events):
-    background_size = (1084, 1000)
+    background_size = (1084, 2200)
+    event_card_bg_size = (background_size[0] - 40, 640)
     # 取背景rgb颜色
     bg_rgb = dict_bg_rgb["活动"]
     # 创建纯色背景
@@ -56,11 +59,10 @@ def get_events(events):
     bg_mask = get_file("猫爪蒙版").resize((400, 250))
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
-    event_card_bg_size = (background_size[0] - 40, 600)
-    event_card_bg_pos = (10, 200)
-    rgba = ()
+    # 圆角
+    _, image_background = circle_corner(image_background, radii=20)
     # 遍历每个活动
-    pos = 0
+    pos_h = 0
     for index, event in enumerate(events):
         # 获取翻译
         cht_event_data = event["leagueMatchSetting"]["leagueMatchEvent"]
@@ -70,11 +72,16 @@ def get_events(events):
         cht_event_data["name"] = trans_cht_event_data["name"]
         cht_event_data["desc"] = trans_cht_event_data["desc"]
         cht_event_data["regulation"] = trans_cht_event_data["regulation"]
+        event["leagueMatchSetting"]["vsRule"]["rule"] = dict_rule_reverse_trans.get(
+            event["leagueMatchSetting"]["vsRule"]["rule"]
+        )
         # 顶部活动标志(大号)
+        pos_h += 20
         game_mode_img_size = (80, 80)
         game_mode_img = get_file("活动比赛").resize(game_mode_img_size, Image.ANTIALIAS)
-        game_mode_img_pos = (20, 20)
+        game_mode_img_pos = (20, pos_h)
         paste_with_a(image_background, game_mode_img, game_mode_img_pos)
+        pos_h += game_mode_img_size[1] + 20
         # 绘制主标题
         main_title = cht_event_data["name"]
         drawer = ImageDraw.Draw(image_background)
@@ -88,9 +95,18 @@ def get_events(events):
         desc_pos = (main_title_pos[0], main_title_pos[1] + main_title_size[1] + 10)
         drawer.text(desc_pos, desc, font=ttf, fill=(255, 255, 255))
         # 绘制对战卡片
-        event_card = get_event_card(event, event_card_bg_size, (24, 24, 27, 255))
-        event_card_pos = (20, 120 + pos)
+        event_card = get_event_card(event, event_card_bg_size)
+        event_card_pos = (20, pos_h)
         paste_with_a(image_background, event_card, event_card_pos)
+        pos_h += event_card_bg_size[1] + 10
+        # 绘制祭典说明卡片
+        event_desc_card_bg_size = (event_card_bg_size[0], 300)
+        event_desc_card = get_event_desc_card(cht_event_data, event_desc_card_bg_size)
+        event_card_pos = (20, pos_h)
+        paste_with_a(image_background, event_desc_card, event_card_pos)
+        pos_h += event_desc_card_bg_size[1]
+        # 计算下一行高度
+        pos_h += 20
     return image_background
 
 

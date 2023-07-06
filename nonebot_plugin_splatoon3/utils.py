@@ -1,3 +1,4 @@
+import calendar
 import datetime
 import cfscrape
 
@@ -57,6 +58,13 @@ def time_converter_hm(time_str):
 def time_converter_mdhm(time_str):
     dt = time_converter(time_str)
     return datetime.datetime.strftime(dt, "%m-%d %H:%M")
+
+
+# 时间转换 周几，如周一
+def time_converter_weekday(time_str):
+    dt = time_converter(time_str)
+    weekday = dt.weekday()
+    return weekday
 
 
 # 获取年月日

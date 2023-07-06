@@ -12,6 +12,7 @@ from .image import (
     get_random_weapon_image,
     get_stages_image,
     get_weapon_info_test,
+    get_events_image,
 )
 from .translation import dict_keyword_replace
 from .image_db import imageDB
@@ -249,8 +250,17 @@ async def _(matcher: Matcher, event: MessageEvent):
         img = await get_screenshot(shot_url="https://splatoon3.ink/splatfests")
         await matcher.finish(MessageSegment.image(file=img, cache=False))
     elif re.search("^活动$", plain_text):
-        img = await get_screenshot(shot_url="https://splatoon3.ink/challenges")
-        await matcher.finish(MessageSegment.image(file=img, cache=False))
+        # 传递函数指针
+        func = get_events_image
+        # 获取图片
+        img = get_save_temp_image(plain_text, func)
+        if img is None:
+            msg = "近期没有任何活动比赛"
+            msgm = MessageSegment.text(msg)
+        else:
+            # 发送图片
+            msgm = MessageSegment.image(file=img, cache=False)
+        await matcher.finish(msgm)
     elif re.search("^装备$", plain_text):
         img = await get_screenshot(shot_url="https://splatoon3.ink/gear")
         await matcher.finish(MessageSegment.image(file=img, cache=False))

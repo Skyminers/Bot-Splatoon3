@@ -122,6 +122,17 @@ dict_rule_reverse_trans = {
     "AREA": "真格区域",
     "TURF_WAR": "占地对战",
 }
+
+# 星期翻译
+dict_weekday_trans = {
+    0: "一",
+    1: "二",
+    2: "三",
+    3: "四",
+    4: "五",
+    5: "六",
+    6: "日",
+}
 # dict
 dict_contest_trans = {
     "涂地": "Turf War",

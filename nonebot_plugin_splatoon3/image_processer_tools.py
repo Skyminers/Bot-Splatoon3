@@ -8,7 +8,7 @@ from nonebot import logger
 from .image_db import imageDB
 from ._class import ImageInfo, WeaponData
 from .utils import *
-from .translation import get_trans_game_mode, get_trans_stage, get_trans_cht_data
+from .translation import get_trans_game_mode, get_trans_stage, get_trans_cht_data, dict_weekday_trans
 
 # 根路径
 cur_path = os.path.dirname(__file__)
@@ -315,12 +315,23 @@ def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb):
     return weapon_card_bg
 
 
+# 改变图片透明度  值为0-100
+def change_image_alpha(image, transparency):
+    image = image.convert("RGBA")
+    alpha = image.split()[-1]
+    alpha = alpha.point(lambda p: p * transparency // 100)
+    new_image = Image.merge("RGBA", image.split()[:-1] + (alpha,))
+    return new_image
+
+
 # 绘制 活动地图卡片
-def get_event_card(event, event_card_bg_size, rgba):
+def get_event_card(event, event_card_bg_size):
     # 背景
-    _, event_card_bg = circle_corner(Image.new("RGBA", event_card_bg_size, rgba), radii=20)
-    event_card_pos = (10, 20)
+    event_card_bg = get_file("圆角").resize(event_card_bg_size).convert("RGBA")
+    # 调整透明度
+    event_card_bg = change_image_alpha(event_card_bg, 70)
     # 比赛卡片
+    stage_card_pos = (10, 20)
     stage = event["leagueMatchSetting"]["vsStages"]
     stage_card = get_stage_card(
         ImageInfo(
@@ -339,9 +350,98 @@ def get_event_card(event, event_card_bg_size, rgba):
         "活动比赛",
         event["leagueMatchSetting"]["vsRule"]["rule"],
     )
-    paste_with_a(event_card_bg, stage_card, event_card_pos)
-
+    stage_card_size = stage_card.size
+    paste_with_a(event_card_bg, stage_card, stage_card_pos)
+    # 绘制三个活动时间
+    drawer = ImageDraw.Draw(event_card_bg)
+    ttf = ImageFont.truetype(ttf_path_chinese, 40)
+    pos_h = stage_card_pos[1] + stage_card_size[1] + 20
+    for v in range(3):
+        # 绘制游戏模式小图标
+        game_mode_text = event["leagueMatchSetting"]["vsRule"]["rule"]
+        game_mode_img_size = (35, 35)
+        game_mode_img = get_file(game_mode_text).resize(game_mode_img_size, Image.ANTIALIAS)
+        game_mode_img_pos = (20, pos_h)
+        paste_with_a(event_card_bg, game_mode_img, game_mode_img_pos)
+        # 绘制时间
+        st = event["timePeriods"][v]["startTime"]
+        et = event["timePeriods"][v]["endTime"]
+        time_text_pos = (game_mode_img_pos[0] + game_mode_img_size[0] + 10, pos_h)
+        time_text = "{} {}  {} - {} {}".format(
+            time_converter_yd(st),
+            "周" + dict_weekday_trans.get(time_converter_weekday(st)),
+            time_converter_hm(st),
+            time_converter_yd(et),
+            time_converter_hm(et),
+        )
+        drawer.text(time_text_pos, time_text, font=ttf, fill=(255, 255, 255))
+        # 绘制虚线
+        transverse_line_pos = (game_mode_img_pos[0], game_mode_img_pos[1] + game_mode_img_size[1] + 20)
+        # 开始与结束的xy坐标
+        transverse_line_pos_list = [
+            transverse_line_pos,
+            (transverse_line_pos[0] + event_card_bg_size[0] - 50, transverse_line_pos[1]),
+        ]
+        draw_grid_transverse_line(drawer, transverse_line_pos_list, fill="white", width=3, gap=25)
+        # 绘制 时间状态 文字
+        now = datetime.datetime.now()
+        if time_converter(st) > now:
+            text = "未开始"
+            text_color = (243, 254, 176)
+        if time_converter(st) < now < time_converter(et):
+            text = "进行中"
+            text_color = (144, 203, 251)
+        if time_converter(et) < now:
+            text = "已结束"
+            text_color = (165, 170, 163)
+        text_size = ttf.getsize(text)
+        drawer.text(
+            (transverse_line_pos_list[1][0] - text_size[0] - 10, time_text_pos[1]),
+            text,
+            font=ttf,
+            fill=text_color,
+        )
+        # 计算下一行高度
+        pos_h += 80
     return event_card_bg
+
+
+# 绘制 活动地图描述卡片
+def get_event_desc_card(cht_event_data, event_desc_card_bg_size):
+    # 背景
+    event_desc_card_bg = get_file("圆角").resize(event_desc_card_bg_size).convert("RGBA")
+    # 调整透明度
+    event_desc_card_bg = change_image_alpha(event_desc_card_bg, 60)
+    # 对规则文字分行
+    desc = cht_event_data["desc"]
+    regulation = cht_event_data["regulation"]
+    regulation_list = regulation.split("<br />")
+    # 绘制文本
+    drawer = ImageDraw.Draw(event_desc_card_bg)
+    ttf = ImageFont.truetype(ttf_path_chinese, 30)
+    pos_h = 30
+    for v in regulation_list:
+        if v != "":
+            text_pos = (20, pos_h)
+            drawer.text(text_pos, v, font=ttf, fill=(255, 255, 255))
+        pos_h += 40
+    return event_desc_card_bg
+
+
+# 画虚线 竖线
+def draw_grid_vertical_line(draw, pos_list, fill, width, gap):
+    x_begin, y_begin = pos_list[0]
+    x_end, y_end = pos_list[1]
+    for y in range(y_begin, y_end, gap):
+        draw.line([(x_begin, y), (x_begin, y + gap / 2)], fill=fill, width=width)
+
+
+# 画虚线 横线
+def draw_grid_transverse_line(draw, pos_list, fill, width, gap):
+    x_begin, y_begin = pos_list[0]
+    x_end, y_end = pos_list[1]
+    for x in range(x_begin, x_end, gap):
+        draw.line([(x, y_begin), (x + gap / 2, y_begin)], fill=fill, width=width)
 
 
 # 旧版函数 随机武器
