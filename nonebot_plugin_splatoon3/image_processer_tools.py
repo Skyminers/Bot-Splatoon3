@@ -276,7 +276,7 @@ def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb):
         weapon_bg = Image.new("RGB", weapon_bg_size, rgb)
         _, weapon_bg = circle_corner(weapon_bg, radii=20)
         # 调整透明度
-        weapon_bg = change_image_alpha(weapon_bg, 60)
+        weapon_bg = change_image_alpha(weapon_bg, 80)
         # 主武器
         main_image_bg = Image.new("RGBA", main_size, (30, 30, 30, 255))
         main_image = Image.open(io.BytesIO(v.image)).resize(main_size, Image.ANTIALIAS)
