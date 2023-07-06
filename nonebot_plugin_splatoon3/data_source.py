@@ -7,11 +7,11 @@ from nonebot.log import logger
 from playwright.async_api import Browser, async_playwright
 
 from ._class import ImageInfo
-from .image_processer import imageDB
+from .image_db import imageDB
 from .translation import (
     get_trans_stage,
     get_trans_weapon,
-    get_trans_data,
+    get_trans_cht_data,
     list_salmonrun_mode,
     dict_contest_trans,
     dict_rule_trans,
@@ -108,8 +108,8 @@ def get_coop_info(_all=None):
 
     # 取时间信息
     def get_str_time(sch):
-        _start_time = time_converter_day(sch["startTime"])
-        _end_time = time_converter_day(sch["endTime"])
+        _start_time = time_converter_mdhm(sch["startTime"])
+        _end_time = time_converter_mdhm(sch["endTime"])
         return "{} - {}".format(_start_time, _end_time)
 
     # 取boss名称
@@ -131,7 +131,7 @@ def get_coop_info(_all=None):
     # 取日程
     schedule = get_schedule_data()
     # 取翻译
-    get_trans_data()
+    get_trans_cht_data()
     # 一般打工数据
     regular_schedule = schedule["coopGroupingSchedule"]["regularSchedules"]["nodes"]
     # 团队打工竞赛
@@ -202,8 +202,7 @@ def get_coop_info(_all=None):
         stage.insert(insert_idx, get_stage_image_info(schedule[0]))
         weapon.insert(insert_idx, get_weapon_image_info(schedule[0]))
         time.insert(insert_idx, get_str_time(schedule[0]))
-        # 团队打工取不到boss信息
-        boss.insert(insert_idx, "")
+        boss.insert(insert_idx, get_str_boss(schedule[0]))
         mode.insert(insert_idx, list_salmonrun_mode[2])
 
     return stage, weapon, time, boss, mode
@@ -264,7 +263,7 @@ def get_stage_info(num_list=None, contest_match=None, rule_match=None):
     if num_list is None:
         num_list = [0]
     schedule = get_schedule_data()
-    get_trans_data()
+    get_trans_cht_data()
     # 竞赛 规则
     if contest_match is not None and contest_match != "":
         new_contest_match = dict_contest_trans[contest_match]

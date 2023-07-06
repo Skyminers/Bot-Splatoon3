@@ -1,19 +1,22 @@
 import datetime
 import json
 import random
-
-from nonebot.log import logger
-from .data_source import get_coop_info, get_stage_info, get_weapon_info
-from .image_processer import (
-    get_coop_stages,
-    imageDB,
-    image_to_base64,
-    get_stages,
-    get_random_weapon,
-)
-
 from PIL import Image
 import io
+
+from nonebot.log import logger
+from .data_source import get_coop_info, get_stage_info, get_weapon_info, get_schedule_data
+from .image_processer import (
+    get_coop_stages,
+    get_stages,
+    get_random_weapon,
+    get_festival,
+    have_festival,
+    get_events,
+)
+from .image_processer_tools import image_to_base64
+from .image_db import imageDB
+
 
 from .translation import weapon_semantic_word_conversion
 
@@ -43,6 +46,30 @@ def get_stages_image(*args):
     # 绘制图片
     image = get_stages(schedule, new_num_list, new_contest_match, new_rule_match)
     return image
+
+
+# 取 祭典图片
+def get_festival_image(*args):
+    schedule = get_schedule_data()
+    festivals = schedule["festSchedules"]["nodes"]
+    # 如果存在祭典
+    if have_festival(festivals):
+        image = get_festival(festivals)
+        return image
+    else:
+        return None
+
+
+# 取 活动图片
+def get_events_image(*args):
+    schedule = get_schedule_data()
+    events = schedule["eventSchedules"]["nodes"]
+    # 如果存在活动
+    if len(events) > 0:
+        image = get_events(events)
+        return image
+    else:
+        return None
 
 
 # 取 新版 随机武器图片 不能进行缓存，这个需要实时生成
@@ -83,8 +110,8 @@ def get_random_weapon_image(*args):
 
     # 绘制图片
     image = get_random_weapon(weapon1, weapon2)
-    # return image
-    return image_to_base64(image)
+    # 测试时解除注释输出image方便查看
+    return image
 
 
 # 测试武器数据库能否取到数据
@@ -141,6 +168,21 @@ def get_save_temp_image(trigger_word, func, *args):
             return image
         logger.info("数据库内存在时效范围内的缓存图片，将从数据库读取缓存图片")
         return image_to_base64(Image.open(io.BytesIO(image_data)))
+
+
+# 写出武器翻译字典
+def write_weapon_trans_dict():
+    weapon_trans_dict = imageDB.get_all_weapon_info()
+    if len(weapon_trans_dict) > 0:
+        with open("weapon_trans_dict.txt", "a") as file:
+            file.write("{")
+        for val in weapon_trans_dict:
+            # s += '"' + val["name"] + '":"' + val["zh_name"] + '",'
+            s = '"{}":"{}",'.format(val["name"], val["zh_name"])
+            with open("weapon_trans_dict.txt", "a") as file:
+                file.write(s)
+        with open("weapon_trans_dict.txt", "a") as file:
+            file.write("}")
 
 
 # 旧版 取 随机武器图片 不能进行缓存，这个需要实时生成

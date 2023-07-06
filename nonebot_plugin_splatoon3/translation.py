@@ -6,17 +6,19 @@ from nonebot.log import logger
 from .utils import get_time_ymd, cf_http_get
 
 trans_res = None
+trans_eng_res = None
 trans_res_save_ymd: str
+trans_eng_res_save_ymd: str
 # 武器图片类型
 weapon_image_type = ["Main", "Sub", "Special", "Class", "Father_Class"]
 
 
-# 取翻译数据
-def get_trans_data():
+# 取中文 翻译数据
+def get_trans_cht_data():
     global trans_res
     global trans_res_save_ymd
     if trans_res is None or check_expire_trans(trans_res_save_ymd):
-        logger.info("重新请求:翻译文本")
+        logger.info("重新请求:中文翻译文本")
         result = cf_http_get("https://splatoon3.ink/data/locale/zh-CN.json").text
         trans_res = json.loads(result)
         # 刷新储存时 时间
@@ -24,6 +26,41 @@ def get_trans_data():
         return trans_res
     else:
         return trans_res
+
+
+# 取英文 文本数据
+def get_trans_eng_data():
+    global trans_eng_res
+    global trans_eng_res_save_ymd
+    if trans_eng_res is None or check_expire_trans(trans_eng_res_save_ymd):
+        logger.info("重新请求:英文文本")
+        result = cf_http_get("https://splatoon3.ink/data/locale/en-GB.json").text
+        trans_eng_res = json.loads(result)
+        # 刷新储存时 时间
+        trans_eng_res_save_ymd = get_time_ymd()
+        return trans_eng_res
+    else:
+        return trans_eng_res
+
+
+# 装备由英文名翻译为中文
+def weapons_trans_eng_to_cht(eng_name):
+    # 获取两组语言数据
+    cht_data = get_trans_cht_data()
+    eng_data = get_trans_eng_data()
+    cht_weapons = dict(cht_data["weapons"])
+    eng_weapons = dict(eng_data["weapons"])
+    key = ""
+    zht_name = ""
+    # 查找英文对应的key
+    for k, v in eng_weapons.items():
+        if v["name"] == eng_name:
+            key = k
+            break
+    # 用key来查找中文
+    if key != "":
+        zht_name = cht_weapons[key]["name"]
+    return zht_name
 
 
 # 校验过期翻译 记录每日ymd，不同则为false，使其每日刷新一次
@@ -85,6 +122,17 @@ dict_rule_reverse_trans = {
     "AREA": "真格区域",
     "TURF_WAR": "占地对战",
 }
+
+# 星期翻译
+dict_weekday_trans = {
+    0: "一",
+    1: "二",
+    2: "三",
+    3: "四",
+    4: "五",
+    5: "六",
+    6: "日",
+}
 # dict
 dict_contest_trans = {
     "涂地": "Turf War",
@@ -127,7 +175,99 @@ dict_keyword_replace = {
 }
 
 # 规范翻译字典 装备 主武器名称
-dict_weapon_main_trans = {}
+dict_weapon_main_trans = {
+    ".52 Gal": ".52加仑",
+    ".96 Gal": ".96加仑",
+    ".96 Gal Deco": ".96加仑 装饰",
+    "Aerospray MG": "专业模型枪MG",
+    "Aerospray RG": "专业模型枪RG",
+    "Annaki Splattershot Nova": "太空射击枪 联名",
+    "Ballpoint Splatling": "圆珠笔",
+    "Bamboozler 14 Mk I": "14式竹筒枪·甲",
+    "Big Swig Roller": "宽滚筒",
+    "Big Swig Roller Express": "宽滚筒 联名",
+    "Blaster": "火热爆破枪",
+    "Bloblobber": "满溢泡澡泼桶",
+    "Carbon Roller": "碳纤维滚筒",
+    "Carbon Roller Deco": "碳纤维滚筒 装饰",
+    "Clash Blaster": "冲涂爆破枪",
+    "Clash Blaster Neo": "冲涂爆破枪 新型",
+    "Classic Squiffer": "鱿快洁α",
+    "Custom Dualie Squelchers": "双重清洁枪 改装",
+    "Custom Jet Squelcher": "喷射清洁枪 改装",
+    "Custom Splattershot Jr.": "枫叶射击枪",
+    "Dapple Dualies": "溅镀枪",
+    "Dapple Dualies Nouveau": "溅镀枪·新艺术",
+    "Dark Tetra Dualies": "四重弹跳手枪 黑",
+    "Dualie Squelchers": "双重清洁枪",
+    "Dynamo Roller": "电动马达滚筒",
+    "E-liter 4K": "公升4K",
+    "E-liter 4K Scope": "4K准星枪",
+    "Explosher": "爆炸泼桶",
+    "Flingza Roller": "可变式滚筒",
+    "Forge Splattershot Pro": "顶尖射击枪 联名",
+    "Glooga Dualies": "开尔文525",
+    "Goo Tuber": "高压油管枪",
+    "H-3 Nozzlenose": "H3卷管枪",
+    "H-3 Nozzlenose D": "H3卷管枪D",
+    "Heavy Splatling": "桶装旋转枪",
+    "Heavy Splatling Deco": "桶装旋转枪 装饰",
+    "Hero Shot Replica": "英雄射击枪 复制",
+    "Hydra Splatling": "消防栓旋转枪",
+    "Inkbrush": "巴勃罗",
+    "Inkbrush Nouveau": "巴勃罗·新艺术",
+    "Jet Squelcher": "喷射清洁枪",
+    "Krak-On Splat Roller": "斯普拉滚筒 联名",
+    "L-3 Nozzlenose": "L3卷管枪",
+    "L-3 Nozzlenose D": "L3卷管枪D",
+    "Light Tetra Dualies": "四重弹跳手枪 白",
+    "Luna Blaster": "新星爆破枪",
+    "Luna Blaster Neo": "新星爆破枪 新型",
+    "Mini Splatling": "斯普拉旋转枪",
+    "N-ZAP '85": "N-ZAP85",
+    "N-ZAP '89": "N-ZAP89",
+    "Nautilus 47": "鹦鹉螺号47",
+    "Neo Splash-o-matic": "窄域标记枪 新型",
+    "Neo Sploosh-o-matic": "广域标记枪 新型",
+    "Octobrush": "北斋",
+    "Painbrush": "文森",
+    "Range Blaster": "远距爆破枪",
+    "Rapid Blaster": "快速爆破枪",
+    "Rapid Blaster Deco": "快速爆破枪 装饰",
+    "Rapid Blaster Pro": "快速爆破枪 精英",
+    "Rapid Blaster Pro Deco": "快速爆破枪 精英装饰",
+    "REEF-LUX 450": "LACT-450",
+    "S-BLAST '92": "S-BLAST92",
+    "Slosher": "飞溅泼桶",
+    "Slosher Deco": "飞溅泼桶 装饰",
+    "Sloshing Machine": "回旋泼桶",
+    "Snipewriter 5H": "R-PEN/5H",
+    "Splash-o-matic": "窄域标记枪",
+    "Splat Brella": "遮阳防空伞",
+    "Splat Charger": "斯普拉蓄力狙击枪",
+    "Splat Dualies": "斯普拉机动枪",
+    "Splat Roller": "斯普拉滚筒",
+    "Splatana Stamper": "工作刮水刀",
+    "Splatana Wiper": "雨刷刮水刀",
+    "Splatana Wiper Deco": "雨刷刮水刀 装饰",
+    "Splatterscope": "斯普拉准星枪",
+    "Splattershot": "斯普拉射击枪",
+    "Splattershot Jr.": "新叶射击枪",
+    "Splattershot Nova": "太空射击枪",
+    "Splattershot Pro": "顶尖射击枪",
+    "Sploosh-o-matic": "广域标记枪",
+    "Squeezer": "开瓶喷泉枪",
+    "Tenta Brella": "露营防空伞",
+    "Tenta Sorella Brella": "露营防空伞 姐妹",
+    "Tentatek Splattershot": "斯普拉射击枪 联名",
+    "Tri-Slosher": "洗笔桶",
+    "Tri-Slosher Nouveau": "洗笔桶·新艺术",
+    "Tri-Stringer": "三发猎鱼弓",
+    "Undercover Brella": "特工配件",
+    "Z+F Splat Charger": "斯普拉蓄力狙击枪 联名",
+    "Z+F Splatterscope": "斯普拉准星枪 联名",
+    "Zink Mini Splatling": "斯普拉旋转枪 联名",
+}
 
 # 规范翻译字典 装备 副武器名称
 dict_weapon_sub_trans = {

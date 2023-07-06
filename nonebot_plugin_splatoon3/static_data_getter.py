@@ -2,7 +2,8 @@ import httpx
 
 from bs4 import BeautifulSoup
 from nonebot.log import logger
-from .image_processer import imageDB, get_cf_file_url, get_file_url
+from .image_db import imageDB
+from .image_processer_tools import get_file_url
 from ._class import WeaponData, ImageInfo
 from .translation import (
     dict_weapon_sub_trans,
@@ -11,6 +12,7 @@ from .translation import (
     dict_weapon_class_trans,
     weapon_image_type,
     dict_weapon_father_class_trans,
+    weapons_trans_eng_to_cht,
 )
 
 # 爬取地址
@@ -43,8 +45,12 @@ def reload_weapon_info():
             zh_special_name="None",
         )
         # 主武器，副武器，大招，武器类别，武器父类别 取翻译字典
+        # 先从字典取武器名称翻译
         if weapon_data.name in dict_weapon_main_trans:
             weapon_data.zh_name = dict_weapon_main_trans[weapon_data.name]
+        else:
+            # 没有的话利用中英对照数据看能不能找到翻译数据(贴牌武器基本都不行，就只能等手动更新)
+            weapon_data.zh_name = weapons_trans_eng_to_cht(weapon_data.name)
         if weapon_data.sub_name in dict_weapon_sub_trans:
             weapon_data.zh_sub_name = dict_weapon_sub_trans[weapon_data.sub_name]
         if weapon_data.special_name in dict_weapon_special_trans:
