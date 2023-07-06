@@ -260,13 +260,14 @@ def get_stage_card(
 
 
 # 绘制一排武器
-def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb):
+def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb, font_color):
+    # 单张武器背景
+    weapon_bg_size = (150, 230)
+    # 主武器，副武器，大招
     main_size = (120, 120)
     sub_size = (55, 55)
     special_size = (55, 55)
-    # 单张武器背景
-    weapon_bg_size = (150, 230)
-
+    # 一排武器的背景
     _, weapon_card_bg = circle_corner(Image.new("RGBA", weapon_card_bg_size, rgb), radii=20)
 
     # 遍历进行贴图
@@ -305,15 +306,28 @@ def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb):
         paste_with_a(weapon_bg, special_image, special_image_bg_pos)
 
         # 武器名
-        dr = ImageDraw.Draw(weapon_bg)
-        font = ImageFont.truetype(ttf_path_chinese, 16)
         weapon_zh_name = v.zh_name
+        font_size = 16
+        if len(weapon_zh_name) > 8:
+            font_size = 15
+        if len(weapon_zh_name) > 10:
+            font_size = 14
+        font = ImageFont.truetype(ttf_path_chinese, font_size)
         zh_name_size = font.getsize(weapon_zh_name)
-        # 文字居中
+        # 纯文字不带背景 实现方式
+        dr = ImageDraw.Draw(weapon_bg)
         zh_name_pos = ((weapon_bg_size[0] - zh_name_size[0]) // 2, weapon_bg_size[1] - zh_name_size[1] - 7)
-        dr.text(zh_name_pos, weapon_zh_name, font=font, fill="#FFFFFF")
+        dr.text(zh_name_pos, weapon_zh_name, font=font, fill=font_color)
+        # 带背景文字 实现方式
+        # weapon_zh_name_bg = get_stage_name_bg(weapon_zh_name, font_size)
+        # weapon_zh_name_bg_size = weapon_zh_name_bg.size
+        # zh_name_pos = (
+        #     (weapon_bg_size[0] - weapon_zh_name_bg_size[0]) // 2,
+        #     weapon_bg_size[1] - weapon_zh_name_bg_size[1],
+        # )
+        # paste_with_a(weapon_bg, weapon_zh_name_bg, zh_name_pos)
+
         # 将武器背景贴到武器区域
-        # weapon_card_bg.paste(weapon_bg, ((weapon_bg_size[0]+10) * i + 10, 5))
         paste_with_a(
             weapon_card_bg,
             weapon_bg,
@@ -323,7 +337,7 @@ def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb):
     return weapon_card_bg
 
 
-# 改变图片透明度  值为0-100
+# 改变图片不透明度  值为0-100
 def change_image_alpha(image, transparency):
     image = image.convert("RGBA")
     alpha = image.split()[-1]
