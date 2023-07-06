@@ -14,6 +14,7 @@ from .image import (
     get_weapon_info_test,
     get_events_image,
 )
+from .image_processer_tools import image_to_base64
 from .translation import dict_keyword_replace
 from .image_db import imageDB
 from .utils import multiple_replace
@@ -241,7 +242,7 @@ async def _(matcher: Matcher, event: MessageEvent):
             msg = "请机器人管理员先发送 更新武器数据 更新本地武器数据库后，才能使用随机武器功能"
             await matcher.finish(MessageSegment.text(msg))
         else:
-            img = get_random_weapon_image(plain_text)
+            img = image_to_base64(get_random_weapon_image(plain_text))
             # 发送消息
             await matcher.finish(MessageSegment.image(file=img, cache=False))
     elif re.search("^祭典$", plain_text):
