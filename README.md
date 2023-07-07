@@ -1,24 +1,94 @@
-# Splatoon 3 地图查询插件
+<div align="center">
+  <a href="https://v2.nonebot.dev/store"><img src="https://github.com/A-kirami/nonebot-plugin-template/blob/resources/nbp_logo.png" width="180" height="180" alt="NoneBotPluginLogo"></a>
+  <br>
+  <p><img src="https://github.com/A-kirami/nonebot-plugin-template/blob/resources/NoneBotPlugin.svg" width="240" alt="NoneBotPluginText"></p>
+</div>
 
-> QQ 机器人 SplatBot 已搭载该插件，可以[点击这里](https://flawless-dew-f3c.notion.site/SplatBot-e91a70e4f32a4fffb640ce8c3ba9c664)查看使用指南
+<div align="center">
 
-## 说明
-- 本插件为适配[nonebot2框架](https://github.com/nonebot/nonebot2)的机器人插件,nonebot2框架具体安装方式可自行搜索，推荐环境为gocq+nonebot2
-- 本插件的命令都不需要触发前缀，同时也兼容`/`，`\ `,`.`,`。`这些触发前缀
-- 除随机武器和祭典，活动等截图实现的功能外，其他功能的查询图片都会自动在对战规则的2h时段内缓存，缓存有效期内的图片无需重新生成，大大省去绘图时间
+# nonebot-plugin-splatoon3
 
-## 已实现功能
-![help.png](images/help.png)
+_✨ splatoon3游戏日程查询插件 ✨_
 
-## 安装指南
-### 手动安装
 
-```shell
-git clone https://github.com/Skyminers/Bot-Splatoon3.git
+<a href="./LICENSE">
+    <img src="https://img.shields.io/github/license/owner/nonebot-plugin-splatoon3.svg" alt="license">
+</a>
+<a href="https://pypi.python.org/pypi/nonebot-plugin-splatoon3">
+    <img src="https://img.shields.io/pypi/v/nonebot-plugin-splatoon3.svg" alt="pypi">
+</a>
+<img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="python">
 
-pip install -r requirements.txt
-```
+</div>
 
-在 nonebot2 框架中，将本仓库代码内的`nonebot_plugin_splatoon3`文件夹置于插件目录(`src/plugins`)即可正常加载，
-之后对机器人发送`更新武器数据`来更新数据库内的武器数据，不然`随机武器`功能无法使用
 
+## 📖 介绍
+
+一个基于nonebot2框架的splatoon3游戏日程查询插件
+> QQ 机器人 SplatBot 已搭载该插件，可以[点击这里](https://flawless-dew-f3c.notion.site/SplatBot-e91a70e4f32a4fffb640ce8c3ba9c664)查看qq机器人使用指南
+
+## 💿 安装
+
+<details>
+<summary>使用 nb-cli 安装</summary>
+在 nonebot2 项目的根目录下打开命令行, 输入以下指令即可安装
+
+    nb plugin install nonebot-plugin-splatoon3
+
+</details>
+
+<details>
+<summary>使用包管理器poetry安装</summary>
+在 nonebot2 项目的插件目录下, 打开命令行, 输入以下的安装命令
+
+    poetry add nonebot-plugin-splatoon3
+
+
+</details>
+
+安装完成后，需要对机器人发送`更新武器数据`来更新数据库内的武器数据，不然`随机武器`功能无法使用
+
+
+## 🎉 使用
+### 指令表
+<details>
+<summary>指令帮助手册</summary>
+
+![1.png](images/help.png)
+
+</details>
+
+
+### 效果图
+<details>
+<summary>对战查询</summary>
+
+![2.png](images/对战地图.png)
+
+</details>
+<details>
+<summary>打工查询</summary>
+
+![3.png](images/打工.png)
+
+</details>
+<details>
+<summary>活动</summary>
+
+![3.png](images/活动.png)
+
+</details>
+<details>
+<summary>祭典</summary>
+
+![3.png](images/祭典.png)
+
+</details>
+<details>
+<summary>随机武器</summary>
+
+![3.png](images/随机武器.png)
+
+</details>
+
+## ✨喜欢的话就点个star✨吧，球球了QAQ
