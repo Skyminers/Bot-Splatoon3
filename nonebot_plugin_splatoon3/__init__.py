@@ -4,6 +4,7 @@ from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
 from nonebot.log import logger
+from nonebot.plugin import PluginMetadata
 
 from .image import *
 from .image_processer_tools import image_to_base64
@@ -12,6 +13,17 @@ from .image_db import imageDB
 from .utils import multiple_replace
 from .data_source import get_screenshot
 from .admin_matcher import matcher_admin
+
+__plugin_meta__ = PluginMetadata(
+    name="nonebot-plugin-splatoon3",
+    description="一个基于nonebot2框架的splatoon3游戏日程查询插件",
+    usage="发送 帮助 help 可查看详细指令\n",
+    type="application",
+    # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
+    homepage="https://github.com/Skyminers/Bot-Splatoon3",
+    # 发布必填。
+    supported_adapters={"~onebot.v11"},
+)
 
 # 初始化插件时清空合成图片缓存表
 imageDB.clean_image_temp()
