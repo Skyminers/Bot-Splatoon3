@@ -25,6 +25,8 @@ _✨ splatoon3游戏日程查询插件 ✨_
 ## 📖 介绍
 
 一个基于nonebot2框架的splatoon3游戏日程查询插件
+
+全部查询图片(除nso衣服查询外),全部采用pillow精心绘制,图片效果可查看下面的[效果图](#效果图)
 > QQ 机器人 SplatBot 已搭载该插件，可以[点击这里](https://flawless-dew-f3c.notion.site/SplatBot-e91a70e4f32a4fffb640ce8c3ba9c664)查看qq机器人使用指南
 
 ## 💿 安装
@@ -54,7 +56,7 @@ _✨ splatoon3游戏日程查询插件 ✨_
 <details>
 <summary>指令帮助手册</summary>
 
-![1.png](images/help.png)
+![help.png](images/help.png)
 
 </details>
 
@@ -63,31 +65,31 @@ _✨ splatoon3游戏日程查询插件 ✨_
 <details>
 <summary>对战查询</summary>
 
-![2.png](images/对战地图.png)
+![对战地图.png](images/对战地图.png)
 
 </details>
 <details>
 <summary>打工查询</summary>
 
-![3.png](images/打工.png)
+![打工.png](images/打工.jpg)
 
 </details>
 <details>
 <summary>活动</summary>
 
-![3.png](images/活动.png)
+![活动.png](images/活动.png)
 
 </details>
 <details>
 <summary>祭典</summary>
 
-![3.png](images/祭典.png)
+![祭典.png](images/祭典.jpg)
 
 </details>
 <details>
 <summary>随机武器</summary>
 
-![3.png](images/随机武器.png)
+![随机武器.png](images/随机武器.jpg)
 
 </details>
 
