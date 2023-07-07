@@ -14,10 +14,11 @@ from .utils import multiple_replace
 from .data_source import get_screenshot
 from .admin_matcher import matcher_admin
 
+# zhenxunbot框架当前使用的是2.0.0rc1版本nb2，对以下插件元信息缺少参数，需要删除type开始的三个字段，才能正常加载
 __plugin_meta__ = PluginMetadata(
     name="nonebot-plugin-splatoon3",
     description="一个基于nonebot2框架的splatoon3游戏日程查询插件",
-    usage="发送 帮助 help 可查看详细指令\n",
+    usage="发送 帮助 或 help 可查看详细指令\n",
     type="application",
     # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
     homepage="https://github.com/Skyminers/Bot-Splatoon3",

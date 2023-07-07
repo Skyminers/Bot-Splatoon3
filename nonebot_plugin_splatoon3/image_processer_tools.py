@@ -10,7 +10,13 @@ from nonebot import logger
 from .image_db import imageDB
 from ._class import ImageInfo, WeaponData
 from .utils import *
-from .translation import get_trans_game_mode, get_trans_stage, get_trans_cht_data, dict_weekday_trans
+from .translation import (
+    get_trans_game_mode,
+    get_trans_stage,
+    get_trans_cht_data,
+    dict_weekday_trans,
+    dict_eng_file_trans,
+)
 
 # 根路径
 cur_path = os.path.dirname(__file__)
@@ -212,7 +218,7 @@ def get_translucent_name_bg(text, transparency, font_size=24, bg_color=None):
     ttf = ImageFont.truetype(ttf_path_chinese, font_size)
     # 文字背景
     text_bg_size = (len(text) * font_size + 20, font_size + 20)
-    text_bg = get_file("圆角").resize(text_bg_size).convert("RGBA")
+    text_bg = get_file("filleted_corner").resize(text_bg_size).convert("RGBA")
     if bg_color is not None:
         _, text_bg = circle_corner(Image.new("RGBA", text_bg_size, bg_color), radii=20)
     _, text_bg = circle_corner(text_bg, radii=text_bg_size[1] // 2)
@@ -229,7 +235,7 @@ def get_translucent_name_bg(text, transparency, font_size=24, bg_color=None):
 # 绘制 时间表头
 def get_time_head_bg(time_head_bg_size, date_time, start_time, end_time):
     # 绘制背景
-    time_head_bg = get_file("时间表头").resize(time_head_bg_size)
+    time_head_bg = get_file("time_head_bg").resize(time_head_bg_size)
     # 绘制开始，结束时间 文字居中绘制
     ttf = ImageFont.truetype(ttf_path, 40)
     time_head_text = "{}  {} - {}".format(date_time, start_time, end_time)
@@ -276,7 +282,7 @@ def get_stage_card(
     desc="",
     img_size=(1024, 340),
 ):
-    _, image_background = circle_corner(get_file("背景").resize(img_size), radii=20)
+    _, image_background = circle_corner(get_file("bg").resize(img_size), radii=20)
 
     # 绘制两张地图
     # 计算尺寸，加载图片
@@ -325,6 +331,7 @@ def get_stage_card(
     paste_with_a(image_background, stage_name_bg, stage_name_bg_pos)
 
     # 中间绘制 模式图标
+    # 中文转英文来取文件
     image_icon = get_file(contest_name)
     image_icon_size = image_icon.size
     # X: 整张卡片宽度/2 - 图标宽度/2    Y: 左地图x点位+地图高度/2 - 图标高度/2
@@ -347,7 +354,7 @@ def get_stage_card(
     game_mode_text_pos = (blank_size[0] // 3, contest_mode_pos[1])
     drawer.text(game_mode_text_pos, game_mode_text, font=ttf, fill=(255, 255, 255))
     # 绘制游戏模式小图标
-    game_mode_img = get_file(game_mode_text).resize((35, 35), Image.ANTIALIAS)
+    game_mode_img = get_file(game_mode).resize((35, 35), Image.ANTIALIAS)
     game_mode_img_pos = (game_mode_text_pos[0] - 40, game_mode_text_pos[1] + 10)
     paste_with_a(image_background, game_mode_img, game_mode_img_pos)
     # # 绘制开始，结束时间
@@ -446,7 +453,7 @@ def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb, font_color):
 # 绘制 活动地图卡片
 def get_event_card(event, event_card_bg_size):
     # 背景
-    event_card_bg = get_file("圆角").resize(event_card_bg_size).convert("RGBA")
+    event_card_bg = get_file("filleted_corner").resize(event_card_bg_size).convert("RGBA")
     # 调整透明度
     event_card_bg = change_image_alpha(event_card_bg, 70)
     # 比赛卡片
@@ -466,7 +473,7 @@ def get_event_card(event, event_card_bg_size):
             "对战地图",
         ),
         "活动比赛",
-        "活动比赛",
+        "event_bg",
         event["leagueMatchSetting"]["vsRule"]["rule"],
     )
     stage_card_size = stage_card.size
@@ -528,7 +535,7 @@ def get_event_card(event, event_card_bg_size):
 # 绘制 活动地图描述卡片
 def get_event_desc_card(cht_event_data, event_desc_card_bg_size):
     # 背景
-    event_desc_card_bg = get_file("圆角").resize(event_desc_card_bg_size).convert("RGBA")
+    event_desc_card_bg = get_file("filleted_corner").resize(event_desc_card_bg_size).convert("RGBA")
     # 调整透明度
     event_desc_card_bg = change_image_alpha(event_desc_card_bg, 60)
     # 对规则文字分行
@@ -580,7 +587,7 @@ def change_image_alpha(image, transparency):
 #     if weapon2 is None:
 #         weapon2 = random.sample(os.listdir(weapon_folder), k=4)
 #     weapon_size = (122, 158)
-#     _, image_background = circle_corner(get_file("背景").resize((620, 420)), radii=20)
+#     _, image_background = circle_corner(get_file("bg").resize((620, 420)), radii=20)
 #     dr = ImageDraw.Draw(image_background)
 #     font = ImageFont.truetype(ttf_path, 50)
 #     # 绘制中间vs和长横线

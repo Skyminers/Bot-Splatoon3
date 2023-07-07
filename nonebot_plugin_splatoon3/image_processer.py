@@ -48,7 +48,7 @@ def get_festival(festivals):
     bg_rgb = dict_bg_rgb["祭典"]
     # 创建纯色背景
     image_background = Image.new("RGBA", image_background_size, bg_rgb)
-    bg_mask = get_file("祭典蒙版").resize((600, 400))
+    bg_mask = get_file("festival_mask").resize((600, 400))
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
     # 圆角化
@@ -124,7 +124,7 @@ def get_events(events):
     bg_rgb = dict_bg_rgb["活动"]
     # 创建纯色背景
     image_background = Image.new("RGBA", background_size, bg_rgb)
-    bg_mask = get_file("猫爪蒙版").resize((400, 250))
+    bg_mask = get_file("cat_paw_mask").resize((400, 250))
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
     # 圆角
@@ -140,13 +140,11 @@ def get_events(events):
         cht_event_data["name"] = trans_cht_event_data["name"]
         cht_event_data["desc"] = trans_cht_event_data["desc"]
         cht_event_data["regulation"] = trans_cht_event_data["regulation"]
-        event["leagueMatchSetting"]["vsRule"]["rule"] = dict_rule_reverse_trans.get(
-            event["leagueMatchSetting"]["vsRule"]["rule"]
-        )
+
         # 顶部活动标志(大号)
         pos_h += 20
         game_mode_img_size = (80, 80)
-        game_mode_img = get_file("活动比赛").resize(game_mode_img_size, Image.ANTIALIAS)
+        game_mode_img = get_file("event_bg").resize(game_mode_img_size, Image.ANTIALIAS)
         game_mode_img_pos = (20, pos_h)
         paste_with_a(image_background, game_mode_img, game_mode_img_pos)
         pos_h += game_mode_img_size[1] + 20
@@ -243,7 +241,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
         bg_rgb = default_bg_rgb
     # 创建纯色背景
     image_background = Image.new("RGBA", background_size, bg_rgb)
-    bg_mask = get_file("对战蒙版").resize((600, 399))
+    bg_mask = get_file("fight_mask").resize((600, 399))
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
 
@@ -425,7 +423,7 @@ def get_coop_stages(stage, weapon, time, boss, mode):
     image_background_rgb = dict_bg_rgb["打工"]
     image_background = Image.new("RGBA", bg_size, image_background_rgb)
     bg_mask_size = (300, 200)
-    bg_mask = get_file("打工蒙版").resize(bg_mask_size)
+    bg_mask = get_file("coop_mask").resize(bg_mask_size)
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
 
@@ -440,7 +438,7 @@ def get_coop_stages(stage, weapon, time, boss, mode):
         dr.text(time_text_pos, val, font=font, fill="#FFFFFF")
         if check_coop_fish(val):
             # 现在时间处于打工时间段内，绘制小鲑鱼
-            coop_fish_img = get_file("小鲑鱼").resize(coop_fish_size)
+            coop_fish_img = get_file("coop_fish").resize(coop_fish_size)
             coop_fish_img_pos = (6, 8 + pos * 160)
             paste_with_a(coop_stage_bg, coop_fish_img, coop_fish_img_pos)
     for pos, val in enumerate(stage):
@@ -489,7 +487,7 @@ def get_coop_stages(stage, weapon, time, boss, mode):
 def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
     # 底图
     image_background_size = (660, 500)
-    _, image_background = circle_corner(get_file("背景2").resize(image_background_size), radii=20)
+    _, image_background = circle_corner(get_file("bg2").resize(image_background_size), radii=20)
     # 绘制上下两块武器区域
     weapon_card_bg_size = (image_background_size[0] - 10, (image_background_size[1] - 10) // 2)
     top_weapon_card = get_weapon_card(weapon1, weapon_card_bg_size, dict_bg_rgb["上-武器卡片-黄"], (34, 34, 34))
@@ -516,7 +514,7 @@ def get_help():
     bg_rgb = dict_bg_rgb["活动"]
     # 创建纯色背景
     image_background = Image.new("RGBA", image_background_size, bg_rgb)
-    bg_mask = get_file("猫爪蒙版").resize((400, 250))
+    bg_mask = get_file("cat_paw_mask").resize((400, 250))
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
     # 圆角
