@@ -1,23 +1,12 @@
-import datetime
 import json
 import random
-from PIL import Image
 import io
 
 from nonebot.log import logger
 from .data_source import get_coop_info, get_stage_info, get_weapon_info, get_schedule_data
-from .image_processer import (
-    get_coop_stages,
-    get_stages,
-    get_random_weapon,
-    get_festival,
-    have_festival,
-    get_events,
-)
+from .image_processer import *
 from .image_processer_tools import image_to_base64
 from .image_db import imageDB
-
-
 from .translation import weapon_semantic_word_conversion
 
 time_format_ymdh = "%Y-%m-%dT%H"
@@ -50,14 +39,9 @@ def get_stages_image(*args):
 
 # 取 祭典图片
 def get_festival_image(*args):
-    schedule = get_schedule_data()
-    festivals = schedule["festSchedules"]["nodes"]
-    # 如果存在祭典
-    if have_festival(festivals):
-        image = get_festival(festivals)
-        return image
-    else:
-        return None
+    festivals = get_festivals_data()["JP"]["data"]["festRecords"]["nodes"]
+    image = get_festival(festivals)
+    return image
 
 
 # 取 活动图片
@@ -70,6 +54,12 @@ def get_events_image(*args):
         return image
     else:
         return None
+
+
+# 取 帮助图片
+def get_help_image(*args):
+    image = get_help()
+    return image
 
 
 # 取 新版 随机武器图片 不能进行缓存，这个需要实时生成
@@ -147,6 +137,8 @@ def get_save_temp_image(trigger_word, func, *args):
     if not res:
         # 重新生成图片并写入
         image_data = func(*args)
+        if image_data is None:
+            return image_data
         image = image_to_base64(image_data)
         if len(image) != 0:
             logger.info("[ImageDB] new temp image {}".format(trigger_word))

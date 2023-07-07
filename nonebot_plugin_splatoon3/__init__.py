@@ -1,19 +1,11 @@
 import re
-
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
 from nonebot.log import logger
 
-from .image import (
-    get_save_temp_image,
-    get_coop_stages_image,
-    get_random_weapon_image,
-    get_stages_image,
-    get_weapon_info_test,
-    get_events_image,
-)
+from .image import *
 from .image_processer_tools import image_to_base64
 from .translation import dict_keyword_replace
 from .image_db import imageDB
@@ -246,10 +238,17 @@ async def _(matcher: Matcher, event: MessageEvent):
             # 发送消息
             await matcher.finish(MessageSegment.image(file=img, cache=False))
     elif re.search("^祭典$", plain_text):
-        # 获取祭典，网页图片中含有倒计时，不适合进行缓存
-        # 速度较慢，可以考虑后续从 json 自行生成，后续的分支都是网页截图
-        img = await get_screenshot(shot_url="https://splatoon3.ink/splatfests")
-        await matcher.finish(MessageSegment.image(file=img, cache=False))
+        # 传递函数指针
+        func = get_festival_image
+        # 获取图片
+        img = get_save_temp_image(plain_text, func)
+        if img is None:
+            msg = "近期没有任何祭典"
+            msgm = MessageSegment.text(msg)
+        else:
+            # 发送图片
+            msgm = MessageSegment.image(file=img, cache=False)
+        await matcher.finish(msgm)
     elif re.search("^活动$", plain_text):
         # 传递函数指针
         func = get_events_image
@@ -261,6 +260,14 @@ async def _(matcher: Matcher, event: MessageEvent):
         else:
             # 发送图片
             msgm = MessageSegment.image(file=img, cache=False)
+        await matcher.finish(msgm)
+    elif re.search("^帮助$", plain_text):
+        # 传递函数指针
+        func = get_help_image
+        # 获取图片
+        img = get_save_temp_image(plain_text, func)
+        # 发送图片
+        msgm = MessageSegment.image(file=img, cache=False)
         await matcher.finish(msgm)
     elif re.search("^装备$", plain_text):
         img = await get_screenshot(shot_url="https://splatoon3.ink/gear")

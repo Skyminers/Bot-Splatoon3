@@ -11,7 +11,6 @@ from nonebot_plugin_splatoon3.static_data_getter import reload_weapon_info
 # except Exception as e:
 #     print(e.args)
 
-
 # # 测试 旧版 随机武器
 # res = get_random_weapon(weapon1=None, weapon2=None)
 # file = open('../output/random_weapon.jpg', "wb")
@@ -51,13 +50,21 @@ from nonebot_plugin_splatoon3.static_data_getter import reload_weapon_info
 
 
 # 测试新版随机武器
-plain_text = "随机武器 nice弹"
-res = get_random_weapon_image(plain_text)
-res.show()
+# plain_text = "随机武器 nice弹"
+# res = get_random_weapon_image(plain_text)
+# res.show()
 
 # 测试活动
 # res = get_events_image()
 # res.show()
+
+# 测试祭典
+# res = get_festival_image()
+# res.show()
+
+# 测试帮助
+res = get_help_image()
+res.show()
 
 # 写出武器翻译字典
 # write_weapon_trans_dict()
