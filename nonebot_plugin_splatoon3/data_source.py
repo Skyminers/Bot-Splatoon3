@@ -1,7 +1,9 @@
 import json
 
-import httpx
+import requests
 import urllib3
+
+requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = "ALL:@SECLEVEL=1"
 
 from nonebot.log import logger
 from playwright.async_api import Browser, async_playwright

@@ -39,15 +39,9 @@ def get_stages_image(*args):
 
 # 取 祭典图片
 def get_festival_image(*args):
-    schedule = get_schedule_data()
-    festivals = schedule["festSchedules"]["nodes"]
-    # 如果存在祭典
-    if have_festival(festivals):
-        festivals = get_festivals_data()["JP"]["data"]["festRecords"]["nodes"]
-        image = get_festival(festivals)
-        return image
-    else:
-        return None
+    festivals = get_festivals_data()["JP"]["data"]["festRecords"]["nodes"]
+    image = get_festival(festivals)
+    return image
 
 
 # 取 活动图片
@@ -60,6 +54,12 @@ def get_events_image(*args):
         return image
     else:
         return None
+
+
+# 取 帮助图片
+def get_help_image(*args):
+    image = get_help()
+    return image
 
 
 # 取 新版 随机武器图片 不能进行缓存，这个需要实时生成

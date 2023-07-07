@@ -20,6 +20,8 @@ from .image_processer_tools import (
     get_event_desc_card,
     now_is_festival,
     get_translucent_name_bg,
+    drawer_text,
+    drawer_help_card,
 )
 from .translation import get_trans_stage, get_trans_cht_data, dict_rule_reverse_trans, dict_weekday_trans
 from .utils import *
@@ -108,7 +110,8 @@ def get_festival(festivals):
     w, h = ttf.getsize(time_text)
     # 文字居中绘制
     time_text_pos = ((image_background_size[0] - w) // 2, group_img_pos[1] + group_img_size[1] + rectangle_h + 20)
-    drawer.text(time_text_pos, time_text, font=ttf, fill=(234, 255, 61))
+    text_rgb = dict_bg_rgb["祭典时间-金黄"]
+    drawer.text(time_text_pos, time_text, font=ttf, fill=text_rgb)
 
     return image_background
 
@@ -502,5 +505,175 @@ def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
     )
     private_img = get_file("private").resize(private_img_size)
     paste_with_a(image_background, private_img, private_img_pos)
+
+    return image_background
+
+
+# 绘制 帮助图片
+def get_help():
+    image_background_size = (1200, 2400)
+    # 取背景rgb颜色
+    bg_rgb = dict_bg_rgb["活动"]
+    # 创建纯色背景
+    image_background = Image.new("RGBA", image_background_size, bg_rgb)
+    bg_mask = get_file("猫爪蒙版").resize((400, 250))
+    # 填充小图蒙版
+    image_background = tiled_fill(image_background, bg_mask)
+    # 圆角
+    _, image_background = circle_corner(image_background, radii=20)
+    # 绘制标题
+    font_size = 30
+    text_bg = get_translucent_name_bg("帮助手册", 80, font_size)
+    text_bg_size = text_bg.size
+    # 贴上文字背景
+    text_bg_pos = ((image_background_size[0] - text_bg_size[0]) // 2, 20)
+    paste_with_a(image_background, text_bg, text_bg_pos)
+    # 初始化一些参数
+    drawer = ImageDraw.Draw(image_background)
+    text_width = 800
+    height = text_bg_pos[1] + text_bg_size[1] + 20
+    title_rgb = dict_bg_rgb["祭典时间-金黄"]
+
+    # 绘制title
+    title = "对战地图 查询"
+    title_pos = (20, height)
+    w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
+    height += h + 10
+    # 绘制 帮助卡片 对战地图查询
+    pre = "直接查询:"
+    order_list = ["图", "图图", "下图", "下下图", "全部图"]
+    desc_list = ["查询当前或指定时段 所有模式 的地图", "前面如果是 全部 则显示至多未来5个时段的地图"]
+    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # 贴图
+    text_bg_pos = (title_pos[0] + 30, height)
+    paste_with_a(image_background, text_card, text_bg_pos)
+    height += card_h + 10
+    # 绘制 帮助卡片 对战地图查询
+    pre = "指定时间段查询:"
+    order_list = ["0图", "123图", "1图", "2468图"]
+    desc_list = ["可以在前面加上多个0-9的数字，不同数字代表不同时段", "如0代表当前，1代表下时段，2代表下下时段，以此类推"]
+    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # 贴图
+    text_bg_pos = (title_pos[0] + 30, height)
+    paste_with_a(image_background, text_card, text_bg_pos)
+    height += card_h + 20
+
+    # 绘制title
+    title = "对战地图 筛选查询"
+    title_pos = (20, height)
+    w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
+    height += h + 20
+    # 绘制 帮助卡片 对战地图查询
+    pre = "直接查询:"
+    order_list = ["挑战", "涂地", "x赛", "塔楼", "开放挑战", "pp抢鱼"]
+    desc_list = ["支持指定规则或比赛，或同时指定规则比赛", "触发词进行了语义化处理，很多常用的称呼也能触发，如:pp和排排 都等同于 开放;抢鱼对应鱼虎;涂涂对应涂地 等"]
+    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # 贴图
+    text_bg_pos = (title_pos[0] + 30, height)
+    paste_with_a(image_background, text_card, text_bg_pos)
+    height += card_h + 10
+    # 绘制 帮助卡片 对战地图查询
+    pre = "指定时间段查询:"
+    order_list = ["0挑战", "1234开放塔楼", "全部x赛区域"]
+    desc_list = ["与图图的指定时间段查询方法一致，如果指定时间段没有匹配的结果，会返回全部时间段满足该筛选的结果", "前面加上 全部 则显示未来24h满足条件的对战"]
+    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # 贴图
+    text_bg_pos = (title_pos[0] + 30, height)
+    paste_with_a(image_background, text_card, text_bg_pos)
+    height += card_h + 10
+
+    # 绘制title
+    title = "打工 查询"
+    title_pos = (20, height)
+    w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
+    height += h + 20
+    # 绘制 帮助卡片 对战地图查询
+    pre = "直接查询:"
+    order_list = ["工", "打工", "bigrun", "团队打工", "全部工"]
+    desc_list = ["查询当前和下一时段的打工地图，如果存在bigrun或团队打工时，也会显示在里面，并根据时间自动排序", "前面加上 全部 则显示接下来的五场打工地图"]
+    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # 贴图
+    text_bg_pos = (title_pos[0] + 30, height)
+    paste_with_a(image_background, text_card, text_bg_pos)
+    height += card_h + 10
+    # 绘制 帮助卡片 对战地图查询
+    pre = "指定时间段查询:"
+    order_list = ["0挑战", "1234开放塔楼", "全部x赛区域"]
+    desc_list = ["与图图的指定时间段查询方法一致，如果指定时间段没有匹配的结果，会返回全部时间段满足该筛选的结果", "前面加上 全部 则显示未来24h满足条件的对战"]
+    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # 贴图
+    text_bg_pos = (title_pos[0] + 30, height)
+    paste_with_a(image_background, text_card, text_bg_pos)
+    height += card_h + 10
+
+    # 绘制title
+    title = "其他 查询"
+    title_pos = (20, height)
+    w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
+    height += h + 20
+    # 绘制 帮助卡片 对战地图查询
+    pre = "直接查询:"
+    order_list = ["祭典", "活动", "衣服", "帮助", "help"]
+    desc_list = ["查询 祭典  活动  nso当前售卖衣服", "帮助/help:回复本帮助图片"]
+    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # 贴图
+    text_bg_pos = (title_pos[0] + 30, height)
+    paste_with_a(image_background, text_card, text_bg_pos)
+    height += card_h + 10
+
+    # 绘制title
+    title = "私房用 随机武器"
+    title_pos = (20, height)
+    w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
+    height += h + 20
+    # 绘制 帮助卡片 对战地图查询
+    pre = "直接查询:"
+    order_list = ["随机武器", "随机武器 nice弹", "随机武器 小枪 刷 狙 泡"]
+    desc_list = [
+        "可以在 随机武器 后面，接至多四个参数，每个参数间用空格分开",
+        "参数包括全部的 武器类型，如 小枪 双枪 弓 狙 等;全部的 副武器名称，如 三角雷 水球 雨帘;全部的大招名称，如 nice弹 龙卷风 rpg等",
+        "如果不带参数或参数小于4，剩下的会自动用 同一大类下的武器 进行筛选，如 狙 和 加特林 都属于 远程类，小枪 与 刷子，滚筒 等属于 近程类，保证尽可能公平",
+        "如果不希望进行任何限制，也可以发送 随机武器完全随机，来触发不加限制的真随机武器(平衡性就没法保证了)",
+    ]
+    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # 贴图
+    text_bg_pos = (title_pos[0] + 30, height)
+    paste_with_a(image_background, text_card, text_bg_pos)
+    height += card_h + 10
+
+    # 绘制title
+    title = "bot管理员命令"
+    title_pos = (20, height)
+    w, h = drawer_text(drawer, title, title_pos, text_width, (255, 167, 137))
+    height += h + 20
+    # 绘制 帮助卡片 对战地图查询
+    pre = "直接发送:"
+    order_list = ["清空图片缓存", "更新武器数据"]
+    desc_list = ["清空图片缓存：会主动清空2h内的全部缓存图", "更新武器数据：首次使用时，必须先运行一次这个命令，来更新武器数据库，不然随机武器功能无法使用"]
+    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # 贴图
+    text_bg_pos = (title_pos[0] + 30, height)
+    paste_with_a(image_background, text_card, text_bg_pos)
+    height += card_h + 10
+
+    # 绘制title
+    title = "关于本插件"
+    title_pos = (20, height)
+    w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
+    height += h + 20
+    # 绘制 帮助卡片 对战地图查询
+    pre = ""
+    order_list = []
+    desc_list = [
+        "本插件已开源，地址如下：",
+        "https://github.com/Skyminers/Bot-Splatoon3",
+        "有github账号的人可以去帮忙点个star，这是对我们最大的支持了",
+        "插件作者:Cypas_Nya;Sky_miner",
+    ]
+    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # 贴图
+    text_bg_pos = (title_pos[0] + 30, height)
+    paste_with_a(image_background, text_card, text_bg_pos)
+    height += card_h + 10
 
     return image_background

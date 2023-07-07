@@ -27,11 +27,11 @@ async def _(matcher: Matcher, event: MessageEvent):
         # 发送消息
         await matcher.finish(MessageSegment.text(msg))
     elif re.search("^(重载武器数据|更新武器数据)$", plain_text):
-        msg_start = "将开始重新爬取武器数据，此过程可能需要10min左右..."
+        msg_start = "将开始重新爬取武器数据，此过程可能需要10min左右,请稍等..."
         msg = "武器数据更新完成"
         await matcher.send(MessageSegment.text(msg_start))
         try:
             reload_weapon_info()
         except Exception as e:
-            msg = err_msg + str(e)
+            msg = err_msg + str(e) + "\n如果错误信息是timed out，不妨可以等会儿重新发送指令"
         await matcher.finish(MessageSegment.text(msg))

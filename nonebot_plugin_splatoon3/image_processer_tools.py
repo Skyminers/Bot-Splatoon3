@@ -1,5 +1,7 @@
 import io
 import os
+import re
+import textwrap
 from io import BytesIO
 import urllib3
 from PIL import Image, ImageDraw, ImageFont
@@ -108,6 +110,78 @@ def tiled_fill(big_image, small_image):
         for top in range(0, big_image_h, small_image_h):
             paste_with_a(big_image, small_image, (left, top))
     return big_image
+
+
+# 绘制文字 带自动换行
+def drawer_text(drawer: ImageDraw, text, text_start_pos, text_width, font_color=(255, 255, 255), font_size=30):
+    # 文本分割
+    def add_long_text(_text, _text_width) -> [str]:
+        punc_pattern = "[,.，。》、—”]+"
+        text_list = textwrap.wrap(_text, width=_text_width)
+        write_text = []
+        for _i, _line in enumerate(text_list):
+            write_text.append(_line)
+            punc = re.search(punc_pattern, _line)
+            if punc:
+                # 如果有标点符号开头
+                if punc.start() == 0:
+                    _line = write_text.pop(-1)
+                    former = write_text.pop(-1)
+                    former += punc.group()
+                    write_text.append(former)
+                    _line = _line[punc.end() :]
+                    if len(_line) > 0:
+                        write_text.append(_line)
+        return write_text
+
+    ttf = ImageFont.truetype(ttf_path_chinese, font_size)
+    para = add_long_text(text, text_width)
+    # 绘制每一行文本
+    height = 0
+    width = 0
+    line_space = 12
+    for i, line in enumerate(para):
+        drawer.text((text_start_pos[0], (line_space + font_size) * i + text_start_pos[1]), line, font_color, ttf)
+        w, h = ttf.getsize(line)
+        height += h + line_space
+        # 取最长w
+        if w > width:
+            width = w
+    return width, height
+
+
+# 绘制文字 帮助卡片
+def drawer_help_card(pre: str, order_list: [str], desc_list: [str]):
+    text_width = 50
+    width = 0
+    height = 0
+    font_size = 30
+    # 创建一张纯透明图片 用来存放卡片
+    background = Image.new("RGBA", (1200, 1000), (0, 0, 0, 0))
+    drawer = ImageDraw.Draw(background)
+    # pre
+    text = pre
+    pre_pos = (width, height)
+    w, h = drawer_text(drawer, text, pre_pos, text_width)
+    width += w + 10
+    # order_list
+    if len(order_list) > 0:
+        for i, order in enumerate(order_list):
+            text_bg = get_translucent_name_bg(order, 60, font_size)
+            text_bg_size = text_bg.size
+            text_bg_pos = (width, height - 5)
+            paste_with_a(background, text_bg, text_bg_pos)
+            width += text_bg_size[0] + 3
+        width = pre_pos[0] + 50
+        height += font_size + 25
+    # desc
+    if len(desc_list) > 0:
+        for i, desc in enumerate(desc_list):
+            text = desc
+            text_pos = (width, height)
+            w, h = drawer_text(drawer, text, text_pos, text_width, font_size=25)
+            height += h + 5
+    return background, height
 
 
 # 图像粘贴 加上a通道参数 使圆角透明

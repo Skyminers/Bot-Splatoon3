@@ -261,6 +261,14 @@ async def _(matcher: Matcher, event: MessageEvent):
             # 发送图片
             msgm = MessageSegment.image(file=img, cache=False)
         await matcher.finish(msgm)
+    elif re.search("^帮助$", plain_text):
+        # 传递函数指针
+        func = get_help_image
+        # 获取图片
+        img = get_save_temp_image(plain_text, func)
+        # 发送图片
+        msgm = MessageSegment.image(file=img, cache=False)
+        await matcher.finish(msgm)
     elif re.search("^装备$", plain_text):
         img = await get_screenshot(shot_url="https://splatoon3.ink/gear")
         await matcher.finish(MessageSegment.image(file=img, cache=False))
