@@ -123,6 +123,15 @@ dict_rule_reverse_trans = {
     "TURF_WAR": "占地对战",
 }
 
+# 中文转英文名文件
+dict_eng_file_trans = {
+    "对战地图": "真格塔楼",
+    "CLAM": "真格蛤蜊",
+    "GOAL": "真格鱼虎",
+    "AREA": "真格区域",
+    "TURF_WAR": "占地对战",
+}
+
 # 星期翻译
 dict_weekday_trans = {
     0: "一",
@@ -461,4 +470,4 @@ dict_weapon_class = {
 }
 
 # 鲑鱼跑模式
-list_salmonrun_mode = ["一般打工", "团队打工", "大型跑"]
+list_salmonrun_mode = ["coop", "team_coop", "big_run"]
