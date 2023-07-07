@@ -63,8 +63,8 @@ from nonebot_plugin_splatoon3.static_data_getter import reload_weapon_info
 # res.show()
 
 # 测试帮助
-res = get_help_image()
-res.show()
+# res = get_help_image()
+# res.show()
 
 # 写出武器翻译字典
 # write_weapon_trans_dict()

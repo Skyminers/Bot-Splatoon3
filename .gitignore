@@ -5,3 +5,7 @@
 __init__.py
 /nonebot_plugin_splatoon3/weapon_trans_dict.txt
 /nonebot_plugin_splatoon3/data/test_json
+/build/
+/dist/
+/nonebot_plugin_splatoon3.egg-info/
+/setup.py
