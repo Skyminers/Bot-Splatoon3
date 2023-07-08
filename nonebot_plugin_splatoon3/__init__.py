@@ -1,5 +1,5 @@
 import re
-from nonebot import on_regex
+from nonebot import on_regex, Config, get_driver
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
@@ -22,9 +22,13 @@ __plugin_meta__ = PluginMetadata(
     type="application",
     # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
     homepage="https://github.com/Skyminers/Bot-Splatoon3",
+    config=Config,
     # 发布必填。
     supported_adapters={"~onebot.v11"},
 )
+
+splatoon3_proxy_address = Config.parse_obj(get_driver().config.dict()).splatoon3_proxy_address
+init_config(splatoon3_proxy_address)
 
 # 初始化插件时清空合成图片缓存表
 imageDB.clean_image_temp()

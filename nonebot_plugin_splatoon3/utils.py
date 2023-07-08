@@ -2,6 +2,8 @@ import calendar
 import datetime
 import cfscrape
 
+proxy_address = ""
+
 # 背景 rgb颜色
 dict_bg_rgb = {
     "Turf War": (24, 200, 26),
@@ -19,13 +21,28 @@ dict_bg_rgb = {
 
 # cf get
 def cf_http_get(url: str):
+    global proxy_address
     # 实例化一个create_scraper对象
     scraper = cfscrape.create_scraper()
     # 请求报错，可以加上时延
     # scraper = cfscrape.create_scraper(delay = 6)
-    # 获取网页内容
-    res = scraper.get(url)
+    if proxy_address != "":
+        proxies = {
+            "http": "http://{}".format(proxy_address),
+            "https": "https://{}".format(proxy_address),
+        }
+        # 获取网页内容 代理访问
+        res = scraper.get(url, proxies=proxies)
+    else:
+        # 获取网页内容
+        res = scraper.get(url)
     return res
+
+
+# 初始化配置参数，将配置参数传递到utils模块
+def init_config(splatoon3_proxy_address):
+    global proxy_address
+    proxy_address = splatoon3_proxy_address
 
 
 # 批量替换文本
