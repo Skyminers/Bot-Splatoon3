@@ -1,4 +1,3 @@
-import calendar
 import datetime
 import cfscrape
 
