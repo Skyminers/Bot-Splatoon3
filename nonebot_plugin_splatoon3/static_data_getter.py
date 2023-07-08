@@ -3,7 +3,7 @@ import httpx
 from bs4 import BeautifulSoup
 from nonebot.log import logger
 
-from nonebot_plugin_splatoon3 import proxy_address
+from .utils import proxy_address, http_get, async_http_get
 from .image_db import imageDB
 from .image_processer_tools import get_file_url
 from ._class import WeaponData, ImageInfo
@@ -23,16 +23,9 @@ base_url = "https://splatoonwiki.org/wiki"
 
 
 # 爬取wiki数据 来重载武器数据，包括：武器图片，副武器图片，大招图片，武器配置信息
-def reload_weapon_info():
+async def reload_weapon_info():
     global weapon_url
-    if proxy_address:
-        proxies = {
-            "http": "http://{}".format(proxy_address),
-            "https": "http://{}".format(proxy_address),
-        }
-        response = httpx.get(weapon_url, proxies=proxies)
-    else:
-        response = httpx.get(weapon_url)
+    response = await async_http_get(weapon_url)
     soup = BeautifulSoup(response.text, "html.parser")
     # 通过 selector 找到 Weapon list
     weapon_list = iter(soup.select_one("#mw-content-text > div > div > table > tbody").find_all("tr"))
@@ -84,9 +77,11 @@ def reload_weapon_info():
         ids = [0, 3, 4, 8]
         for i in range(3):
             # 主武器图片、副武器图片、大招图片
-            get_image_info(ImageInfo(name=names[i], url=None, source_type=weapon_image_type[i], zh_name=None))  # 多余项忽略
+            await get_image_info(
+                ImageInfo(name=names[i], url=None, source_type=weapon_image_type[i], zh_name=None)
+            )  # 多余项忽略
         # 类型图片，没有找到 File 页面
-        push_weapon_images(
+        await push_weapon_images(
             ImageInfo(
                 name=names[3],
                 url="https:" + weapon_info[ids[3]].contents[0].contents[0].attrs["src"],
@@ -98,20 +93,20 @@ def reload_weapon_info():
 
 
 # 网页爬取图片信息
-def get_image_info(imageInfo: ImageInfo):
+async def get_image_info(imageInfo: ImageInfo):
     global base_url
     url = base_url + "/File:S3_Weapon_{}_{}.png".format(imageInfo.source_type, imageInfo.name.replace(" ", "_"))
-    response = httpx.get(url)
+    response = await async_http_get(url)
     soup = BeautifulSoup(response.text, "html.parser")
     imageInfo.url = "https:" + soup.select_one("#file > a > img").attrs["src"]
-    push_weapon_images(imageInfo)
+    await push_weapon_images(imageInfo)
 
 
 # 向数据库新增 武器图片 二进制文件
-def push_weapon_images(img: ImageInfo):
+async def push_weapon_images(img: ImageInfo):
     res = imageDB.get_weapon_image(img.name, img.source_type)
     if not res:
-        image_data = get_file_url(img.url)
+        image_data = await get_file_url(img.url)
         if len(image_data) != 0:
             logger.info("[ImageDB] new weapon image {}".format(img.name))
             imageDB.add_or_modify_weapon_images(
