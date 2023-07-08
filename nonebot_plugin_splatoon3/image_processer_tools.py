@@ -57,9 +57,9 @@ def get_cf_file_url(url):
 
 
 # 普通网页读文件
-def get_file_url(url):
-    r = http.request("GET", url, timeout=5)
-    return r.data
+async def get_file_url(url):
+    data = await async_http_get(url).content
+    return data
 
 
 # 向数据库新增或读取素材图片二进制文件

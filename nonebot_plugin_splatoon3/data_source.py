@@ -1,5 +1,4 @@
 import json
-
 import requests
 import urllib3
 
@@ -272,7 +271,12 @@ def get_stage_info(num_list=None, contest_match=None, rule_match=None):
 async def init_browser() -> Browser:
     global _browser
     p = await async_playwright().start()
-    _browser = await p.chromium.launch()
+    if proxy_address:
+        proxies = {"server": "http://{}".format(proxy_address)}
+        # 代理访问
+        _browser = await p.chromium.launch(proxy=proxies)
+    else:
+        _browser = await p.chromium.launch()
     return _browser
 
 
@@ -288,13 +292,7 @@ async def get_browser() -> Browser:
 async def get_screenshot(shot_url, shot_path=None):
     # playwright 要求不能有多个 browser 被同时唤起
     browser = await get_browser()
-    if proxy_address:
-        proxies = {"server": "http://{}".format(proxy_address)}
-        # 代理访问
-        context = await browser.new_context(viewport={"width": 1480, "height": 900}, locale="zh-CH", proxy=proxies)
-    else:
-        # 直接访问
-        context = await browser.new_context(viewport={"width": 1480, "height": 900}, locale="zh-CH")
+    context = await browser.new_context(viewport={"width": 1480, "height": 900}, locale="zh-CH")
     page = await context.new_page()
     await page.set_viewport_size({"width": 1480, "height": 900})
     await page.goto(shot_url)

@@ -1,3 +1,6 @@
+import asyncio
+
+from nonebot_plugin_splatoon3 import get_screenshot
 from nonebot_plugin_splatoon3.image import *
 from nonebot_plugin_splatoon3.static_data_getter import reload_weapon_info
 
@@ -6,10 +9,8 @@ from nonebot_plugin_splatoon3.static_data_getter import reload_weapon_info
 # res.show()
 
 # 测试重载武器数据
-# try:
-#     reload_weapon_info()
-# except Exception as e:
-#     print(e.args)
+asyncio.run(reload_weapon_info())
+
 
 # # 测试 旧版 随机武器
 # res = get_random_weapon(weapon1=None, weapon2=None)

@@ -3,7 +3,6 @@ from nonebot import on_regex, Config, get_driver
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
-from nonebot.log import logger
 from nonebot.plugin import PluginMetadata
 
 from .image import *
@@ -14,7 +13,7 @@ from .utils import multiple_replace
 from .data_source import get_screenshot
 from .admin_matcher import matcher_admin
 
-# zhenxunbot框架当前使用的是2.0.0rc1版本nb2，对以下插件元信息缺少参数，需要删除type开始的三个字段，才能正常加载
+# zhenxunbot框架当前使用的是2.0.0rc1版本nb2，对以下插件元信息缺少参数，需要删除usage后面的字段，才能正常加载
 __plugin_meta__ = PluginMetadata(
     name="nonebot-plugin-splatoon3",
     description="一个基于nonebot2框架的splatoon3游戏日程查询插件",
@@ -22,11 +21,10 @@ __plugin_meta__ = PluginMetadata(
     type="application",
     # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
     homepage="https://github.com/Skyminers/Bot-Splatoon3",
-    config=Config,
     # 发布必填。
     supported_adapters={"~onebot.v11"},
 )
-
+# 载入插件配置项
 splatoon3_proxy_address = Config.parse_obj(get_driver().config.dict()).splatoon3_proxy_address
 init_config(splatoon3_proxy_address)
 
@@ -35,23 +33,6 @@ imageDB.clean_image_temp()
 
 # 图 触发器  正则内需要涵盖所有的同义词
 matcher_stage_group = on_regex("^[\\\/\.。]?[0-9]*(全部)?下*图+$", priority=10, block=True)
-
-# 对战 触发器
-matcher_stage = on_regex(
-    "^[\\\/\.。]?[0-9]*(全部)?下*(区域|推塔|抢塔|塔楼|蛤蜊|抢鱼|鱼虎|涂地|涂涂|挑战|真格|开放|组排|排排|pp|PP|X段|x段|X赛|x赛){1,2}$",
-    priority=10,
-    block=True,
-)
-
-# 打工 触发器
-matcher_coop = on_regex(
-    "^[\\\/\.。]?(全部)?(工|打工|鲑鱼跑|bigrun|big run|团队打工)$",
-    priority=10,
-    block=True,
-)
-
-# 其他命令 触发器
-matcher_else = on_regex("^[\\\/\.。]?(帮助|help|(随机武器).*|装备|衣服|祭典|活动)$", priority=10, block=True)
 
 
 # 图 触发器处理 二次判断正则前，已经进行了同义词替换，二次正则只需要判断最终词
@@ -105,6 +86,14 @@ async def _(matcher: Matcher, event: MessageEvent):
                 cache=False,
             )
         )
+
+
+# 对战 触发器
+matcher_stage = on_regex(
+    "^[\\\/\.。]?[0-9]*(全部)?下*(区域|推塔|抢塔|塔楼|蛤蜊|抢鱼|鱼虎|涂地|涂涂|挑战|真格|开放|组排|排排|pp|PP|X段|x段|X赛|x赛){1,2}$",
+    priority=10,
+    block=True,
+)
 
 
 # 对战 触发器处理
@@ -211,6 +200,14 @@ async def _(matcher: Matcher, event: MessageEvent):
         )
 
 
+# 打工 触发器
+matcher_coop = on_regex(
+    "^[\\\/\.。]?(全部)?(工|打工|鲑鱼跑|bigrun|big run|团队打工)$",
+    priority=10,
+    block=True,
+)
+
+
 # 打工 触发器处理
 @matcher_coop.handle()
 async def _(matcher: Matcher, event: MessageEvent):
@@ -233,6 +230,10 @@ async def _(matcher: Matcher, event: MessageEvent):
             cache=False,
         )
     )
+
+
+# 其他命令 触发器
+matcher_else = on_regex("^[\\\/\.。]?(帮助|help|(随机武器).*|装备|衣服|祭典|活动)$", priority=10, block=True)
 
 
 # 其他命令 触发器处理

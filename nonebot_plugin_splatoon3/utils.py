@@ -1,5 +1,7 @@
 import datetime
 import cfscrape
+import httpx
+from httpx import Response
 
 proxy_address = ""
 
@@ -28,7 +30,7 @@ def cf_http_get(url: str):
     if proxy_address:
         proxies = {
             "http": "http://{}".format(proxy_address),
-            "https": "https://{}".format(proxy_address),
+            "https": "http://{}".format(proxy_address),
         }
         # 获取网页内容 代理访问
         res = scraper.get(url, proxies=proxies)
@@ -36,6 +38,29 @@ def cf_http_get(url: str):
         # 获取网页内容
         res = scraper.get(url)
     return res
+
+
+# async http_get
+async def async_http_get(url: str) -> Response:
+    if proxy_address:
+        proxies = "http://{}".format(proxy_address)
+        async with httpx.AsyncClient(proxies=proxies) as client:
+            response = await client.get(url, timeout=5.0)
+            return response
+    else:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, timeout=5.0)
+            return response
+
+
+# http_get
+def http_get(url: str) -> Response:
+    if proxy_address:
+        proxies = "http://{}".format(proxy_address)
+        response = httpx.get(url, proxies=proxies, timeout=5.0)
+    else:
+        response = httpx.get(url, timeout=5.0)
+    return response
 
 
 # 初始化配置参数，将配置参数传递到utils模块

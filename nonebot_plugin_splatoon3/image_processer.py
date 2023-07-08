@@ -1,41 +1,7 @@
-import os
-import urllib3
-from PIL import Image, ImageDraw, ImageFont
-
-from ._class import WeaponData, ImageInfo
 from .data_source import get_festivals_data
-from .image_processer_tools import (
-    get_file,
-    tiled_fill,
-    paste_with_a,
-    get_stage_card,
-    get_time_head_bg,
-    circle_corner,
-    get_save_file,
-    get_stage_name_bg,
-    get_weapon_card,
-    have_festival,
-    get_event_card,
-    change_image_alpha,
-    get_event_desc_card,
-    now_is_festival,
-    get_translucent_name_bg,
-    drawer_text,
-    drawer_help_card,
-)
-from .translation import get_trans_stage, get_trans_cht_data, dict_rule_reverse_trans, dict_weekday_trans
+from .image_processer_tools import *
+from .translation import get_trans_stage, get_trans_cht_data, dict_weekday_trans
 from .utils import *
-
-# 根路径
-cur_path = os.path.dirname(__file__)
-
-# 图片文件夹
-image_folder = os.path.join(cur_path, "staticData", "ImageData")
-# 武器文件夹
-weapon_folder = os.path.join(cur_path, "staticData", "weapon")
-# 字体
-ttf_path = os.path.join(cur_path, "staticData", "SplatoonFontFix.otf")
-ttf_path_chinese = os.path.join(cur_path, "staticData", "Text.ttf")
 
 http = urllib3.PoolManager()
 
