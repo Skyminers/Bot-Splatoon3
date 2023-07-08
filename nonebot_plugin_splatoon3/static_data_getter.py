@@ -2,6 +2,8 @@ import httpx
 
 from bs4 import BeautifulSoup
 from nonebot.log import logger
+
+from nonebot_plugin_splatoon3 import proxy_address
 from .image_db import imageDB
 from .image_processer_tools import get_file_url
 from ._class import WeaponData, ImageInfo
@@ -23,7 +25,14 @@ base_url = "https://splatoonwiki.org/wiki"
 # 爬取wiki数据 来重载武器数据，包括：武器图片，副武器图片，大招图片，武器配置信息
 def reload_weapon_info():
     global weapon_url
-    response = httpx.get(weapon_url)
+    if proxy_address:
+        proxies = {
+            "http": "http://{}".format(proxy_address),
+            "https": "http://{}".format(proxy_address),
+        }
+        response = httpx.get(weapon_url, proxies=proxies)
+    else:
+        response = httpx.get(weapon_url)
     soup = BeautifulSoup(response.text, "html.parser")
     # 通过 selector 找到 Weapon list
     weapon_list = iter(soup.select_one("#mw-content-text > div > div > table > tbody").find_all("tr"))

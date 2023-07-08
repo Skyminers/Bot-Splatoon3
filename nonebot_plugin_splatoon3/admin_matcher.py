@@ -9,7 +9,7 @@ from nonebot.permission import SUPERUSER
 from .static_data_getter import reload_weapon_info
 from .image_db import imageDB
 
-matcher_admin = on_regex("^[\\\/\.。]?(重载武器数据|更新武器数据|清空图片缓存)$", priority=10, block=True, permission=SUPERUSER)
+matcher_admin = on_regex("^[\\\/\.。]?(重载武器数据|更新武器数据|清空图片缓存)$", priority=10, block=False, permission=SUPERUSER)
 
 
 # 重载武器数据，包括：武器图片，副武器图片，大招图片，武器配置信息
