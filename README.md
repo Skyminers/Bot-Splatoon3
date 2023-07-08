@@ -12,7 +12,7 @@ _✨ splatoon3游戏日程查询插件 ✨_
 
 
 <a href="./LICENSE">
-    <img src="https://img.shields.io/github/license/owner/nonebot-plugin-splatoon3.svg" alt="license">
+    <img src="https://img.shields.io/github/license/Skyminers/Bot-Splatoon3.svg" alt="license">
 </a>
 <a href="https://pypi.python.org/pypi/nonebot-plugin-splatoon3">
     <img src="https://img.shields.io/pypi/v/nonebot-plugin-splatoon3.svg" alt="pypi">
