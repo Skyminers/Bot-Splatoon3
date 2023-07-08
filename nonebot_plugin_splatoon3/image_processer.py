@@ -509,7 +509,7 @@ def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
 
 # 绘制 帮助图片
 def get_help():
-    image_background_size = (1200, 2400)
+    image_background_size = (1200, 2470)
     # 取背景rgb颜色
     bg_rgb = dict_bg_rgb["活动"]
     # 创建纯色背景
