@@ -288,7 +288,13 @@ async def get_browser() -> Browser:
 async def get_screenshot(shot_url, shot_path=None):
     # playwright 要求不能有多个 browser 被同时唤起
     browser = await get_browser()
-    context = await browser.new_context(viewport={"width": 1480, "height": 900}, locale="zh-CH")
+    if proxy_address:
+        proxies = {"server": "http://{}".format(proxy_address)}
+        # 代理访问
+        context = await browser.new_context(viewport={"width": 1480, "height": 900}, locale="zh-CH", proxy=proxies)
+    else:
+        # 直接访问
+        context = await browser.new_context(viewport={"width": 1480, "height": 900}, locale="zh-CH")
     page = await context.new_page()
     await page.set_viewport_size({"width": 1480, "height": 900})
     await page.goto(shot_url)
