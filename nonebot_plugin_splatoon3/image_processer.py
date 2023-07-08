@@ -509,7 +509,7 @@ def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
 
 # 绘制 帮助图片
 def get_help():
-    image_background_size = (1200, 2470)
+    image_background_size = (1200, 2300)
     # 取背景rgb颜色
     bg_rgb = dict_bg_rgb["活动"]
     # 创建纯色背景
@@ -589,15 +589,6 @@ def get_help():
     pre = "直接查询:"
     order_list = ["工", "打工", "bigrun", "团队打工", "全部工"]
     desc_list = ["查询当前和下一时段的打工地图，如果存在bigrun或团队打工时，也会显示在里面，并根据时间自动排序", "前面加上 全部 则显示接下来的五场打工地图"]
-    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
-    # 贴图
-    text_bg_pos = (title_pos[0] + 30, height)
-    paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h + 10
-    # 绘制 帮助卡片 对战地图查询
-    pre = "指定时间段查询:"
-    order_list = ["0挑战", "1234开放塔楼", "全部x赛区域"]
-    desc_list = ["与图图的指定时间段查询方法一致，如果指定时间段没有匹配的结果，会返回全部时间段满足该筛选的结果", "前面加上 全部 则显示未来24h满足条件的对战"]
     text_card, card_h = drawer_help_card(pre, order_list, desc_list)
     # 贴图
     text_bg_pos = (title_pos[0] + 30, height)
