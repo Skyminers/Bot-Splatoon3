@@ -25,7 +25,7 @@ def cf_http_get(url: str):
     scraper = cfscrape.create_scraper()
     # 请求报错，可以加上时延
     # scraper = cfscrape.create_scraper(delay = 6)
-    if proxy_address != "":
+    if proxy_address:
         proxies = {
             "http": "http://{}".format(proxy_address),
             "https": "https://{}".format(proxy_address),
