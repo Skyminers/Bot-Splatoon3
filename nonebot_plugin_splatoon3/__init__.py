@@ -1,10 +1,11 @@
-from nonebot import on_regex, Config, get_driver
+from nonebot import on_regex, get_driver
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
 from nonebot.plugin import PluginMetadata
 
 from .image import *
+from .config import plugin_config
 from .image_processer_tools import image_to_base64
 from .translation import dict_keyword_replace
 from .image_db import imageDB
@@ -24,7 +25,7 @@ __plugin_meta__ = PluginMetadata(
     supported_adapters={"~onebot.v11"},
 )
 # 载入插件配置项
-splatoon3_proxy_address = Config.parse_obj(get_driver().config.dict()).splatoon3_proxy_address
+splatoon3_proxy_address = plugin_config.splatoon3_proxy_address
 init_config(splatoon3_proxy_address)
 
 # 初始化插件时清空合成图片缓存表
