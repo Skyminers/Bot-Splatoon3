@@ -3,6 +3,7 @@ from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
 from nonebot.plugin import PluginMetadata
+from nonebot.rule import to_me
 
 from .image import *
 from .config import plugin_config
@@ -24,12 +25,21 @@ __plugin_meta__ = PluginMetadata(
     # 发布必填。
     supported_adapters={"~onebot.v11"},
 )
-# 载入插件配置项
-splatoon3_proxy_address = plugin_config.splatoon3_proxy_address
-init_config(splatoon3_proxy_address)
 
 # 初始化插件时清空合成图片缓存表
 imageDB.clean_image_temp()
+
+# 隔断私聊（@信息也会被隔断在该 matcher 中）
+matcher_permisson = on_regex("^*", priority=9, rule=to_me())
+
+
+@matcher_permisson.handle()
+async def _(matcher: Matcher, event: MessageEvent):
+    if plugin_config.splatoon3_permit_DM:
+        pass
+    else:
+        matcher.stop_propagation()
+
 
 # 图 触发器  正则内需要涵盖所有的同义词
 matcher_stage_group = on_regex("^[\\\/\.。]?[0-9]*(全部)?下*图+$", priority=10, block=True)
@@ -44,8 +54,8 @@ async def _(matcher: Matcher, event: MessageEvent):
     logger.info("同义文本替换后触发词为:" + plain_text + "\n")
     # 判断是否满足进一步正则
     num_list = []
-    contest_match = None
-    rule_match = None
+    # contest_match = None
+    # rule_match = None
     flag_match = False
     # 顺序 单图
     if re.search("^[0-9]+图$", plain_text):
@@ -79,7 +89,8 @@ async def _(matcher: Matcher, event: MessageEvent):
         # 传递函数指针
         func = get_stages_image
         # 获取图片
-        img = get_save_temp_image(plain_text, func, num_list, contest_match, rule_match)
+        # contest_math, rule_match = None
+        img = get_save_temp_image(plain_text, func, num_list, None, None)
         # 发送消息
         await matcher.finish(
             MessageSegment.image(

@@ -2,8 +2,9 @@ import datetime
 import cfscrape
 import httpx
 from httpx import Response
+from .config import plugin_config
 
-proxy_address = ""
+proxy_address = plugin_config.splatoon3_proxy_address
 
 # 背景 rgb颜色
 dict_bg_rgb = {
@@ -64,10 +65,6 @@ def http_get(url: str) -> Response:
 
 
 # 初始化配置参数，将配置参数传递到utils模块
-def init_config(splatoon3_proxy_address):
-    global proxy_address
-    proxy_address = splatoon3_proxy_address
-
 
 # 批量替换文本
 def multiple_replace(text, _dict):
