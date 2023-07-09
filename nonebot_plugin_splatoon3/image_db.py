@@ -28,6 +28,8 @@ class ImageDB:
             # 清空合成图片缓存表
             c.execute("delete from IMAGE_TEMP;")
             self.conn.commit()
+            c.execute("VACUUM")
+            self.conn.commit()
             logger.info("数据库合成图片缓存数据已清空！")
 
     # 关闭数据库
@@ -225,13 +227,13 @@ class ImageDB:
         return weapon
 
     # 查询 全部武器信息
-    def get_all_weapon_info(self) -> dict:
+    def get_all_weapon_info(self) -> [dict]:
         sql = f"select name,zh_name from WEAPON_INFO"
         c = self.conn.cursor()
         c.execute(sql)
         rows = c.fetchall()
         weapon: WeaponData
-        results = []
+        results = [dict]
         if rows is not None:
             # 查询有结果时将查询结果转换为字典
             for row in rows:

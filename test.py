@@ -1,7 +1,6 @@
 import asyncio
 
-from nonebot_plugin_splatoon3 import get_screenshot
-from nonebot_plugin_splatoon3.image import *
+from nonebot_plugin_splatoon3 import get_coop_stages_image, get_save_temp_image
 from nonebot_plugin_splatoon3.static_data_getter import reload_weapon_info
 
 # 测试打工图片
@@ -9,7 +8,7 @@ from nonebot_plugin_splatoon3.static_data_getter import reload_weapon_info
 # res.show()
 
 # 测试重载武器数据
-asyncio.run(reload_weapon_info())
+# asyncio.run(reload_weapon_info())
 
 
 # # 测试 旧版 随机武器
@@ -18,7 +17,7 @@ asyncio.run(reload_weapon_info())
 # file.write(res)
 
 # 测试nonebot 打工 命令文本触发
-# plain_text = '工'
+# plain_text = "工"
 # # 传递函数指针
 # func = get_coop_stages_image
 # res = get_save_temp_image(plain_text, func, False)

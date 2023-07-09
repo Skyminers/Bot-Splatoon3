@@ -1,12 +1,9 @@
-import httpx
-
 from bs4 import BeautifulSoup
 from nonebot.log import logger
 
-from .utils import proxy_address, http_get, async_http_get
+from ._class import WeaponData, ImageInfo
 from .image_db import imageDB
 from .image_processer_tools import get_file_url
-from ._class import WeaponData, ImageInfo
 from .translation import (
     dict_weapon_sub_trans,
     dict_weapon_special_trans,
@@ -16,6 +13,7 @@ from .translation import (
     dict_weapon_father_class_trans,
     weapons_trans_eng_to_cht,
 )
+from .utils import async_http_get
 
 # 爬取地址
 weapon_url = "https://splatoonwiki.org/wiki/List_of_weapons_in_Splatoon_3"

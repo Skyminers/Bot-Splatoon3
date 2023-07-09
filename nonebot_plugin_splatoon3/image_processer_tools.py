@@ -13,9 +13,7 @@ from .utils import *
 from .translation import (
     get_trans_game_mode,
     get_trans_stage,
-    get_trans_cht_data,
     dict_weekday_trans,
-    dict_eng_file_trans,
 )
 
 # 根路径
@@ -514,10 +512,10 @@ def get_event_card(event, event_card_bg_size):
         if time_converter(st) > now:
             text = "未开始"
             text_color = (243, 254, 176)
-        if time_converter(st) < now < time_converter(et):
+        elif time_converter(st) < now < time_converter(et):
             text = "进行中"
             text_color = (144, 203, 251)
-        if time_converter(et) < now:
+        elif time_converter(et) < now:
             text = "已结束"
             text_color = (165, 170, 163)
         text_size = ttf.getsize(text)
@@ -603,21 +601,6 @@ def change_image_alpha(image, transparency):
 #
 #     return image_background
 
-
-# 文本图片  弃用函数
-# mode: coop,
-# def draw_text_image(text, mode):
-#     if mode == 'coop':
-#         size = (960, 320)
-#     elif mode == 'contest':
-#         size = (960, 720)
-#     else:
-#         size = (1920, 1080)
-#     img = Image.new("RGB", size, (255, 255, 255))
-#     dr = ImageDraw.Draw(img)
-#     font = ImageFont.truetype(ttf_path_chinese, 30)
-#     dr.text((10, 5), text, font=font, fill="#000000")
-#     return image_to_base64(img)
 
 # if __name__ == '__main__':
 #     get_random_weapon().show()

@@ -1,4 +1,3 @@
-import re
 from nonebot import on_regex, Config, get_driver
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11 import MessageSegment
@@ -54,6 +53,7 @@ async def _(matcher: Matcher, event: MessageEvent):
         flag_match = True
     elif re.search("^下{1,11}图$", plain_text):
         re_list = re.findall("下", plain_text)
+        # set是为了去除重复数字
         num_list = list(set([len(re_list)]))
         num_list.sort()
         flag_match = True
@@ -155,6 +155,7 @@ async def _(matcher: Matcher, event: MessageEvent):
     elif re.search("^下{1,11}(挑战|开放|X段|涂地)$", plain_text):
         re_list = re.findall("下", plain_text)
         lens = len(re_list)
+        # set是为了去除重复数字
         num_list = list(set([lens]))
         num_list.sort()
         stage_mode = plain_text[-2:]
@@ -179,6 +180,7 @@ async def _(matcher: Matcher, event: MessageEvent):
     elif re.search("^下{1,11}(区域|蛤蜊|塔楼|鱼虎)$", plain_text):
         re_list = re.findall("下", plain_text)
         lens = len(re_list)
+        # set是为了去除重复数字
         num_list = list(set([lens]))
         stage_mode = plain_text[-2:]
         contest_match = None
