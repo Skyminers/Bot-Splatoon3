@@ -85,15 +85,15 @@ def get_coop_info(_all=None):
 
     # 取装备信息
     def get_weapon_image_info(sch):  # sch为schedule[idx]
-        # for i in range(4) 是循环执行4次，不是多余的代码
+        # for _i in range(4) 是循环执行4次，不是多余的代码
         return [
             ImageInfo(
-                sch["setting"]["weapons"][i]["name"],
-                sch["setting"]["weapons"][i]["image"]["url"],
-                get_trans_weapon(sch["setting"]["weapons"][i]["__splatoon3ink_id"]),
+                sch["setting"]["weapons"][_i]["name"],
+                sch["setting"]["weapons"][_i]["image"]["url"],
+                get_trans_weapon(sch["setting"]["weapons"][_i]["__splatoon3ink_id"]),
                 "武器",
             )
-            for i in range(4)
+            for _i in range(4)
         ]
 
     # 取时间信息
@@ -306,8 +306,3 @@ async def get_screenshot(shot_url, shot_path=None):
         return await page.screenshot(full_page=True)
     finally:
         await context.close()
-
-
-if __name__ == "__main__":
-    # get_stage_info().show()
-    get_coop_info().show()

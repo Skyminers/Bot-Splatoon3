@@ -1,6 +1,5 @@
 import json
 import random
-import httpx
 
 from nonebot.log import logger
 from .utils import get_time_ymd, cf_http_get
@@ -124,13 +123,7 @@ dict_rule_reverse_trans = {
 }
 
 # 中文转英文名文件
-dict_eng_file_trans = {
-    "对战地图": "真格塔楼",
-    "CLAM": "真格蛤蜊",
-    "GOAL": "真格鱼虎",
-    "AREA": "真格区域",
-    "TURF_WAR": "占地对战",
-}
+dict_eng_file_trans = {}
 
 # 星期翻译
 dict_weekday_trans = {
@@ -184,6 +177,7 @@ dict_keyword_replace = {
 }
 
 # 规范翻译字典 装备 主武器名称
+# noinspection SpellCheckingInspection
 dict_weapon_main_trans = {
     ".52 Gal": ".52加仑",
     ".96 Gal": ".96加仑",
@@ -279,6 +273,7 @@ dict_weapon_main_trans = {
 }
 
 # 规范翻译字典 装备 副武器名称
+# noinspection SpellCheckingInspection
 dict_weapon_sub_trans = {
     "Splat Bomb": "斯普拉炸弹",
     "Suction Bomb": "吸盘炸弹",
@@ -297,6 +292,7 @@ dict_weapon_sub_trans = {
 }
 
 # 规范翻译字典 装备 大招名称
+# noinspection SpellCheckingInspection
 dict_weapon_special_trans = {
     "Trizooka": "终极发射",
     "Big Bubbler": "巨大防护罩",
@@ -318,6 +314,7 @@ dict_weapon_special_trans = {
 }
 
 # 规范翻译字典 装备 类别名称
+# noinspection SpellCheckingInspection
 dict_weapon_class_trans = {
     "Shooter": "射击枪",
     "Blaster": "爆破枪",

@@ -64,7 +64,7 @@ def get_festival(festivals):
         # 绘制色块对比图
         satrt_xy = (0 + group_img_size[0] // 3 * k, group_img_pos[1] + group_img_size[1])
         end_xy = (satrt_xy[0] + group_img_size[0] // 3, satrt_xy[1] + rectangle_h)
-        drawer.rectangle([satrt_xy, end_xy], fill=group_text_bg_rgb)
+        drawer.rectangle((satrt_xy, end_xy), fill=group_text_bg_rgb)
         # 绘制阵营名称
         group_text_bg = get_translucent_name_bg(v["teamName"], 100, font_size, group_text_bg_rgb)
         w, h = group_text_bg.size

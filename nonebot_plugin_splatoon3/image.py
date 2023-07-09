@@ -1,8 +1,6 @@
 import json
 import random
-import io
 
-from nonebot.log import logger
 from .data_source import get_coop_info, get_stage_info, get_weapon_info, get_schedule_data
 from .image_processer import *
 from .image_processer_tools import image_to_base64
@@ -150,7 +148,7 @@ def get_save_temp_image(trigger_word, func, *args):
         # 判断时间是否过期
         expire_time = datetime.datetime.strptime(image_expire_time, time_format_ymdh)
         time_now = datetime.datetime.now()
-        if time_now > expire_time:
+        if time_now >= expire_time:
             # 重新生成图片并写入
             image_data = func(*args)
             image = image_to_base64(image_data)
@@ -158,8 +156,9 @@ def get_save_temp_image(trigger_word, func, *args):
                 logger.info("[ImageDB] update temp image {}".format(trigger_word))
                 imageDB.add_or_modify_IMAGE_TEMP(trigger_word, image, get_expire_time())
             return image
-        logger.info("数据库内存在时效范围内的缓存图片，将从数据库读取缓存图片")
-        return image_to_base64(Image.open(io.BytesIO(image_data)))
+        else:
+            logger.info("数据库内存在时效范围内的缓存图片，将从数据库读取缓存图片")
+            return image_to_base64(Image.open(io.BytesIO(image_data)))
 
 
 # 写出武器翻译字典
