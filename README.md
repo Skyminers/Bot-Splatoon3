@@ -73,31 +73,31 @@ _✨ splatoon3游戏日程查询插件 ✨_
 <details>
 <summary>对战查询</summary>
 
-![对战地图.png](images/对战地图.png)
+![stages.png](images/stages.png)
 
 </details>
 <details>
 <summary>打工查询</summary>
 
-![打工.png](images/打工.jpg)
+![coop.png](images/coop.jpg)
 
 </details>
 <details>
 <summary>活动</summary>
 
-![活动.png](images/活动.png)
+![events.png](images/events.png)
 
 </details>
 <details>
 <summary>祭典</summary>
 
-![祭典.png](images/祭典.jpg)
+![festival.png](images/festival.jpg)
 
 </details>
 <details>
 <summary>随机武器</summary>
 
-![随机武器.png](images/随机武器.jpg)
+![random_weapon.png](images/random_weapon.jpg)
 
 </details>
 

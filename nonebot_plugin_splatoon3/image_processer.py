@@ -18,7 +18,7 @@ def get_festival(festivals):
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
     # 圆角化
-    _, image_background = circle_corner(image_background, radii=16)
+    image_background = circle_corner(image_background, radii=16)
 
     festival = festivals[0]
     # 获取翻译
@@ -75,7 +75,7 @@ def get_festival(festivals):
     # 绘制时间
     w, h = ttf.getsize(time_text)
     # 文字居中绘制
-    time_text_pos = ((image_background_size[0] - w) // 2, group_img_pos[1] + group_img_size[1] + rectangle_h + 20)
+    time_text_pos = ((image_background_size[0] - w) / 2, group_img_pos[1] + group_img_size[1] + rectangle_h + 20)
     text_rgb = dict_bg_rgb["祭典时间-金黄"]
     drawer.text(time_text_pos, time_text, font=ttf, fill=text_rgb)
 
@@ -94,7 +94,7 @@ def get_events(events):
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
     # 圆角
-    _, image_background = circle_corner(image_background, radii=20)
+    image_background = circle_corner(image_background, radii=20)
     # 遍历每个活动
     pos_h = 0
     for index, event in enumerate(events):
@@ -359,7 +359,7 @@ def get_stages(schedule, num_list, contest_match=None, rule_match=None):
             )
 
     # 圆角化
-    _, image_background = circle_corner(image_background, radii=16)
+    image_background = circle_corner(image_background, radii=16)
     return image_background
 
 
@@ -444,7 +444,7 @@ def get_coop_stages(stage, weapon, time, boss, mode):
 
     paste_with_a(image_background, coop_stage_bg, top_size_pos)
     # 圆角
-    _, image_background = circle_corner(image_background, radii=20)
+    image_background = circle_corner(image_background, radii=20)
 
     return image_background
 
@@ -453,7 +453,7 @@ def get_coop_stages(stage, weapon, time, boss, mode):
 def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
     # 底图
     image_background_size = (660, 500)
-    _, image_background = circle_corner(get_file("bg2").resize(image_background_size), radii=20)
+    image_background = circle_corner(get_file("bg2").resize(image_background_size), radii=20)
     # 绘制上下两块武器区域
     weapon_card_bg_size = (image_background_size[0] - 10, (image_background_size[1] - 10) // 2)
     top_weapon_card = get_weapon_card(weapon1, weapon_card_bg_size, dict_bg_rgb["上-武器卡片-黄"], (34, 34, 34))
@@ -484,7 +484,7 @@ def get_help():
     # 填充小图蒙版
     image_background = tiled_fill(image_background, bg_mask)
     # 圆角
-    _, image_background = circle_corner(image_background, radii=20)
+    image_background = circle_corner(image_background, radii=20)
     # 绘制标题
     font_size = 30
     text_bg = get_translucent_name_bg("帮助手册", 80, font_size)
@@ -502,7 +502,7 @@ def get_help():
     title = "对战地图 查询"
     title_pos = (20, height)
     w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
-    height += h + 10
+    height += h
     # 绘制 帮助卡片 对战地图查询
     pre = "直接查询:"
     order_list = ["图", "图图", "下图", "下下图", "全部图"]
@@ -511,7 +511,7 @@ def get_help():
     # 贴图
     text_bg_pos = (title_pos[0] + 30, height)
     paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h + 10
+    height += card_h
     # 绘制 帮助卡片 对战地图查询
     pre = "指定时间段查询:"
     order_list = ["0图", "123图", "1图", "2468图"]
@@ -520,7 +520,7 @@ def get_help():
     # 贴图
     text_bg_pos = (title_pos[0] + 30, height)
     paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h + 20
+    height += card_h + 10
 
     # 绘制title
     title = "对战地图 筛选查询"
@@ -535,7 +535,7 @@ def get_help():
     # 贴图
     text_bg_pos = (title_pos[0] + 30, height)
     paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h + 10
+    height += card_h
     # 绘制 帮助卡片 对战地图查询
     pre = "指定时间段查询:"
     order_list = ["0挑战", "1234开放塔楼", "全部x赛区域"]
@@ -544,7 +544,7 @@ def get_help():
     # 贴图
     text_bg_pos = (title_pos[0] + 30, height)
     paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h + 10
+    height += card_h
 
     # 绘制title
     title = "打工 查询"
@@ -559,7 +559,7 @@ def get_help():
     # 贴图
     text_bg_pos = (title_pos[0] + 30, height)
     paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h + 10
+    height += card_h
 
     # 绘制title
     title = "其他 查询"
@@ -574,7 +574,7 @@ def get_help():
     # 贴图
     text_bg_pos = (title_pos[0] + 30, height)
     paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h + 10
+    height += card_h
 
     # 绘制title
     title = "私房用 随机武器"
@@ -594,7 +594,7 @@ def get_help():
     # 贴图
     text_bg_pos = (title_pos[0] + 30, height)
     paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h + 10
+    height += card_h
 
     # 绘制title
     title = "bot管理员命令"
@@ -609,7 +609,7 @@ def get_help():
     # 贴图
     text_bg_pos = (title_pos[0] + 30, height)
     paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h + 10
+    height += card_h
 
     # 绘制title
     title = "关于本插件"
@@ -629,6 +629,6 @@ def get_help():
     # 贴图
     text_bg_pos = (title_pos[0] + 30, height)
     paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h + 10
+    height += card_h
 
     return image_background

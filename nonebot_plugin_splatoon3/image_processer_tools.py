@@ -4,7 +4,7 @@ import re
 import textwrap
 from io import BytesIO
 import urllib3
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from nonebot import logger
 
 from .image_db import imageDB
@@ -86,24 +86,37 @@ def circle_corner(img, radii):
     :param radii: 半径，如：30。
     :return: 返回一个圆角处理后的图象。
     """
+    # 原图
+    img = img.convert("RGBA")
+    w, h = img.size
+
+    if w < 2 * radii:
+        radii = w // 2
+    if h < 2 * radii:
+        radii = h // 2
+
     # 画圆（用于分离4个角）
     circle = Image.new("L", (radii * 2, radii * 2), 0)  # 创建一个黑色背景的画布
     draw = ImageDraw.Draw(circle)
     draw.ellipse((0, 0, radii * 2, radii * 2), fill=255)  # 画白色圆形
 
-    # 原图
-    img = img.convert("RGBA")
-    w, h = img.size
-
     # 画4个角（将整圆分离为4个部分）
     alpha = Image.new("L", img.size, 255)
-    alpha.paste(circle.crop((0, 0, radii, radii)), (0, 0))  # 左上角
-    alpha.paste(circle.crop((radii, 0, radii * 2, radii)), (w - radii, 0))  # 右上角
-    alpha.paste(circle.crop((radii, radii, radii * 2, radii * 2)), (w - radii, h - radii))  # 右下角
-    alpha.paste(circle.crop((0, radii, radii, radii * 2)), (0, h - radii))  # 左下角
+    left_top = circle.crop((0, 0, radii, radii))
+    # x轴翻转
+    left_down = ImageOps.flip(left_top)
+    # y轴翻转
+    right_top = ImageOps.mirror(left_top)
+    # x轴翻转
+    right_down = ImageOps.flip(right_top)
+
+    alpha.paste(left_top, (0, 0))  # 左上角
+    alpha.paste(right_top, (w - radii, 0))  # 右上角
+    alpha.paste(right_down, (w - radii, h - radii))  # 右下角
+    alpha.paste(left_down, (0, h - radii))  # 左下角
 
     img.putalpha(alpha)  # 白色区域透明可见，黑色区域不可见
-    return alpha, img
+    return img
 
 
 # 图片 平铺填充
@@ -158,7 +171,7 @@ def drawer_text(drawer: ImageDraw, text, text_start_pos, text_width, font_color=
 def drawer_help_card(pre: str, order_list: [str], desc_list: [str]):
     text_width = 50
     width = 0
-    height = 0
+    height = 10
     font_size = 30
     # 创建一张纯透明图片 用来存放卡片
     background = Image.new("RGBA", (1200, 1000), (0, 0, 0, 0))
@@ -173,7 +186,7 @@ def drawer_help_card(pre: str, order_list: [str], desc_list: [str]):
         for i, order in enumerate(order_list):
             text_bg = get_translucent_name_bg(order, 60, font_size)
             text_bg_size = text_bg.size
-            text_bg_pos = (width, height - 5)
+            text_bg_pos = (width, height - 8)
             paste_with_a(background, text_bg, text_bg_pos)
             width += text_bg_size[0] + 3
         width = pre_pos[0] + 50
@@ -196,16 +209,16 @@ def paste_with_a(image_background, image_pasted, pos):
 
 # 绘制 地图名称及文字底图
 def get_stage_name_bg(stage_name, font_size=24):
-    stage_name_bg_size = (len(stage_name * font_size) + 16, font_size + 10)
+    ttf = ImageFont.truetype(ttf_path_chinese, font_size)
+    w, h = ttf.getsize(stage_name)
+    stage_name_bg_size = (w + 20, h + 10)
     # 新建画布
     stage_name_bg = Image.new("RGBA", stage_name_bg_size, (34, 34, 34))
     # 圆角化
-    _, stage_name_bg = circle_corner(stage_name_bg, radii=font_size // 2)
+    stage_name_bg = circle_corner(stage_name_bg, radii=font_size // 2)
     # # 绘制文字
     drawer = ImageDraw.Draw(stage_name_bg)
-    ttf = ImageFont.truetype(ttf_path_chinese, font_size)
     # 文字居中绘制
-    w, h = ttf.getsize(stage_name)
     text_pos = ((stage_name_bg_size[0] - w) // 2, (stage_name_bg_size[1] - h) // 2)
     drawer.text(text_pos, stage_name, font=ttf, fill=(255, 255, 255))
     return stage_name_bg
@@ -214,18 +227,18 @@ def get_stage_name_bg(stage_name, font_size=24):
 # 绘制 半透明文字背景
 def get_translucent_name_bg(text, transparency, font_size=24, bg_color=None):
     ttf = ImageFont.truetype(ttf_path_chinese, font_size)
+    w, h = ttf.getsize(text)
     # 文字背景
-    text_bg_size = (len(text) * font_size + 20, font_size + 20)
+    text_bg_size = (w + 20, h + 20)
     text_bg = get_file("filleted_corner").resize(text_bg_size).convert("RGBA")
     if bg_color is not None:
-        _, text_bg = circle_corner(Image.new("RGBA", text_bg_size, bg_color), radii=20)
-    _, text_bg = circle_corner(text_bg, radii=text_bg_size[1] // 2)
+        text_bg = circle_corner(Image.new("RGBA", text_bg_size, bg_color), radii=20)
+    text_bg = circle_corner(text_bg, radii=text_bg_size[1] // 2)
     # 调整透明度
     text_bg = change_image_alpha(text_bg, transparency)
     drawer = ImageDraw.Draw(text_bg)
     # 文字居中绘制
-    w, h = ttf.getsize(text)
-    text_pos = ((text_bg_size[0] - w) // 2, (text_bg_size[1] - h) // 2)
+    text_pos = ((text_bg_size[0] - w) / 2, (text_bg_size[1] - h) / 2)
     drawer.text(text_pos, text, font=ttf, fill=(255, 255, 255))
     return text_bg
 
@@ -239,8 +252,8 @@ def get_time_head_bg(time_head_bg_size, date_time, start_time, end_time):
     time_head_text = "{}  {} - {}".format(date_time, start_time, end_time)
     w, h = ttf.getsize(time_head_text)
     time_head_text_pos = (
-        (time_head_bg_size[0] - w) // 2,
-        (time_head_bg_size[1] - h) // 2 - 12,
+        (time_head_bg_size[0] - w) / 2,
+        (time_head_bg_size[1] - h) / 2 - 12,
     )
     drawer = ImageDraw.Draw(time_head_bg)
     drawer.text(time_head_text_pos, time_head_text, font=ttf, fill=(255, 255))
@@ -280,7 +293,7 @@ def get_stage_card(
     desc="",
     img_size=(1024, 340),
 ):
-    _, image_background = circle_corner(get_file("bg").resize(img_size), radii=20)
+    image_background = circle_corner(get_file("bg").resize(img_size), radii=20)
 
     # 绘制两张地图
     # 计算尺寸，加载图片
@@ -288,7 +301,7 @@ def get_stage_card(
     image_left = get_save_file(stage1).resize(stage_size, Image.ANTIALIAS)
     image_right = get_save_file(stage2).resize(stage_size, Image.ANTIALIAS)
     # 定义圆角 蒙版
-    _, image_alpha = circle_corner(image_left, radii=16)
+    image_alpha = circle_corner(image_left, radii=16)
 
     # 计算地图间隔
     width_between_stages = int((img_size[0] - 2 * stage_size[0]) / 3)
@@ -379,33 +392,33 @@ def get_weapon_card(weapon: [WeaponData], weapon_card_bg_size, rgb, font_color):
     sub_size = (55, 55)
     special_size = (55, 55)
     # 一排武器的背景
-    _, weapon_card_bg = circle_corner(Image.new("RGBA", weapon_card_bg_size, rgb), radii=20)
+    weapon_card_bg = circle_corner(Image.new("RGBA", weapon_card_bg_size, rgb), radii=20)
 
     # 遍历进行贴图
     for i, v in enumerate(weapon):
         v: WeaponData
         # 单张武器背景
         weapon_bg = Image.new("RGB", weapon_bg_size, rgb)
-        _, weapon_bg = circle_corner(weapon_bg, radii=20)
+        weapon_bg = circle_corner(weapon_bg, radii=20)
         # 调整透明度
         weapon_bg = change_image_alpha(weapon_bg, 80)
         # 主武器
         main_image_bg = Image.new("RGBA", main_size, (30, 30, 30, 255))
         main_image = Image.open(io.BytesIO(v.image)).resize(main_size, Image.ANTIALIAS)
         main_image_bg_pos = ((weapon_bg_size[0] - main_size[0]) // 2, 10)
-        # _, main_image = circle_corner(main_image, radii=16)
+        # main_image = circle_corner(main_image, radii=16)
         # main_image_bg.paste(main_image, (0, 0))
         # 副武器
         sub_image_bg = Image.new("RGBA", sub_size, (60, 60, 60, 255))
         sub_image = Image.open(io.BytesIO(v.sub_image)).resize(sub_size, Image.ANTIALIAS)
         sub_image_bg_pos = (main_image_bg_pos[0], main_image_bg_pos[1] + main_size[1] + 10)
-        # _, sub_image = circle_corner(sub_image, radii=16)
+        # sub_image = circle_corner(sub_image, radii=16)
         # sub_image_bg.paste(sub_image, (0, 0))
         # 大招
         special_image_bg = Image.new("RGBA", special_size, (30, 30, 30, 255))
         special_image = Image.open(io.BytesIO(v.special_image)).resize(special_size, Image.ANTIALIAS)
         special_image_bg_pos = (main_image_bg_pos[0] + main_size[0] - special_size[0], sub_image_bg_pos[1])
-        # _, special_image = circle_corner(special_image, radii=16)
+        # special_image = circle_corner(special_image, radii=16)
         # special_image_bg.paste(special_image, (0, 0))
         # 贴到单个武器背景
         # weapon_bg.paste(main_image, main_image_bg_pos)
@@ -585,7 +598,7 @@ def change_image_alpha(image, transparency):
 #     if weapon2 is None:
 #         weapon2 = random.sample(os.listdir(weapon_folder), k=4)
 #     weapon_size = (122, 158)
-#     _, image_background = circle_corner(get_file("bg").resize((620, 420)), radii=20)
+#     image_background = circle_corner(get_file("bg").resize((620, 420)), radii=20)
 #     dr = ImageDraw.Draw(image_background)
 #     font = ImageFont.truetype(ttf_path, 50)
 #     # 绘制中间vs和长横线
