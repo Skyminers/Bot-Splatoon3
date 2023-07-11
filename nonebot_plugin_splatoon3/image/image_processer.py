@@ -1,7 +1,6 @@
-from .data_source import get_festivals_data
+from ..data import get_festivals_data
 from .image_processer_tools import *
-from .translation import get_trans_stage, get_trans_cht_data, dict_weekday_trans
-from .utils import *
+from ..utils import *
 
 http = urllib3.PoolManager()
 

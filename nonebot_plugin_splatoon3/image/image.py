@@ -1,11 +1,15 @@
 import json
 import random
 
-from .data_source import get_coop_info, get_stage_info, get_weapon_info, get_schedule_data
+from ..data import (
+    get_coop_info,
+    get_stage_info,
+    get_weapon_info,
+    get_schedule_data,
+)
+from ..utils import weapon_semantic_word_conversion
 from .image_processer import *
 from .image_processer_tools import image_to_base64
-from .image_db import imageDB
-from .translation import weapon_semantic_word_conversion
 
 time_format_ymdh = "%Y-%m-%dT%H"
 

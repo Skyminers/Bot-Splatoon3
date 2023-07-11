@@ -2,7 +2,7 @@ import datetime
 import cfscrape
 import httpx
 from httpx import Response
-from .config import plugin_config
+from ..config import plugin_config
 
 proxy_address = plugin_config.splatoon3_proxy_address
 

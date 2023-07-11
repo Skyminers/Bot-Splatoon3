@@ -5,19 +5,12 @@ import textwrap
 from io import BytesIO
 import urllib3
 from PIL import Image, ImageDraw, ImageFont, ImageOps
-from nonebot import logger
 
-from .image_db import imageDB
-from ._class import ImageInfo, WeaponData
-from .utils import *
-from .translation import (
-    get_trans_game_mode,
-    get_trans_stage,
-    dict_weekday_trans,
-)
+from ..data import imageDB
+from ..utils import *
 
 # 根路径
-cur_path = os.path.dirname(__file__)
+cur_path = os.path.join(os.path.dirname(__file__), "..")
 
 # 图片文件夹
 image_folder = os.path.join(cur_path, "staticData", "ImageData")
@@ -52,12 +45,6 @@ def get_weapon(name):
 def get_cf_file_url(url):
     r = cf_http_get(url)
     return r.content
-
-
-# 普通网页读文件
-async def get_file_url(url):
-    data = await async_http_get(url).content
-    return data
 
 
 # 向数据库新增或读取素材图片二进制文件

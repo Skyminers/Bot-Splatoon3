@@ -2,9 +2,9 @@ import os
 import sqlite3
 from pathlib import Path
 from nonebot.log import logger
-from ._class import WeaponData
+from ..utils import WeaponData
 
-DATABASE_path = Path(os.path.join(os.path.dirname(__file__), "data", "image"))
+DATABASE_path = Path(os.path.join(os.path.dirname(__file__), "image"))
 DATABASE = Path(DATABASE_path, "image.db")
 
 

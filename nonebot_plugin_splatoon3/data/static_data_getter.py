@@ -1,19 +1,7 @@
 from bs4 import BeautifulSoup
-from nonebot.log import logger
 
-from ._class import WeaponData, ImageInfo
 from .image_db import imageDB
-from .image_processer_tools import get_file_url
-from .translation import (
-    dict_weapon_sub_trans,
-    dict_weapon_special_trans,
-    dict_weapon_main_trans,
-    dict_weapon_class_trans,
-    weapon_image_type,
-    dict_weapon_father_class_trans,
-    weapons_trans_eng_to_cht,
-)
-from .utils import async_http_get
+from ..utils import *
 
 # 爬取地址
 weapon_url = "https://splatoonwiki.org/wiki/List_of_weapons_in_Splatoon_3"
@@ -112,6 +100,11 @@ async def push_weapon_images(img: ImageInfo):
                 img.source_type,
                 image_data,
             )
+
+# 从网页读获取图片
+async def get_file_url(url):
+    data = await async_http_get(url).content
+    return data
 
 
 if __name__ == "__main__":
