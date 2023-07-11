@@ -66,6 +66,7 @@ def http_get(url: str) -> Response:
 
 # 初始化配置参数，将配置参数传递到utils模块
 
+
 # 批量替换文本
 def multiple_replace(text, _dict):
     for key in _dict:

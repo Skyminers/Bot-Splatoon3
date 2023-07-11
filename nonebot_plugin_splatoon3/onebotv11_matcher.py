@@ -1,8 +1,9 @@
 from nonebot.plugin import PluginMetadata
-from nonebot.rule import to_me
+from nonebot.rule import to_me, is_type
 from nonebot import on_regex, on_message
 from nonebot.adapters.onebot.v11 import MessageEvent as EventV11
 from nonebot.adapters.onebot.v11 import MessageSegment as SegmentV11
+from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
 from nonebot.matcher import Matcher
 from nonebot.permission import SUPERUSER
 
@@ -11,7 +12,6 @@ from .image import image_to_base64
 from .config import plugin_config
 from .utils import dict_keyword_replace, multiple_replace
 from .data import get_screenshot, reload_weapon_info, imageDB
-
 
 # zhenxunbot框架当前使用的是2.0.0rc1版本nb2，对以下插件元信息缺少参数，需要删除usage后面的字段，才能正常加载
 __plugin_meta__ = PluginMetadata(
@@ -28,20 +28,14 @@ __plugin_meta__ = PluginMetadata(
 # 初始化插件时清空合成图片缓存表
 imageDB.clean_image_temp()
 
-# 隔断私聊（@信息也会被隔断在该 matcher 中）
-matcher_permisson = on_message(priority=9, rule=to_me(), block=False)
-
-
-@matcher_permisson.handle()
-async def _(matcher: Matcher, event: EventV11):
-    if plugin_config.splatoon3_permit_DM:
-        pass
-    else:
-        matcher.stop_propagation()
-
+# 判断是否允许私聊
+if plugin_config.splatoon3_permit_private:
+    msg_rule = is_type(PrivateMessageEvent, GroupMessageEvent)
+else:
+    msg_rule = is_type(GroupMessageEvent)
 
 # 图 触发器  正则内需要涵盖所有的同义词
-matcher_stage_group = on_regex("^[\\\/\.。]?[0-9]*(全部)?下*图+$", priority=10, block=True)
+matcher_stage_group = on_regex("^[\\\/\.。]?[0-9]*(全部)?下*图+$", priority=10, block=True, rule=msg_rule)
 
 
 # 图 触发器处理 二次判断正则前，已经进行了同义词替换，二次正则只需要判断最终词
@@ -104,6 +98,7 @@ matcher_stage = on_regex(
     "^[\\\/\.。]?[0-9]*(全部)?下*(区域|推塔|抢塔|塔楼|蛤蜊|抢鱼|鱼虎|涂地|涂涂|挑战|真格|开放|组排|排排|pp|PP|X段|x段|X赛|x赛){1,2}$",
     priority=10,
     block=True,
+    rule=msg_rule,
 )
 
 
@@ -214,11 +209,7 @@ async def _(matcher: Matcher, event: EventV11):
 
 
 # 打工 触发器
-matcher_coop = on_regex(
-    "^[\\\/\.。]?(全部)?(工|打工|鲑鱼跑|bigrun|big run|团队打工)$",
-    priority=10,
-    block=True,
-)
+matcher_coop = on_regex("^[\\\/\.。]?(全部)?(工|打工|鲑鱼跑|bigrun|big run|团队打工)$", priority=10, block=True, rule=msg_rule)
 
 
 # 打工 触发器处理
@@ -246,7 +237,7 @@ async def _(matcher: Matcher, event: EventV11):
 
 
 # 其他命令 触发器
-matcher_else = on_regex("^[\\\/\.。]?(帮助|help|(随机武器).*|装备|衣服|祭典|活动)$", priority=10, block=True)
+matcher_else = on_regex("^[\\\/\.。]?(帮助|help|(随机武器).*|装备|衣服|祭典|活动)$", priority=10, block=True, rule=msg_rule)
 
 
 # 其他命令 触发器处理
@@ -332,4 +323,3 @@ async def _(matcher: Matcher, event: EventV11):
         except Exception as e:
             msg = err_msg + str(e) + "\n如果错误信息是timed out，不妨可以等会儿重新发送指令"
         await matcher.finish(SegmentV11.text(msg))
-
