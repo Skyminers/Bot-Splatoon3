@@ -23,8 +23,6 @@ __plugin_meta__ = PluginMetadata(
     supported_adapters={"~onebot.v11"},
 )
 
-# 初始化插件时清空合成图片缓存表
-imageDB.clean_image_temp()
 
 # 图 触发器  正则内需要涵盖所有的同义词
 matcher_stage_group = on_regex("^[\\\/\.。]?[0-9]*(全部)?下*图+$", priority=10, block=True)
@@ -318,4 +316,3 @@ async def _(matcher: Matcher, event: EventTg):
         except Exception as e:
             msg = err_msg + str(e) + "\n如果错误信息是timed out，不妨可以等会儿重新发送指令"
         await matcher.finish(SegmentTg.text(msg))
-

@@ -53,11 +53,12 @@ _✨ splatoon3游戏日程查询插件 ✨_
 ## ⚙️ 配置
 插件访问了`splatoon3.ink`和`splatoonwiki.org`这两个网站,如果机器人所处环境不支持直接访问这两个网站
 
-可以在 nonebot2 项目的`.env`文件中添加下表中的配置项
+可以在 nonebot2 项目的`.env.prod`文件中添加下表中的配置项
 
 | 配置项 | 必填 | 值类型 | 默认值 | 说明 |
 |:------:|:----:|:---:|:---:|:--:|
 | splatoon3_proxy_address | 否 | str | ""  | 代理地址，格式为 127.0.0.1:20171 |
+| splatoon3_permit_private | 否 | bool | True  | 是否允许私聊触发，默认为True |
 
 ## 🎉 使用
 ### 指令表

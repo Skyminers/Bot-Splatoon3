@@ -4,7 +4,7 @@ from pathlib import Path
 from nonebot.log import logger
 from ..utils import WeaponData
 
-DATABASE_path = Path(os.path.join(os.path.dirname(__file__), "image"))
+DATABASE_path = Path(os.path.join(os.path.dirname(__file__), "db"))
 DATABASE = Path(DATABASE_path, "image.db")
 
 
