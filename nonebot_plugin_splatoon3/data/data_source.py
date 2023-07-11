@@ -1,24 +1,11 @@
-import json
 import requests
 import urllib3
 
 requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = "ALL:@SECLEVEL=1"
 
-from nonebot.log import logger
-from playwright.async_api import Browser, async_playwright
-
-from ._class import ImageInfo
 from .image_db import imageDB
-from .translation import (
-    get_trans_stage,
-    get_trans_weapon,
-    get_trans_cht_data,
-    list_salmonrun_mode,
-    dict_contest_trans,
-    dict_rule_trans,
-    weapon_image_type,
-)
-from .utils import *
+from ..utils import *
+from playwright.async_api import Browser, async_playwright
 
 schedule_res = None
 http = urllib3.PoolManager()
