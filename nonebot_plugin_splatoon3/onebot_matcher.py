@@ -1,9 +1,24 @@
+from typing import Union
+
+from nonebot.params import Depends, CommandArg
 from nonebot.plugin import PluginMetadata
-from nonebot.rule import to_me, is_type
-from nonebot import on_regex, on_message
-from nonebot.adapters.onebot.v11 import MessageEvent as EventV11
-from nonebot.adapters.onebot.v11 import MessageSegment as SegmentV11
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
+from nonebot.rule import is_type
+from nonebot import on_regex
+from nonebot.adapters.onebot.v11 import Bot as V11Bot
+from nonebot.adapters.onebot.v11 import MessageEvent as V11MEvent
+from nonebot.adapters.onebot.v11 import Message as V11Msg
+from nonebot.adapters.onebot.v11 import MessageSegment as V11MsgSeg
+from nonebot.adapters.onebot.v11 import PrivateMessageEvent as V11PMEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent as V11GMEvent
+
+from nonebot.adapters.onebot.v12 import Bot as V12Bot
+from nonebot.adapters.onebot.v12 import MessageEvent as V12MEvent
+from nonebot.adapters.onebot.v12 import Message as V12Msg
+from nonebot.adapters.onebot.v12 import MessageSegment as V12MsgSeg
+from nonebot.adapters.onebot.v12 import ChannelMessageEvent as V12CMEvent
+from nonebot.adapters.onebot.v12 import PrivateMessageEvent as V12PMEvent
+from nonebot.adapters.onebot.v12 import GroupMessageEvent as V12GMEvent
+
 from nonebot.matcher import Matcher
 from nonebot.permission import SUPERUSER
 
@@ -30,9 +45,45 @@ imageDB.clean_image_temp()
 
 # 判断是否允许私聊
 if plugin_config.splatoon3_permit_private:
-    msg_rule = is_type(PrivateMessageEvent, GroupMessageEvent)
+    msg_rule = is_type(V11PMEvent, V11GMEvent, V12PMEvent, V12GMEvent, V12CMEvent)
 else:
-    msg_rule = is_type(GroupMessageEvent)
+    msg_rule = is_type(V11GMEvent, V12GMEvent, V12CMEvent)
+
+
+# v11与v12公用send_msg
+async def send_msg(bot, matcher, msg):
+    if isinstance(bot, V11Bot):
+        await matcher.finish(V11MsgSeg.text(msg))
+    else:
+        await matcher.finish(V12MsgSeg.text(msg))
+
+
+# v11与v12公用send_img
+async def send_img(bot, matcher, img):
+    if isinstance(bot, V11Bot):
+        await matcher.finish(V11MsgSeg.image(img))
+    else:
+        await matcher.finish(V12MsgSeg.image(img))
+
+
+# # 根据不同onebot协议消息路径分别取用户id
+# def get_user_id():
+#     def dependency(bot: Union[V11Bot, V12Bot], event: Union[V11MEvent, V12MEvent]) -> str:
+#         if isinstance(event, V11MEvent):
+#             cid = f"{bot.self_id}_{event.message_type}_"
+#         else:
+#             cid = f"{bot.self_id}_{event.detail_type}_"
+#
+#         if isinstance(event, V11MsgSeg) or isinstance(event, V12MsgSeg):
+#             cid += str(event.group_id)
+#         elif isinstance(event, V12CMEvent):
+#             cid += f"{event.guild_id}_{event.channel_id}"
+#         else:
+#             cid += str(event.user_id)
+#         return cid
+#
+#     return Depends(dependency)
+
 
 # 图 触发器  正则内需要涵盖所有的同义词
 matcher_stage_group = on_regex("^[\\\/\.。]?[0-9]*(全部)?下*图+$", priority=10, block=True, rule=msg_rule)
@@ -40,15 +91,19 @@ matcher_stage_group = on_regex("^[\\\/\.。]?[0-9]*(全部)?下*图+$", priority
 
 # 图 触发器处理 二次判断正则前，已经进行了同义词替换，二次正则只需要判断最终词
 @matcher_stage_group.handle()
-async def _(matcher: Matcher, event: EventV11):
+async def _(
+    bot: Union[V11Bot, V12Bot],
+    matcher: Matcher,
+    event: Union[V11MEvent, V12MEvent],
+):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换
     plain_text = multiple_replace(plain_text, dict_keyword_replace)
     logger.info("同义文本替换后触发词为:" + plain_text + "\n")
     # 判断是否满足进一步正则
     num_list = []
-    # contest_match = None
-    # rule_match = None
+    contest_match = None
+    rule_match = None
     flag_match = False
     # 顺序 单图
     if re.search("^[0-9]+图$", plain_text):
@@ -82,15 +137,9 @@ async def _(matcher: Matcher, event: EventV11):
         # 传递函数指针
         func = get_stages_image
         # 获取图片
-        # contest_math, rule_match = None
-        img = get_save_temp_image(plain_text, func, num_list, None, None)
+        img = get_save_temp_image(plain_text, func, num_list, contest_match, rule_match)
         # 发送消息
-        await matcher.finish(
-            SegmentV11.image(
-                file=img,
-                cache=False,
-            )
-        )
+        await send_img(bot, matcher, img)
 
 
 # 对战 触发器
@@ -104,7 +153,11 @@ matcher_stage = on_regex(
 
 # 对战 触发器处理
 @matcher_stage.handle()
-async def _(matcher: Matcher, event: EventV11):
+async def _(
+    bot: Union[V11Bot, V12Bot],
+    matcher: Matcher,
+    event: Union[V11MEvent, V12MEvent],
+):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换  同时替换.。\/ 等前缀触发词
     plain_text = multiple_replace(plain_text, dict_keyword_replace)
@@ -200,12 +253,7 @@ async def _(matcher: Matcher, event: EventV11):
         # 获取图片
         img = get_save_temp_image(plain_text, func, num_list, contest_match, rule_match)
         # 发送消息
-        await matcher.finish(
-            SegmentV11.image(
-                file=img,
-                cache=False,
-            )
-        )
+        await send_img(bot, matcher, img)
 
 
 # 打工 触发器
@@ -214,7 +262,11 @@ matcher_coop = on_regex("^[\\\/\.。]?(全部)?(工|打工|鲑鱼跑|bigrun|big 
 
 # 打工 触发器处理
 @matcher_coop.handle()
-async def _(matcher: Matcher, event: EventV11):
+async def _(
+    bot: Union[V11Bot, V12Bot],
+    matcher: Matcher,
+    event: Union[V11MEvent, V12MEvent],
+):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换
     plain_text = multiple_replace(plain_text, dict_keyword_replace)
@@ -228,12 +280,7 @@ async def _(matcher: Matcher, event: EventV11):
     # 获取图片
     img = get_save_temp_image(plain_text, func, _all)
     # 发送消息
-    await matcher.finish(
-        SegmentV11.image(
-            file=img,
-            cache=False,
-        )
-    )
+    await send_img(bot, matcher, img)
 
 
 # 其他命令 触发器
@@ -242,7 +289,11 @@ matcher_else = on_regex("^[\\\/\.。]?(帮助|help|(随机武器).*|装备|衣�
 
 # 其他命令 触发器处理
 @matcher_else.handle()
-async def _(matcher: Matcher, event: EventV11):
+async def _(
+    bot: Union[V11Bot, V12Bot],
+    matcher: Matcher,
+    event: Union[V11MEvent, V12MEvent],
+):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  同义文本替换
     plain_text = multiple_replace(plain_text, dict_keyword_replace)
@@ -254,11 +305,11 @@ async def _(matcher: Matcher, event: EventV11):
         # 测试数据库能否取到武器数据
         if not get_weapon_info_test():
             msg = "请机器人管理员先发送 更新武器数据 更新本地武器数据库后，才能使用随机武器功能"
-            await matcher.finish(SegmentV11.text(msg))
+            await send_msg(bot, matcher, msg)
         else:
             img = image_to_base64(get_random_weapon_image(plain_text))
             # 发送消息
-            await matcher.finish(SegmentV11.image(file=img, cache=False))
+            await send_img(bot, matcher, img)
     elif re.search("^祭典$", plain_text):
         # 传递函数指针
         func = get_festival_image
@@ -266,11 +317,10 @@ async def _(matcher: Matcher, event: EventV11):
         img = get_save_temp_image(plain_text, func)
         if img is None:
             msg = "近期没有任何祭典"
-            msgm = SegmentV11.text(msg)
+            await send_msg(bot, matcher, msg)
         else:
             # 发送图片
-            msgm = SegmentV11.image(file=img, cache=False)
-        await matcher.finish(msgm)
+            await send_img(bot, matcher, img)
     elif re.search("^活动$", plain_text):
         # 传递函数指针
         func = get_events_image
@@ -278,22 +328,22 @@ async def _(matcher: Matcher, event: EventV11):
         img = get_save_temp_image(plain_text, func)
         if img is None:
             msg = "近期没有任何活动比赛"
-            msgm = SegmentV11.text(msg)
+            await send_msg(bot, matcher, msg)
         else:
             # 发送图片
-            msgm = SegmentV11.image(file=img, cache=False)
-        await matcher.finish(msgm)
+            await send_img(bot, matcher, img)
+
     elif re.search("^帮助$", plain_text):
         # 传递函数指针
         func = get_help_image
         # 获取图片
         img = get_save_temp_image(plain_text, func)
         # 发送图片
-        msgm = SegmentV11.image(file=img, cache=False)
-        await matcher.finish(msgm)
+        await send_img(bot, matcher, img)
     elif re.search("^装备$", plain_text):
         img = await get_screenshot(shot_url="https://splatoon3.ink/gear")
-        await matcher.finish(SegmentV11.image(file=img, cache=False))
+        # 发送图片
+        await send_img(bot, matcher, img)
 
 
 matcher_admin = on_regex("^[\\\/\.。]?(重载武器数据|更新武器数据|清空图片缓存)$", priority=10, block=True, permission=SUPERUSER)
@@ -301,7 +351,11 @@ matcher_admin = on_regex("^[\\\/\.。]?(重载武器数据|更新武器数据|�
 
 # 重载武器数据，包括：武器图片，副武器图片，大招图片，武器配置信息
 @matcher_admin.handle()
-async def _(matcher: Matcher, event: EventV11):
+async def _(
+    bot: Union[V11Bot, V12Bot],
+    matcher: Matcher,
+    event: Union[V11MEvent, V12MEvent],
+):
     plain_text = event.get_message().extract_plain_text().strip()
     err_msg = "执行失败，错误日志为: "
     # 清空图片缓存
@@ -312,14 +366,14 @@ async def _(matcher: Matcher, event: EventV11):
         except Exception as e:
             msg = err_msg + str(e)
         # 发送消息
-        await matcher.finish(SegmentV11.text(msg))
+        await send_msg(bot, matcher, msg)
 
     elif re.search("^(重载武器数据|更新武器数据)$", plain_text):
         msg_start = "将开始重新爬取武器数据，此过程可能需要10min左右,请稍等..."
         msg = "武器数据更新完成"
-        await matcher.send(SegmentV11.text(msg_start))
+        await send_msg(bot, matcher, msg_start)
         try:
             await reload_weapon_info()
         except Exception as e:
             msg = err_msg + str(e) + "\n如果错误信息是timed out，不妨可以等会儿重新发送指令"
-        await matcher.finish(SegmentV11.text(msg))
+        await send_msg(bot, matcher, msg)

@@ -1,7 +1,7 @@
 from nonebot.log import logger
 
 try:
-    from .onebotv11_matcher import *
+    from .onebot_matcher import *
 except ImportError as e:
     logger.error(
         "No OneBot adapter found, you can try 'nb adapter install nonebot-adapter-onebot' to install. \n"

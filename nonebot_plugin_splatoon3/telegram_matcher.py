@@ -1,4 +1,3 @@
-from nonebot.plugin import PluginMetadata
 from nonebot import on_regex
 from nonebot.adapters.telegram.event import MessageEvent as EventTg
 from nonebot.adapters.telegram import MessageSegment as SegmentTg
@@ -9,19 +8,6 @@ from .image.image import *
 from .image import image_to_base64
 from .utils import dict_keyword_replace, multiple_replace
 from .data import get_screenshot, reload_weapon_info, imageDB
-
-
-# zhenxunbot框架当前使用的是2.0.0rc1版本nb2，对以下插件元信息缺少参数，需要删除usage后面的字段，才能正常加载
-__plugin_meta__ = PluginMetadata(
-    name="nonebot-plugin-splatoon3",
-    description="一个基于nonebot2框架的splatoon3游戏日程查询插件",
-    usage="发送 帮助 或 help 可查看详细指令\n",
-    type="application",
-    # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
-    homepage="https://github.com/Skyminers/Bot-Splatoon3",
-    # 发布必填。
-    supported_adapters={"~onebot.v11"},
-)
 
 
 # 图 触发器  正则内需要涵盖所有的同义词

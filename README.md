@@ -24,9 +24,9 @@ _✨ splatoon3游戏日程查询插件 ✨_
 
 ## 📖 介绍
 
-一个基于nonebot2框架的splatoon3游戏日程查询插件
-
-全部查询图片(除nso衣服查询外),全部采用pillow精心绘制,图片效果可查看下面的[效果图](#效果图)
+- 一个基于nonebot2框架的splatoon3游戏日程查询插件,支持onebot11与onebot12协议
+- onebot12协议下支持QQ、QQ频道、TG、微信消息、微信公众号、KOOK 等[平台](https://onebot.dev/ecosystem.html)
+- 全部查询图片(除nso衣服查询外),全部采用pillow精心绘制,图片效果可查看下面的[效果图](#效果图)
 > QQ 机器人 SplatBot 已搭载该插件，可以[点击这里](https://flawless-dew-f3c.notion.site/SplatBot-e91a70e4f32a4fffb640ce8c3ba9c664)查看qq机器人使用指南
 
 ## 💿 安装
@@ -39,21 +39,32 @@ _✨ splatoon3游戏日程查询插件 ✨_
 
 </details>
 
+
 <details>
-<summary>使用包管理器poetry安装</summary>
-在 nonebot2 项目的插件目录下, 打开命令行, 输入以下的安装命令
+<summary>使用包管理器安装</summary>
+在 nonebot2 项目的插件目录下, 打开命令行, 根据你使用的包管理器, 输入相应的安装命令
+<details>
+<summary>pdm</summary>
+
+    pdm add nonebot-plugin-splatoon3
+</details>
+
+<details>
+<summary>poetry</summary>
 
     poetry add nonebot-plugin-splatoon3
-
+</details>
 
 </details>
+
+
 
 安装完成后，需要对机器人发送`更新武器数据`来更新数据库内的武器数据，不然`随机武器`功能无法使用
 
 ## ⚙️ 配置
 插件访问了`splatoon3.ink`和`splatoonwiki.org`这两个网站,如果机器人所处环境不支持直接访问这两个网站
 
-可以在 nonebot2 项目的`.env.prod`文件中添加下表中的配置项
+可以在 nonebot2 项目的`.env.prod`文件中添加下表中的代理地址配置项
 
 | 配置项 | 必填 | 值类型 | 默认值 | 说明 |
 |:------:|:----:|:---:|:---:|:--:|
