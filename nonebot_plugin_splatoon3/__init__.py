@@ -99,7 +99,7 @@ async def send_img(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V1
 
 
 # 图 触发器  正则内需要涵盖所有的同义词
-matcher_stage_group = on_regex("^[\\\/\.。]?[0-9]*(全部)?下*图+$", priority=10, block=True, rule=msg_rule)
+matcher_stage_group = on_regex("^[\\/.,，。]?[0-9]*(全部)?下*图+$", priority=10, block=True, rule=msg_rule)
 
 
 # 图 触发器处理 二次判断正则前，已经进行了同义词替换，二次正则只需要判断最终词
@@ -157,7 +157,7 @@ async def _(
 
 # 对战 触发器
 matcher_stage = on_regex(
-    "^[\\\/\.。]?[0-9]*(全部)?下*(区域|推塔|抢塔|塔楼|蛤蜊|抢鱼|鱼虎|涂地|涂涂|挑战|真格|开放|组排|排排|pp|PP|X段|x段|X赛|x赛){1,2}$",
+    "^[\\/.,，。]?[0-9]*(全部)?下*(区域|推塔|抢塔|塔楼|蛤蜊|抢鱼|鱼虎|涂地|涂涂|挑战|真格|开放|组排|排排|pp|PP|X段|x段|X赛|x赛){1,2}$",
     priority=10,
     block=True,
     rule=msg_rule,
@@ -270,7 +270,7 @@ async def _(
 
 
 # 打工 触发器
-matcher_coop = on_regex("^[\\\/\.。]?(全部)?(工|打工|鲑鱼跑|bigrun|big run|团队打工)$", priority=10, block=True, rule=msg_rule)
+matcher_coop = on_regex("^[\\/.,，。]?(全部)?(工|打工|鲑鱼跑|bigrun|big run|团队打工)$", priority=10, block=True, rule=msg_rule)
 
 
 # 打工 触发器处理
@@ -297,7 +297,7 @@ async def _(
 
 
 # 其他命令 触发器
-matcher_else = on_regex("^[\\\/\.。]?(帮助|help|(随机武器).*|装备|衣服|祭典|活动)$", priority=10, block=True, rule=msg_rule)
+matcher_else = on_regex("^[\\/.,，。]?(帮助|help|(随机武器).*|装备|衣服|祭典|活动)$", priority=10, block=True, rule=msg_rule)
 
 
 # 其他命令 触发器处理
@@ -359,7 +359,7 @@ async def _(
         await send_img(bot, event, matcher, img)
 
 
-matcher_admin = on_regex("^[\\\/\.。]?(重载武器数据|更新武器数据|清空图片缓存)$", priority=10, block=True, permission=SUPERUSER)
+matcher_admin = on_regex("^[\\/.,，。]?(重载武器数据|更新武器数据|清空图片缓存)$", priority=10, block=True, permission=SUPERUSER)
 
 
 # 重载武器数据，包括：武器图片，副武器图片，大招图片，武器配置信息
