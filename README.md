@@ -70,7 +70,7 @@ _✨ splatoon3游戏日程查询插件 ✨_
 |:------:|:----:|:---:|:---:|:--:|
 | splatoon3_proxy_address | 否 | str | ""  | 代理地址，格式为 127.0.0.1:20171 |
 | splatoon3_permit_private | 否 | bool | True  | (仅onebotv11协议生效)是否允许qq私聊触发，默认为True |
-| splatoon3_reply_mode | 否 | bool | False  | (onebotv11,telegram协议)指定回复模式，开启后将通过触发词的消息进行回复，默认为False |
+| splatoon3_reply_mode | 否 | bool | False  | (onebotv11,onebotv12,telegram协议)指定回复模式，开启后将通过触发词的消息进行回复，默认为False |
 
 ## 🎉 使用
 ### 指令表
