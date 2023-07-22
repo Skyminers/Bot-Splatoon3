@@ -1,7 +1,5 @@
 import asyncio
-
-from nonebot_plugin_splatoon3 import get_coop_stages_image, get_save_temp_image, get_help_image, get_stages_image
-from nonebot_plugin_splatoon3.static_data_getter import reload_weapon_info
+from nonebot_plugin_splatoon3.image.image import *
 
 # 测试打工图片
 # res = get_coop_stages_image(True)

@@ -104,7 +104,7 @@ _✨ splatoon3游戏日程查询插件 ✨_
 <details>
 <summary>祭典</summary>
 
-![festival.png](images/festival.jpg)
+![festival.png](images/festival.png)
 
 </details>
 <details>
