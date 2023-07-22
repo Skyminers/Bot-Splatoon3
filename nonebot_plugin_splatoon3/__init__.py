@@ -58,7 +58,6 @@ if plugin_config.splatoon3_permit_private:
 else:
     msg_rule = is_type(V11GMEvent, V12GMEvent, V12CMEvent, TgEvent)
 
-
 # 图 触发器  正则内需要涵盖所有的同义词
 matcher_stage_group = on_regex("^[\\/.,，。]?[0-9]*(全部)?下*图+$", priority=10, block=True, rule=msg_rule)
 
@@ -358,13 +357,9 @@ async def send_msg(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V1
     # 指定回复模式
     reply_mode = plugin_config.splatoon3_reply_mode
     if isinstance(bot, V11Bot):
-        if reply_mode:
-            message = V11Msg(f"[CQ:reply,id={event.dict().get('message_id')}]" + msg)
-            await bot.send(event, message=message)
-        else:
-            await matcher.finish(V11MsgSeg.text(msg))
+        await bot.send(event, message=V11MsgSeg.text(msg), reply_message=reply_mode)
     elif isinstance(bot, V12Bot):
-        await matcher.finish(V12MsgSeg.text(msg))
+        await bot.send(event, message=V12MsgSeg.text(msg), reply_message=reply_mode)
     elif isinstance(bot, TgBot):
         if reply_mode:
             await bot.send(event, msg, reply_to_message_id=event.dict().get("message_id"))
@@ -377,23 +372,18 @@ async def send_img(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V1
     # 指定回复模式
     reply_mode = plugin_config.splatoon3_reply_mode
     if isinstance(bot, V11Bot):
-        if reply_mode:
-            img = V11MsgSeg.image(file=img, cache=False)
-            msg = ""
-            if "group" in event.get_event_name():
-                msg = f"[CQ:reply,id={event.dict().get('message_id')}]"
-            message = V11Msg(msg) + V11Msg(img)
-            try:
-                await bot.send(event, message=message)
-            except Exception as e:
-                logger.warning(f"QQBot send error: {e}")
-        else:
-            try:
-                await matcher.finish(V11MsgSeg.image(img))
-            except Exception as e:
-                logger.warning(f"QQBot send error: {e}")
+        try:
+            await bot.send(event, message=V11MsgSeg.image(file=img, cache=False), reply_message=reply_mode)
+        except Exception as e:
+            logger.warning(f"QQBot send error: {e}")
     elif isinstance(bot, V12Bot):
-        await matcher.finish(V12MsgSeg.image(img))
+        # onebot12协议需要先上传文件获取file_id后才能发送图片
+        try:
+            file_id = await bot.upload_file(type="data", name="temp.png", data=img)
+            if file_id:
+                await bot.send(event, message=V12MsgSeg.image(file_id=file_id), reply_message=reply_mode)
+        except Exception as e:
+            logger.warning(f"QQBot send error: {e}")
     elif isinstance(bot, TgBot):
         if reply_mode:
             await bot.send(event, File.photo(img), reply_to_message_id=event.dict().get("message_id"))
