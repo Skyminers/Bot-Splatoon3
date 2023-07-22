@@ -379,7 +379,8 @@ async def send_img(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V1
     elif isinstance(bot, V12Bot):
         # onebot12协议需要先上传文件获取file_id后才能发送图片
         try:
-            file_id = await bot.upload_file(type="data", name="temp.png", data=img)
+            resp = await bot.upload_file(type="data", name="temp.png", data=img)
+            file_id = resp["file_id"]
             if file_id:
                 await bot.send(event, message=V12MsgSeg.image(file_id=file_id), reply_message=reply_mode)
         except Exception as e:
