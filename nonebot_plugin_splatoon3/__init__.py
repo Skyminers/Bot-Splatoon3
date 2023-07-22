@@ -46,60 +46,21 @@ __plugin_meta__ = PluginMetadata(
     # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
     homepage="https://github.com/Skyminers/Bot-Splatoon3",
     # 发布必填。
-    supported_adapters={"~onebot.v11"},
+    supported_adapters={"~onebot.v11", "~onebot.v12", "~telegram"},
 )
 
 # 初始化插件时清空合成图片缓存表
 imageDB.clean_image_temp()
 
-# 判断是否允许私聊
+# v11判断是否允许私聊
 if plugin_config.splatoon3_permit_private:
     msg_rule = is_type(V11PMEvent, V11GMEvent, V12PMEvent, V12GMEvent, V12CMEvent, TgEvent)
 else:
     msg_rule = is_type(V11GMEvent, V12GMEvent, V12CMEvent, TgEvent)
 
 
-# 公用send_msg
-async def send_msg(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V12MEvent, TgEvent], matcher, msg):
-    if isinstance(bot, V11Bot):
-        await matcher.finish(V11MsgSeg.text(msg))
-    elif isinstance(bot, V12Bot):
-        await matcher.finish(V12MsgSeg.text(msg))
-    elif isinstance(bot, TgBot):
-        await bot.send(event, msg, reply_to_message_id=event.message_id)
-
-
-# 公用send_img
-async def send_img(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V12MEvent, TgEvent], matcher, img):
-    if isinstance(bot, V11Bot):
-        await matcher.finish(V11MsgSeg.image(img))
-    elif isinstance(bot, V12Bot):
-        await matcher.finish(V12MsgSeg.image(img))
-    elif isinstance(bot, TgBot):
-        await bot.send(event, File.photo(img))
-
-
-# # 根据不同onebot协议消息路径分别取用户id
-# def get_user_id():
-#     def dependency(bot: Union[V11Bot, V12Bot], event: Union[V11MEvent, V12MEvent]) -> str:
-#         if isinstance(event, V11MEvent):
-#             cid = f"{bot.self_id}_{event.message_type}_"
-#         else:
-#             cid = f"{bot.self_id}_{event.detail_type}_"
-#
-#         if isinstance(event, V11MsgSeg) or isinstance(event, V12MsgSeg):
-#             cid += str(event.group_id)
-#         elif isinstance(event, V12CMEvent):
-#             cid += f"{event.guild_id}_{event.channel_id}"
-#         else:
-#             cid += str(event.user_id)
-#         return cid
-#
-#     return Depends(dependency)
-
-
 # 图 触发器  正则内需要涵盖所有的同义词
-matcher_stage_group = on_regex("^[\\\/\.。]?[0-9]*(全部)?下*图+$", priority=10, block=True, rule=msg_rule)
+matcher_stage_group = on_regex("^[\\/.,，。]?[0-9]*(全部)?下*图+$", priority=10, block=True, rule=msg_rule)
 
 
 # 图 触发器处理 二次判断正则前，已经进行了同义词替换，二次正则只需要判断最终词
@@ -157,7 +118,7 @@ async def _(
 
 # 对战 触发器
 matcher_stage = on_regex(
-    "^[\\\/\.。]?[0-9]*(全部)?下*(区域|推塔|抢塔|塔楼|蛤蜊|抢鱼|鱼虎|涂地|涂涂|挑战|真格|开放|组排|排排|pp|PP|X段|x段|X赛|x赛){1,2}$",
+    "^[\\/.,，。]?[0-9]*(全部)?下*(区域|推塔|抢塔|塔楼|蛤蜊|抢鱼|鱼虎|涂地|涂涂|挑战|真格|开放|组排|排排|pp|PP|X段|x段|X赛|x赛){1,2}$",
     priority=10,
     block=True,
     rule=msg_rule,
@@ -270,7 +231,7 @@ async def _(
 
 
 # 打工 触发器
-matcher_coop = on_regex("^[\\\/\.。]?(全部)?(工|打工|鲑鱼跑|bigrun|big run|团队打工)$", priority=10, block=True, rule=msg_rule)
+matcher_coop = on_regex("^[\\/.,，。]?(全部)?(工|打工|鲑鱼跑|bigrun|big run|团队打工)$", priority=10, block=True, rule=msg_rule)
 
 
 # 打工 触发器处理
@@ -297,7 +258,7 @@ async def _(
 
 
 # 其他命令 触发器
-matcher_else = on_regex("^[\\\/\.。]?(帮助|help|(随机武器).*|装备|衣服|祭典|活动)$", priority=10, block=True, rule=msg_rule)
+matcher_else = on_regex("^[\\/.,，。]?(帮助|help|(随机武器).*|装备|衣服|祭典|活动)$", priority=10, block=True, rule=msg_rule)
 
 
 # 其他命令 触发器处理
@@ -359,7 +320,7 @@ async def _(
         await send_img(bot, event, matcher, img)
 
 
-matcher_admin = on_regex("^[\\\/\.。]?(重载武器数据|更新武器数据|清空图片缓存)$", priority=10, block=True, permission=SUPERUSER)
+matcher_admin = on_regex("^[\\/.,，。]?(重载武器数据|更新武器数据|清空图片缓存)$", priority=10, block=True, permission=SUPERUSER)
 
 
 # 重载武器数据，包括：武器图片，副武器图片，大招图片，武器配置信息
@@ -390,3 +351,70 @@ async def _(
         except Exception as e:
             msg = err_msg + str(e) + "\n如果错误信息是timed out，不妨可以等会儿重新发送指令"
         await send_msg(bot, event, matcher, msg)
+
+
+# 公用send_msg
+async def send_msg(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V12MEvent, TgEvent], matcher, msg):
+    # 指定回复模式
+    reply_mode = plugin_config.splatoon3_reply_mode
+    if isinstance(bot, V11Bot):
+        if reply_mode:
+            message = V11Msg(f"[CQ:reply,id={event.dict().get('message_id')}]" + msg)
+            await bot.send(event, message=message)
+        else:
+            await matcher.finish(V11MsgSeg.text(msg))
+    elif isinstance(bot, V12Bot):
+        await matcher.finish(V12MsgSeg.text(msg))
+    elif isinstance(bot, TgBot):
+        if reply_mode:
+            await bot.send(event, msg, reply_to_message_id=event.dict().get("message_id"))
+        else:
+            await bot.send(event, msg)
+
+
+# 公用send_img
+async def send_img(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V12MEvent, TgEvent], matcher, img):
+    # 指定回复模式
+    reply_mode = plugin_config.splatoon3_reply_mode
+    if isinstance(bot, V11Bot):
+        if reply_mode:
+            img = V11MsgSeg.image(file=img, cache=False)
+            msg = ""
+            if "group" in event.get_event_name():
+                msg = f"[CQ:reply,id={event.dict().get('message_id')}]"
+            message = V11Msg(msg) + V11Msg(img)
+            try:
+                await bot.send(event, message=message)
+            except Exception as e:
+                logger.warning(f"QQBot send error: {e}")
+        else:
+            try:
+                await matcher.finish(V11MsgSeg.image(img))
+            except Exception as e:
+                logger.warning(f"QQBot send error: {e}")
+    elif isinstance(bot, V12Bot):
+        await matcher.finish(V12MsgSeg.image(img))
+    elif isinstance(bot, TgBot):
+        if reply_mode:
+            await bot.send(event, File.photo(img), reply_to_message_id=event.dict().get("message_id"))
+        else:
+            await bot.send(event, File.photo(img))
+
+
+# # 根据不同onebot协议消息路径分别取用户id
+# def get_user_id():
+#     def dependency(bot: Union[V11Bot, V12Bot], event: Union[V11MEvent, V12MEvent]) -> str:
+#         if isinstance(event, V11MEvent):
+#             cid = f"{bot.self_id}_{event.message_type}_"
+#         else:
+#             cid = f"{bot.self_id}_{event.detail_type}_"
+#
+#         if isinstance(event, V11MsgSeg) or isinstance(event, V12MsgSeg):
+#             cid += str(event.group_id)
+#         elif isinstance(event, V12CMEvent):
+#             cid += f"{event.guild_id}_{event.channel_id}"
+#         else:
+#             cid += str(event.user_id)
+#         return cid
+#
+#     return Depends(dependency)
