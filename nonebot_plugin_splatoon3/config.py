@@ -15,8 +15,9 @@ class Config(BaseModel):
     splatoon3_reply_mode: bool = False
 
 
-# 本地测试时由于不启动 driver，需要将下面两行注释并取消再下一行的注释
-global_config = get_driver().config
+# 本地测试时由于不启动 driver，需要将下面三行注释并取消再下一行的注释
+driver = get_driver()
+global_config = driver.config
 plugin_config = Config.parse_obj(global_config)
 
 # plugin_config = Config()
