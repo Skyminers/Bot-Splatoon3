@@ -349,8 +349,8 @@ async def _(
         await send_msg(bot, event, matcher, msg)
 
 
-# 公用send_msg
 async def send_msg(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V12MEvent, TgEvent], matcher, msg):
+    """公用send_msg"""
     # 指定回复模式
     reply_mode = plugin_config.splatoon3_reply_mode
     if isinstance(bot, V11Bot):
@@ -364,8 +364,8 @@ async def send_msg(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V1
             await bot.send(event, msg)
 
 
-# 公用send_img
 async def send_img(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V12MEvent, TgEvent], matcher, img):
+    """公用send_img"""
     # 指定回复模式
     reply_mode = plugin_config.splatoon3_reply_mode
     if isinstance(bot, V11Bot):
