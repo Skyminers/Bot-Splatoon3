@@ -73,7 +73,7 @@ _✨ splatoon3游戏日程查询插件 ✨_
 
 
 
-安装完成后，需要以onebot协议下超级管理员用户对机器人发送`更新武器数据`来更新数据库内的武器数据，不然`随机武器`功能无法使用
+安装完成后，需要以超级管理员用户对机器人发送`更新武器数据`来更新数据库内的武器数据，不然`随机武器`功能无法使用
 
 ## ⚙️ 配置
 插件访问了`splatoon3.ink`和`splatoonwiki.org`这两个网站,如果机器人所处环境不支持直接访问这两个网站
@@ -83,8 +83,28 @@ _✨ splatoon3游戏日程查询插件 ✨_
 | 配置项 | 必填 | 值类型 | 默认值 | 说明 |
 |:------:|:----:|:---:|:---:|:--:|
 | splatoon3_proxy_address | 否 | str | ""  | 代理地址，格式为 127.0.0.1:20171 |
-| splatoon3_permit_private | 否 | bool | True  | (仅onebotv11协议生效)是否允许qq私聊触发，默认为True |
-| splatoon3_reply_mode | 否 | bool | False  | (onebotv11,onebotv12,telegram协议)指定回复模式，开启后将通过触发词的消息进行回复，默认为False |
+| splatoon3_reply_mode | 否 | bool | False  | 指定回复模式，开启后将通过触发词的消息进行回复，默认为False |
+| splatoon3_permit_private | 否 | bool | False  | 是否允许私聊触发，默认为False |
+| splatoon3_permit_channel | 否 | bool | False  | 是否允许频道触发，默认为False |
+| splatoon3_permit_unkown_src | 否 | bool | False  | 是否允许未知来源触发，默认为False |
+| splatoon3_whitelist | 否 | List[str] | []  | 白名单列表，填写后黑名单无效，里面可以填写用户id，群id，频道id，如 ["10000","123456"]|
+| splatoon3_blacklist | 否 | List[str] | []  | 黑名单列表，里面可以填写用户id，群id，频道id，如 ["10000","123456"]|
+
+<details>
+<summary>示例配置</summary>
+  
+```env
+# splatoon3示例配置
+splatoon3_proxy_address = "" #代理地址
+splatoon3_reply_mode = False #指定回复模式
+splatoon3_permit_private = False #是否允许私聊触发
+splatoon3_permit_channel = False #是否允许频道触发
+splatoon3_permit_unkown_src = False #是否允许未知来源触发
+splatoon3_whitelist = [] #白名单列表，填写后黑名单无效，里面可以填写用户id，群id，频道id
+splatoon3_blacklist = ["10000","123456"] #黑名单列表，填写后黑名单无效，里面可以填写用户id，群id，频道id
+```
+
+</details>
 
 ## 🎉 使用
 ### 指令表

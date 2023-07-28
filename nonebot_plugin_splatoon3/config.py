@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Union
 
 from nonebot import get_driver
 from pydantic import BaseModel, validator
@@ -23,13 +23,13 @@ class Config(BaseModel):
     splatoon3_blacklist: List[str] = []
 
     @validator("splatoon3_whitelist")
-    def check_value(cls, v):
+    def check_whitelist(cls, v):
         if isinstance(v, List):
             return v
         raise ValueError("""白名单格式错误，参考格式为 ["23333","114514"]""")
 
     @validator("splatoon3_blacklist")
-    def check_value(cls, v):
+    def check_blacklist(cls, v):
         if isinstance(v, List):
             return v
         raise ValueError("""黑名单格式错误，参考格式为 ["23333","114514"]""")
@@ -44,9 +44,10 @@ class Config(BaseModel):
             return True
 
 
-# 本地测试时由于不启动 driver，需要将下面三行注释并取消再下一行的注释
+# 本地测试时由于不启动 driver，需要将下面三行注释并取消再下面两行的注释
 driver = get_driver()
 global_config = driver.config
 plugin_config = Config.parse_obj(global_config)
 
+# driver = None
 # plugin_config = Config()

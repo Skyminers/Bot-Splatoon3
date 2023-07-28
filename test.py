@@ -23,15 +23,83 @@ from nonebot_plugin_splatoon3.image.image import *
 
 
 # 测试nonebot 对战 命令文本触发
-# plain_text = '全部挑战'
-# # 传递函数指针
-# num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-# stage_mode = plain_text[-2:]
-# func = get_stages_image
-# res = get_save_temp_image(plain_text, func, num_list, stage_mode)
-# file = open('../output/stage.jpg', "wb")
-# file.write(res)
-
+# re_tuple = ("", None, "下下", "挑战", None)
+# re_list = []
+# for k, v in enumerate(re_tuple):
+#     # 遍历正则匹配字典进行替换文本
+#     re_list.append(dict_keyword_replace.get(v, v))
+# logger.info("同义文本替换后触发词为:" + json.dumps(re_list, ensure_ascii=False))
+# # 输出格式为 ["", null, "下下", "挑战", null] 涉及?匹配且没有提供该值的是null
+# # 索引 全部 下 匹配1 匹配2
+#
+# plain_text = ""
+# if re_list[0]:
+#     plain_text = plain_text + re_list[0]
+# elif re_list[1]:
+#     plain_text = plain_text + re_list[1]
+# elif re_list[2]:
+#     plain_text = plain_text + re_list[2]
+# if re_list[3]:
+#     plain_text = plain_text + re_list[3]
+# if re_list[4]:
+#     plain_text = plain_text + re_list[4]
+#
+# num_list: list = []
+# contest_match = None
+# rule_match = None
+# flag_match = True
+#
+# # 计算索引列表
+# if re_list[1]:
+#     # 含有全部
+#     num_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+# elif re_list[2]:
+#     # 含有 下
+#     splits = re_list[2].split("下")  # 返回拆分数组
+#     lens = len(splits) - 1  # 返回拆分次数-1
+#     num_list = list(set([lens]))
+#     num_list.sort()
+# elif re_list[0]:
+#     # 数字索引
+#     num_list = list(set([int(x) for x in re_list[0]]))
+#     num_list.sort()
+# else:
+#     num_list = [0]
+#
+# # 计算比赛和规则
+# if re_list[3] and re_list[4]:
+#     # 双匹配
+#     # 判断第一个参数是比赛还是规则
+#     if re_list[3] in dict_contest_trans and re_list[4] in dict_rule_trans:
+#         # 比赛 规则
+#         contest_match = re_list[3]
+#         rule_match = re_list[4]
+#     elif re_list[3] in dict_rule_trans and re_list[4] in dict_contest_trans:
+#         # 规则 比赛
+#         contest_match = re_list[4]
+#         rule_match = re_list[3]
+#     else:
+#         flag_match = False
+# elif re_list[3] and (not re_list[4]):
+#     # 单匹配
+#     # 判断参数是比赛还是规则
+#     if re_list[3] in dict_contest_trans:
+#         # 比赛
+#         contest_match = re_list[3]
+#     elif re_list[3] in dict_rule_trans:
+#         # 规则
+#         rule_match = re_list[3]
+#     else:
+#         flag_match = False
+# else:
+#     flag_match = False
+#
+# # 如果有匹配
+# if flag_match:
+#     # 传递函数指针
+#     func = get_stages_image
+#     # 获取图片
+#     img = get_save_temp_image(plain_text, func, num_list, contest_match, rule_match)
 
 # # 测试nonebot 对战 命令文本触发
 # plain_text = "全部图"
