@@ -33,7 +33,7 @@ from nonebot.permission import SUPERUSER
 
 from .image.image import *
 from .image import image_to_base64
-from .config import plugin_config
+from .config import plugin_config, driver
 from .utils import dict_keyword_replace, multiple_replace
 from .data import get_screenshot, reload_weapon_info, imageDB
 
@@ -48,9 +48,6 @@ __plugin_meta__ = PluginMetadata(
     # 发布必填。
     supported_adapters={"~onebot.v11", "~onebot.v12", "~telegram"},
 )
-
-# 初始化插件时清空合成图片缓存表
-imageDB.clean_image_temp()
 
 # v11判断是否允许私聊
 if plugin_config.splatoon3_permit_private:
@@ -352,8 +349,8 @@ async def _(
         await send_msg(bot, event, matcher, msg)
 
 
-# 公用send_msg
 async def send_msg(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V12MEvent, TgEvent], matcher, msg):
+    """公用send_msg"""
     # 指定回复模式
     reply_mode = plugin_config.splatoon3_reply_mode
     if isinstance(bot, V11Bot):
@@ -367,8 +364,8 @@ async def send_msg(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V1
             await bot.send(event, msg)
 
 
-# 公用send_img
 async def send_img(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V12MEvent, TgEvent], matcher, img):
+    """公用send_img"""
     # 指定回复模式
     reply_mode = plugin_config.splatoon3_reply_mode
     if isinstance(bot, V11Bot):
@@ -390,6 +387,18 @@ async def send_img(bot: Union[V11Bot, V12Bot, TgBot], event: Union[V11MEvent, V1
             await bot.send(event, File.photo(img), reply_to_message_id=event.dict().get("message_id"))
         else:
             await bot.send(event, File.photo(img))
+
+
+@driver.on_startup
+async def startup():
+    # 初始化插件时清空合成图片缓存表
+    imageDB.clean_image_temp()
+
+
+@driver.on_shutdown
+async def shutdown():
+    # 关闭数据库
+    imageDB.close()
 
 
 # # 根据不同onebot协议消息路径分别取用户id
