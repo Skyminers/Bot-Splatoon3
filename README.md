@@ -149,3 +149,7 @@ splatoon3_blacklist = ["10000","123456"] #黑名单列表，填写后黑名单�
 </details>
 
 ## ✨喜欢的话就点个star✨吧，球球了QAQ
+
+## ⏳ Star 趋势
+
+[![Stargazers over time](https://starchart.cc/Skyminers/Bot-Splatoon3.svg)](https://starchart.cc/Skyminers/nonebot-plugin-splatoon3)
