@@ -19,10 +19,11 @@ def get_schedule_data():
 
     # 校验过期日程
     def check_expire_schedule(schedule):
-        st = datetime.datetime.strptime(schedule["regularSchedules"]["nodes"][0]["startTime"], "%Y-%m-%dT%H:%M:%SZ")
-        ed = datetime.datetime.strptime(schedule["regularSchedules"]["nodes"][0]["endTime"], "%Y-%m-%dT%H:%M:%SZ")
-        nw = datetime.datetime.now() - datetime.timedelta(hours=8)
-        if st < nw < ed:
+        # json取到的时间是utc，本地时间也要取utc后才能比较
+        st = time_converter(schedule["regularSchedules"]["nodes"][0]["startTime"])
+        ed = time_converter(schedule["regularSchedules"]["nodes"][0]["endTime"])
+        now = get_time_now_china()
+        if st < now < ed:
             return False
         return True
 
@@ -98,7 +99,7 @@ def get_coop_info(_all=None):
     # 校验普通打工时间，是否在特殊打工模式之后
     def check_salmonrun_time(_start_time, _special_mode_start_time):
         # 输入时间都缺少年份，需要手动补充一个年份后还原为date对象
-        year = datetime.datetime.now().year
+        year = get_time_now_china().year
         _start_time = str(year) + "-" + _start_time
         _special_mode_start_time = str(year) + "-" + _special_mode_start_time
         st = datetime.datetime.strptime(_start_time, "%Y-%m-%d %H:%M")

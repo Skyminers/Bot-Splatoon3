@@ -2,6 +2,8 @@ import datetime
 import cfscrape
 import httpx
 from httpx import Response
+
+from .dataClass import TimeUtil
 from ..config import plugin_config
 
 proxy_address = plugin_config.splatoon3_proxy_address
@@ -110,5 +112,18 @@ def time_converter_weekday(time_str):
 
 def get_time_ymd():
     """获取年月日"""
-    dt = datetime.datetime.now().strftime("%Y-%m-%d")
+    dt = get_time_now_china().strftime("%Y-%m-%d")
     return dt
+
+
+def get_time_y() -> int:
+    """获取年"""
+    year = get_time_now_china().year
+    return year
+
+
+def get_time_now_china() -> datetime.datetime:
+    # 获取utc时间，然后转东8区时间
+    utc_now = datetime.datetime.utcnow()
+    convert_now = TimeUtil.convert_timezone(utc_now, "+8")
+    return convert_now

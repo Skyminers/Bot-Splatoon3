@@ -113,7 +113,7 @@ def get_weapon_info_test():
 def get_expire_time():
     """计算过期时间 字符串 精确度为 ymdh"""
     # 计算过期时间
-    time_now = datetime.datetime.now()
+    time_now = get_time_now_china()
     time_now_h = time_now.hour
     # 计算过期时间字符串
     # 判断当前小时是奇数还是偶数
@@ -146,7 +146,7 @@ def get_save_temp_image(trigger_word, func, *args):
         image_data = res.get("image_data")
         # 判断时间是否过期
         expire_time = datetime.datetime.strptime(image_expire_time, time_format_ymdh)
-        time_now = datetime.datetime.now()
+        time_now = get_time_now_china()
         if time_now >= expire_time:
             # 重新生成图片并写入
             image_data = func(*args)
