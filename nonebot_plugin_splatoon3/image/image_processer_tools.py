@@ -258,7 +258,7 @@ def have_festival(_festivals):
 
 def now_is_festival(_festivals):
     """现在是否是祭典"""
-    now = datetime.datetime.now()
+    now = get_time_now_china()
     for v in _festivals:
         if v["festMatchSetting"] is not None:
             # 如果祭典有参数 且现在时间位于这个区间
@@ -509,7 +509,7 @@ def get_event_card(event, event_card_bg_size):
         ]
         draw_grid_transverse_line(drawer, transverse_line_pos_list, fill="white", width=3, gap=25)
         # 绘制 时间状态 文字
-        now = datetime.datetime.now()
+        now = get_time_now_china()
         if time_converter(st) > now:
             text = "未开始"
             text_color = (243, 254, 176)

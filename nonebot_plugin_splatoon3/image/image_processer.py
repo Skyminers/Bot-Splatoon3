@@ -337,10 +337,10 @@ def get_coop_stages(stage, weapon, time, boss, mode):
     # 校验是否需要绘制小鲑鱼(现在时间处于该打工时间段内)
     def check_coop_fish(_time):
         start_time = _time.split(" - ")[0]
+        now_time = get_time_now_china()
         # 输入时间都缺少年份，需要手动补充一个年份后还原为date对象
-        year = datetime.datetime.now().year
+        year = now_time.year
         start_time = str(year) + "-" + start_time
-        now_time = datetime.datetime.now()
         st = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M")
         if st < now_time:
             return True
