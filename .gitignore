@@ -10,3 +10,5 @@
 /nonebot_plugin_splatoon3.egg-info/
 /setup.py
 MANIFEST.in
+/venv/
+/poetry.lock

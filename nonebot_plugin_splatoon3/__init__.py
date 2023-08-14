@@ -32,6 +32,13 @@ from nonebot.adapters.telegram.event import PrivateMessageEvent as Tg_PME
 from nonebot.adapters.telegram.event import GroupMessageEvent as Tg_GME
 from nonebot.adapters.telegram.event import ChannelPostEvent as Tg_CME
 
+# kook协议
+from nonebot.adapters.kaiheila import Bot as Kook_Bot
+from nonebot.adapters.kaiheila.event import MessageEvent as Kook_ME
+from nonebot.adapters.kaiheila import MessageSegment as Kook_MsgSeg
+from nonebot.adapters.kaiheila.event import PrivateMessageEvent as Kook_PME
+from nonebot.adapters.kaiheila.event import ChannelMessageEvent as Kook_CME
+
 from .image.image import *
 from .image import image_to_base64
 from .config import plugin_config, driver
@@ -49,8 +56,8 @@ __plugin_meta__ = PluginMetadata(
     supported_adapters={"~onebot.v11", "~onebot.v12", "~telegram"},
 )
 
-BOT = Union[V11_Bot, V12_Bot, Tg_Bot]
-MESSAGE_EVENT = Union[V11_ME, V12_ME, Tg_ME]
+BOT = Union[V11_Bot, V12_Bot, Tg_Bot, Kook_Bot]
+MESSAGE_EVENT = Union[V11_ME, V12_ME, Tg_ME, Kook_ME]
 
 
 async def _permission_check(bot: BOT, event: MESSAGE_EVENT, state: T_State):
@@ -59,11 +66,11 @@ async def _permission_check(bot: BOT, event: MESSAGE_EVENT, state: T_State):
     uid: Union[int, str] = 114514
     gid: Union[int, str] = 114514
     cid: Union[int, str] = 114514
-    if isinstance(event, (V11_PME, V12_PME, Tg_PME)):
+    if isinstance(event, (V11_PME, V12_PME, Tg_PME, Kook_PME)):
         if plugin_config.splatoon3_permit_private:
             if isinstance(event, Tg_PME):
                 uid = event.from_.id
-            elif isinstance(event, (V11_PME, V12_PME)):
+            elif isinstance(event, (V11_PME, V12_PME, Kook_PME)):
                 uid = event.user_id
             state["_uid_"] = uid
             return plugin_config.verify_permission(uid)
@@ -85,13 +92,16 @@ async def _permission_check(bot: BOT, event: MESSAGE_EVENT, state: T_State):
             return False
 
     # 频道
-    elif isinstance(event, (V12_CME, Tg_CME)):
+    elif isinstance(event, (V12_CME, Tg_CME, Kook_CME)):
         if plugin_config.splatoon3_permit_channel:
             if isinstance(event, Tg_CME):
                 cid = event.chat.id
                 uid = event.get_user_id()
             elif isinstance(event, V12_CME):
                 cid = event.channel_id
+                uid = event.user_id
+            elif isinstance(event, Kook_CME):
+                cid = event.group_id
                 uid = event.user_id
             state["_cid_"] = cid
             if plugin_config.verify_permission(cid):
@@ -401,7 +411,7 @@ async def send_msg(bot: BOT, event: MESSAGE_EVENT, matcher, msg):
             await bot.send(event, msg)
 
 
-async def send_img(bot: BOT, event: MESSAGE_EVENT, matcher, img):
+async def send_img(bot: BOT, event: MESSAGE_EVENT, matcher, img: bytes):
     """公用send_img"""
     # 指定回复模式
     reply_mode = plugin_config.splatoon3_reply_mode
@@ -424,6 +434,9 @@ async def send_img(bot: BOT, event: MESSAGE_EVENT, matcher, img):
             await bot.send(event, File.photo(img), reply_to_message_id=event.dict().get("message_id"))
         else:
             await bot.send(event, File.photo(img))
+    elif isinstance(bot, Kook_Bot):
+        url = await bot.upload_file(img)
+        await bot.send(event, Kook_MsgSeg.image(url), reply_sender=reply_mode)
 
 
 @driver.on_startup
