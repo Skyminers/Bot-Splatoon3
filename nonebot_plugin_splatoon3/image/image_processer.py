@@ -104,8 +104,9 @@ def get_events(events):
             error = "傻逼任天堂又整不出新活，开始输出问号活动了，活动地图渲染失败"
             logger.error(error)
             drawer.text((desc_pos[0], desc_pos[1] + 50), error, font=ttf, fill=(255, 255, 255))
+            pos_h += 100
             continue
-        event_card_pos = (20, pos_h)
+        event_card_pos = (20, pos_h + 20)
         paste_with_a(image_background, event_card, event_card_pos)
         pos_h += event_card_bg_size[1] + 10
         # 绘制祭典说明卡片

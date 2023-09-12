@@ -1,12 +1,10 @@
 import asyncio
+from nonebot_plugin_splatoon3 import reload_weapon_info
 from nonebot_plugin_splatoon3.image.image import *
 
 # 测试打工图片
 # res = get_coop_stages_image(True)
 # res.show()
-
-# 测试重载武器数据
-# asyncio.run(reload_weapon_info())
 
 
 # # 测试 旧版 随机武器
@@ -131,6 +129,9 @@ from nonebot_plugin_splatoon3.image.image import *
 # 测试帮助
 # res = get_help_image()
 # res.show()
+
+# 测试重载武器数据
+# asyncio.run(reload_weapon_info())
 
 # 写出武器翻译字典
 # write_weapon_trans_dict()
