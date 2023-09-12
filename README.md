@@ -147,7 +147,7 @@ splatoon3_blacklist = ["10000","123456"] #黑名单列表，填写后黑名单�
 <details>
 <summary>随机武器</summary>
 
-![random_weapon.png](images/random_weapon.jpg)
+![random_weapon.png](images/random_weapon.png)
 
 </details>
 
