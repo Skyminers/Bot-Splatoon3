@@ -17,8 +17,9 @@ image_folder = os.path.join(cur_path, "staticData", "ImageData")
 # 武器文件夹
 weapon_folder = os.path.join(cur_path, "staticData", "weapon")
 # 字体
-ttf_path = os.path.join(cur_path, "staticData", "SplatoonFontFix.otf")
-ttf_path_chinese = os.path.join(cur_path, "staticData", "Text.ttf")
+ttf_path = os.path.join(cur_path, "staticData", "common.otf")
+ttf_path_chinese = os.path.join(cur_path, "staticData", "cn.ttf")
+ttf_path_jp = os.path.join(cur_path, "staticData", "Splatfont2.otf")
 
 http = urllib3.PoolManager()
 
@@ -212,9 +213,9 @@ def get_stage_name_bg(stage_name, font_size=24):
     return stage_name_bg
 
 
-def get_translucent_name_bg(text, transparency, font_size=24, bg_color=None):
+def get_translucent_name_bg(text, transparency, font_size=24, bg_color=None, font_path: str = ttf_path_chinese):
     """绘制 半透明文字背景"""
-    ttf = ImageFont.truetype(ttf_path_chinese, font_size)
+    ttf = ImageFont.truetype(font_path, font_size)
     w, h = ttf.getsize(text)
     # 文字背景
     text_bg_size = (w + 20, h + 20)
@@ -532,7 +533,7 @@ def get_event_card(event, event_card_bg_size):
     return event_card_bg
 
 
-def get_festival_team_card(festival, card_bg_size: tuple, teams_list: []):
+def get_festival_team_card(festival, card_bg_size: tuple, teams_list: [], font_path: str = ttf_path_chinese):
     """绘制 祭典组别卡片"""
     group_img_size = (1000, 390)
     rectangle_h = 100
@@ -557,7 +558,7 @@ def get_festival_team_card(festival, card_bg_size: tuple, teams_list: []):
     )
     # 绘制标题
     font_size = 30
-    text_bg = get_translucent_name_bg(title, 80, font_size)
+    text_bg = get_translucent_name_bg(title, 80, font_size, font_path=font_path)
     text_bg_size = text_bg.size
     # 贴上文字背景
     text_bg_pos = ((card_bg_size[0] - text_bg_size[0]) // 2, 20)
@@ -583,7 +584,7 @@ def get_festival_team_card(festival, card_bg_size: tuple, teams_list: []):
         end_xy = (satrt_xy[0] + group_card_size[0] // 3, satrt_xy[1] + rectangle_h)
         drawer.rectangle((satrt_xy, end_xy), fill=group_text_bg_rgb)
         # 绘制阵营名称
-        group_text_bg = get_translucent_name_bg(v["teamName"], 100, font_size, group_text_bg_rgb)
+        group_text_bg = get_translucent_name_bg(v["teamName"], 100, font_size, group_text_bg_rgb, font_path=font_path)
         w, h = group_text_bg.size
         group_text_bg_pos = (pos_w - (w // 2), group_img_size[1] - h - 5)
         paste_with_a(group_card, group_text_bg, group_text_bg_pos)
@@ -604,7 +605,7 @@ def get_festival_team_card(festival, card_bg_size: tuple, teams_list: []):
     return team_bg
 
 
-def get_festival_result_card(card_bg_size: tuple, teams_list: []):
+def get_festival_result_card(card_bg_size: tuple, teams_list: [], font_path: str = ttf_path_chinese):
     """绘制 祭典结算卡片"""
     # 背景颜色取获胜队伍的rgb颜色
     for k, v in enumerate(teams_list):
@@ -642,7 +643,7 @@ def get_festival_result_card(card_bg_size: tuple, teams_list: []):
     list_item_names = ["法螺获得率", "得票率", "开放", "挑战", "三色夺宝攻击"]
     pos_h = 120
     font_size = 30
-    ttf = ImageFont.truetype(ttf_path_chinese, font_size)
+    ttf = ImageFont.truetype(font_path, font_size)
     drawer = ImageDraw.Draw(temp_card)
     for v in range(5):
         # 绘制条目名称
@@ -659,7 +660,7 @@ def get_festival_result_card(card_bg_size: tuple, teams_list: []):
         pos_h += h + 30
     # 绘制最终冠军
     font_size = 50
-    ttf = ImageFont.truetype(ttf_path_chinese, font_size)
+    ttf = ImageFont.truetype(font_path, font_size)
     win_text = win_team_name + " 获胜!"
     w, h = ttf.getsize(win_text)
     text_pos = ((temp_card_size[0] - w) // 2, pos_h + 30)
@@ -673,14 +674,16 @@ def get_festival_result_card(card_bg_size: tuple, teams_list: []):
     return result_bg
 
 
-def get_festival_result_item_card(card_bg_size: tuple, teams_list: [dict], item_index: int):
+def get_festival_result_item_card(
+    card_bg_size: tuple, teams_list: [dict], item_index: int, font_path: str = ttf_path_chinese
+):
     """绘制 祭典条目结算卡片"""
     bg_rgb = dict_bg_rgb["祭典结算项目卡片"]
     item_card = Image.new("RGBA", card_bg_size, bg_rgb)
     item_card = circle_corner(item_card, radii=30)
     drawer = ImageDraw.Draw(item_card)
     font_size = 24
-    ttf = ImageFont.truetype(ttf_path_chinese, font_size)
+    ttf = ImageFont.truetype(font_path, font_size)
 
     # 格式化整理数据,返回 是否是赢家，百分比点数
     def get_data(index: int, value: dict) -> (bool, str):

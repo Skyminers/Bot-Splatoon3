@@ -5,8 +5,8 @@ import random
 from nonebot.log import logger
 from .utils import get_time_ymd, cf_http_get, time_format_ymdh, get_time_now_china, get_expire_time
 
-trans_res = None
-trans_eng_res = None
+trans_res: dict = None
+trans_eng_res: dict = None
 trans_res_expire_ymd: str
 trans_eng_res_expire_ymd: str
 # 武器图片类型
@@ -22,7 +22,7 @@ def check_expire_trans(_trans_res_expire_ymd):
     return False
 
 
-def get_trans_cht_data():
+def get_trans_cht_data() -> dict:
     """取中文 翻译数据"""
     global trans_res
     global trans_res_expire_ymd
@@ -37,7 +37,7 @@ def get_trans_cht_data():
         return trans_res
 
 
-def get_trans_eng_data():
+def get_trans_eng_data() -> dict:
     """取英文 文本数据"""
     global trans_eng_res
     global trans_eng_res_expire_ymd
@@ -127,7 +127,6 @@ dict_rule_reverse_trans = {
     "AREA": "真格区域",
     "TURF_WAR": "占地对战",
 }
-
 
 # 星期翻译
 dict_weekday_trans = {

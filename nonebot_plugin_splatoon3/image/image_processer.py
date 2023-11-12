@@ -12,15 +12,22 @@ def get_festival(festivals):
         flag_festival_close = True
     # 获取翻译
     _id = festival["__splatoon3ink_id"]
-    trans_cht_festival_data = get_trans_cht_data()["festivals"][_id]
+    festival_data = get_trans_cht_data()["festivals"]
+    trans_cht_festival_data = festival_data.get(_id)
     # 替换为翻译
     teams_list = []
-    festival["title"] = trans_cht_festival_data.get("title", festival["title"])
-    for v in range(3):
-        festival["teams"][v]["teamName"] = trans_cht_festival_data["teams"][v].get(
-            "teamName", festival["teams"][v]["teamName"]
-        )
-        teams_list.append(festival["teams"][v])
+    if trans_cht_festival_data is not None:
+        # 有中文翻译源
+        festival["title"] = trans_cht_festival_data.get("title", festival["title"])
+        for v in range(3):
+            festival["teams"][v]["teamName"] = trans_cht_festival_data["teams"][v].get(
+                "teamName", festival["teams"][v]["teamName"]
+            )
+            teams_list.append(festival["teams"][v])
+    else:
+        # 没有中文翻译源
+        for v in range(3):
+            teams_list.append(festival["teams"][v])
 
     # 开始绘图
     image_background_size = (1100, 700)
@@ -39,13 +46,13 @@ def get_festival(festivals):
 
     # 绘制组别卡片
     pos_h = 20
-    team_card = get_festival_team_card(festival, card_size, teams_list)
+    team_card = get_festival_team_card(festival, card_size, teams_list, font_path=ttf_path_jp)
     team_card_pos = ((image_background_size[0] - card_size[0]) // 2, pos_h)
     paste_with_a(image_background, team_card, team_card_pos)
     pos_h += card_size[1] + 20
     if flag_festival_close:
         # 绘制结算卡片
-        result_card = get_festival_result_card(card_size, teams_list)
+        result_card = get_festival_result_card(card_size, teams_list, font_path=ttf_path_jp)
         result_card_pos = ((image_background_size[0] - card_size[0]) // 2, pos_h)
         paste_with_a(image_background, result_card, result_card_pos)
 
