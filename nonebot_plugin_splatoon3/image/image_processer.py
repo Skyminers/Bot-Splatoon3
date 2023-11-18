@@ -46,13 +46,13 @@ def get_festival(festivals):
 
     # 绘制组别卡片
     pos_h = 20
-    team_card = get_festival_team_card(festival, card_size, teams_list)
+    team_card = get_festival_team_card(festival, card_size, teams_list, font_path=ttf_path_jp)
     team_card_pos = ((image_background_size[0] - card_size[0]) // 2, pos_h)
     paste_with_a(image_background, team_card, team_card_pos)
     pos_h += card_size[1] + 20
     if flag_festival_close:
         # 绘制结算卡片
-        result_card = get_festival_result_card(card_size, teams_list)
+        result_card = get_festival_result_card(card_size, teams_list, font_path=ttf_path_jp)
         result_card_pos = ((image_background_size[0] - card_size[0]) // 2, pos_h)
         paste_with_a(image_background, result_card, result_card_pos)
 
