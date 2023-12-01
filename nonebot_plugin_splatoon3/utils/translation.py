@@ -297,6 +297,15 @@ dict_weapon_main_trans = {
     "Octobrush Nouveau": "北斋·新艺术",
     "Sloshing Machine Neo": "回旋泼桶 新型",
     "Sorella Brella": "遮阳防空伞 姐妹",
+    "Custom Blaster": "火热爆破枪 改装",
+    "Enperry Splat Dualies": "斯普拉机动枪 联名",
+    "Foil Squeezer": "开瓶喷泉枪 金属箔",
+    "Neo Splatana Stamper": "工作刮水刀·新艺术",
+    "Painbrush Nouveau": "文森·新艺术",
+    "REEF-LUX 450 Deco": "LACT-450 装饰",
+    "S-BLAST '91": "S-BLAST91",
+    "Snipewriter 5B": "R-PEN/5B",
+    "Undercover Sorella Brella": "特工配件 姐妹",
 }
 
 # 规范翻译字典 装备 副武器名称
@@ -338,6 +347,8 @@ dict_weapon_special_trans = {
     "Tacticooler": "能量站",
     "Super Chump": "诱饵烟花",
     "Kraken Royale": "帝王鱿鱼",
+    "Triple Splashdown": "终极着陆",
+    "Splattercolor Screen": "浮墨幕墙",
 }
 
 # 规范翻译字典 装备 类别名称
@@ -460,6 +471,11 @@ dict_weapon_special = {
     "鱿鱼": "帝王鱿鱼",
     "帝王乌贼": "帝王鱿鱼",
     "大王乌贼": "帝王鱿鱼",
+    "终极砸地": "终极着陆",
+    "砸地": "终极着陆",
+    "屏障": "浮墨幕墙",
+    "墨墙": "浮墨幕墙",
+    "幕墙": "浮墨幕墙",
 }
 
 # 语义化字典 装备类别
