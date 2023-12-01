@@ -643,7 +643,7 @@ def get_festival_result_card(card_bg_size: tuple, teams_list: [], font_path: str
     list_item_names = ["法螺获得率", "得票率", "开放", "挑战", "三色夺宝攻击"]
     pos_h = 120
     font_size = 30
-    ttf = ImageFont.truetype(font_path, font_size)
+    ttf = ImageFont.truetype(ttf_path_chinese, font_size)
     drawer = ImageDraw.Draw(temp_card)
     for v in range(5):
         # 绘制条目名称
@@ -660,11 +660,18 @@ def get_festival_result_card(card_bg_size: tuple, teams_list: [], font_path: str
         pos_h += h + 30
     # 绘制最终冠军
     font_size = 50
-    ttf = ImageFont.truetype(font_path, font_size)
-    win_text = win_team_name + " 获胜!"
-    w, h = ttf.getsize(win_text)
-    text_pos = ((temp_card_size[0] - w) // 2, pos_h + 30)
-    drawer.text(text_pos, win_text, font=ttf, fill=win_rgb)
+    ttf_cn = ImageFont.truetype(ttf_path_chinese, font_size)
+    ttf_win = ImageFont.truetype(font_path, font_size)
+    win_text_1 = win_team_name
+    win_text_2 = " 获胜!"
+    w, h = ttf_win.getsize(win_text_1 + win_text_2)
+    text_1_pos = ((temp_card_size[0] - w) // 2, pos_h + 30)
+    drawer.text(text_1_pos, win_text_1, font=ttf_win, fill=win_rgb)
+    # 分开绘制队伍名和获胜
+    w, h = ttf_win.getsize(win_text_1)
+    text_2_pos = (text_1_pos[0] + w, text_1_pos[1])
+    drawer.text(text_2_pos, win_text_2, font=ttf_cn, fill=win_rgb)
+
     # 将临时图片容器贴到底图
     temp_card = circle_corner(temp_card, radii=16)
     temp_card = change_image_alpha(temp_card, 80)
