@@ -40,7 +40,7 @@ from nonebot.adapters.kaiheila.event import PrivateMessageEvent as Kook_PME
 from nonebot.adapters.kaiheila.event import ChannelMessageEvent as Kook_CME
 
 from .image.image import *
-from .image import image_to_base64
+from .image import image_to_bytes
 from .config import plugin_config, driver
 from .utils import dict_keyword_replace, multiple_replace
 from .data import get_screenshot, reload_weapon_info, imageDB
@@ -324,7 +324,7 @@ async def _(
             msg = "请机器人管理员先发送 更新武器数据 更新本地武器数据库后，才能使用随机武器功能"
             await send_msg(bot, event, matcher, msg)
         else:
-            img = image_to_base64(get_random_weapon_image(plain_text))
+            img = image_to_bytes(get_random_weapon_image(plain_text))
             # 发送消息
             await send_img(bot, event, matcher, img)
     elif re.search("^祭典$", plain_text):

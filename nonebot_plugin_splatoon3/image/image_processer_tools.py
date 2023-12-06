@@ -1,6 +1,7 @@
 import io
 import os
 import re
+import sys
 import textwrap
 from io import BytesIO
 import urllib3
@@ -24,8 +25,8 @@ ttf_path_jp = os.path.join(cur_path, "staticData", "Splatfont2.otf")
 http = urllib3.PoolManager()
 
 
-def image_to_base64(image):
-    """图片转base64"""
+def image_to_bytes(image):
+    """图片转bytes"""
     buffered = BytesIO()
     image.save(buffered, format="PNG")
     return buffered.getvalue()
@@ -54,6 +55,8 @@ def get_save_file(img: ImageInfo):
     if not res:
         image_data = get_cf_file_url(img.url)
         if len(image_data) != 0:
+            # 如果是太大的图片，需要压缩到100k以下确保最后发出图片的大小
+            image_data = compress_image(image_data, mb=100, step=10, quality=50)
             logger.info("[ImageDB] new image {}".format(img.name))
             imageDB.add_or_modify_IMAGE_DATA(img.name, image_data, img.zh_name, img.source_type)
         return Image.open(io.BytesIO(image_data))
@@ -770,6 +773,31 @@ def change_image_alpha(image, transparency):
     alpha = image.split()[-1]
     alpha = alpha.point(lambda p: p * transparency // 100)
     new_image = Image.merge("RGBA", image.split()[:-1] + (alpha,))
+    return new_image
+
+
+def compress_image(image_bytes: bytes, mb=80, step=10, quality=50):
+    """不改变图片尺寸压缩到指定大小
+    :param image_bytes: 压缩源文件
+    :param mb: 压缩目标，KB
+    :param step: 每次调整的压缩比率
+    :param quality: 初始压缩比率
+    :return: 压缩后文件
+    """
+    o_size = sys.getsizeof(image_bytes) / 1024
+    if o_size <= mb:
+        return image_bytes
+    new_image: bytes = None
+    while o_size > mb:
+        buffered: io.BytesIO = BytesIO()
+        im = Image.open(io.BytesIO(image_bytes))
+        rgb_im = im.convert("RGB")
+        rgb_im.save(buffered, quality=quality, format="JPEG")
+        if quality - step < 0:
+            break
+        quality -= step
+        new_image = buffered.getvalue()
+        o_size = sys.getsizeof(new_image) / 1024
     return new_image
 
 

@@ -109,8 +109,10 @@ from nonebot_plugin_splatoon3.image.image import *
 # # stage_mode = plain_text[-2:]
 # rule_match = None
 # contest_match = None
-# res = get_stages_image(num_list, contest_match, rule_match)
-# res.show()
+# # res = get_stages_image(num_list, contest_match, rule_match)
+# func = get_stages_image
+# img = get_save_temp_image(plain_text, func, num_list, contest_match, rule_match)
+# # res.show()
 
 
 # 测试新版随机武器

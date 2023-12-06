@@ -5,7 +5,7 @@ from ..data import (
     get_schedule_data,
 )
 from .image_processer import *
-from .image_processer_tools import image_to_base64
+from .image_processer_tools import image_to_bytes
 
 
 def get_coop_stages_image(*args):
@@ -111,17 +111,19 @@ def get_weapon_info_test():
 def get_save_temp_image(trigger_word, func, *args):
     """向数据库新增或读取图片二进制  缓存图片"""
     res = imageDB.get_img_temp(trigger_word)
-    image: bytes
+    image_data: bytes
     if not res:
         # 重新生成图片并写入
         image_data = func(*args)
         if image_data is None:
             return image_data
-        image = image_to_base64(image_data)
-        if len(image) != 0:
+        image_data = image_to_bytes(image_data)
+        if len(image_data) != 0:
+            # 如果是太大的图片，需要压缩到1024k以下确保最后发出图片的大小
+            image_data = compress_image(image_data, mb=1024, step=10, quality=80)
             logger.info("[ImageDB] new temp image {}".format(trigger_word))
-            imageDB.add_or_modify_IMAGE_TEMP(trigger_word, image, get_expire_time())
-        return image
+            imageDB.add_or_modify_IMAGE_TEMP(trigger_word, image_data, get_expire_time())
+        return image_data
     else:
         image_expire_time = res.get("image_expire_time")
         image_data = res.get("image_data")
@@ -131,14 +133,16 @@ def get_save_temp_image(trigger_word, func, *args):
         if time_now >= expire_time:
             # 重新生成图片并写入
             image_data = func(*args)
-            image = image_to_base64(image_data)
-            if len(image) != 0:
+            image_data = image_to_bytes(image_data)
+            if len(image_data) != 0:
+                # 如果是太大的图片，需要压缩到1024k以下确保最后发出图片的大小
+                image_data = compress_image(image_data, mb=1024, step=10, quality=80)
                 logger.info("[ImageDB] update temp image {}".format(trigger_word))
-                imageDB.add_or_modify_IMAGE_TEMP(trigger_word, image, get_expire_time())
-            return image
+                imageDB.add_or_modify_IMAGE_TEMP(trigger_word, image_data, get_expire_time())
+            return image_data
         else:
             logger.info("数据库内存在时效范围内的缓存图片，将从数据库读取缓存图片")
-            return image_to_base64(Image.open(io.BytesIO(image_data)))
+            return image_to_bytes(Image.open(io.BytesIO(image_data)))
 
 
 def write_weapon_trans_dict():
@@ -162,4 +166,4 @@ def write_weapon_trans_dict():
 #     weapon2 = args[1]
 #     # 绘制图片
 #     image = old_get_random_weapon(weapon1, weapon2)
-#     return image_to_base64(image)
+#     return image_to_bytes(image)
