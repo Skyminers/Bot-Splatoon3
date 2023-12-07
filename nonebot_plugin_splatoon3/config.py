@@ -17,6 +17,8 @@ class Config(BaseModel):
     splatoon3_permit_unkown_src: bool = False
     # 指定回复模式，开启后将通过触发词的消息进行回复
     splatoon3_reply_mode: bool = False
+    # 限制消息触发前缀为/
+    splatoon3_sole_prefix: bool = False
     # 白名单，填写后黑名单失效
     splatoon3_whitelist: List[str] = []
     # 黑名单

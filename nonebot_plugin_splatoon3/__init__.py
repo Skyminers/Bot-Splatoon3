@@ -39,11 +39,20 @@ from nonebot.adapters.kaiheila import MessageSegment as Kook_MsgSeg
 from nonebot.adapters.kaiheila.event import PrivateMessageEvent as Kook_PME
 from nonebot.adapters.kaiheila.event import ChannelMessageEvent as Kook_CME
 
+# qq官方协议
+from nonebot.adapters.qq import Bot as QQ_Bot
+from nonebot.adapters.qq.event import MessageEvent as QQ_ME
+from nonebot.adapters.qq import MessageSegment as QQ_MsgSeg
+from nonebot.adapters.qq.event import GroupAtMessageCreateEvent as QQ_GME  # 群艾特信息
+from nonebot.adapters.qq.event import C2CMessageCreateEvent as QQ_C2CME  # Q私聊信息
+from nonebot.adapters.qq.event import DirectMessageCreateEvent as QQ_PME  # 频道私聊信息
+from nonebot.adapters.qq.event import AtMessageCreateEvent as QQ_CME  # 频道艾特信息
+
 from .image.image import *
 from .image import image_to_bytes
 from .config import plugin_config, driver
 from .utils import dict_keyword_replace, multiple_replace
-from .data import get_screenshot, reload_weapon_info, imageDB
+from .data import reload_weapon_info, imageDB
 
 __plugin_meta__ = PluginMetadata(
     name="nonebot-plugin-splatoon3",
@@ -53,38 +62,50 @@ __plugin_meta__ = PluginMetadata(
     # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
     homepage="https://github.com/Skyminers/Bot-Splatoon3",
     # 发布必填。
-    supported_adapters={"~onebot.v11", "~onebot.v12", "~telegram"},
+    supported_adapters={"~onebot.v11", "~onebot.v12", "~telegram", "~kaiheila", "~qq"},
 )
 
-BOT = Union[V11_Bot, V12_Bot, Tg_Bot, Kook_Bot]
-MESSAGE_EVENT = Union[V11_ME, V12_ME, Tg_ME, Kook_ME]
+BOT = Union[V11_Bot, V12_Bot, Tg_Bot, Kook_Bot, QQ_Bot]
+MESSAGE_EVENT = Union[V11_ME, V12_ME, Tg_ME, Kook_ME, QQ_ME]
 
 
 async def _permission_check(bot: BOT, event: MESSAGE_EVENT, state: T_State):
     """检查消息来源权限"""
+    # 前缀限定判断
+    if plugin_config.splatoon3_sole_prefix:
+        plain_text = event.get_message().extract_plain_text().strip()
+        if not plain_text.startswith("/"):
+            return False
     # 私聊
     uid: Union[int, str] = 114514
-    gid: Union[int, str] = 114514
+    gid: Union[int, str] = 114514  # 群id
+    guid: Union[int, str] = 114514  # 服务器id
     cid: Union[int, str] = 114514
-    if isinstance(event, (V11_PME, V12_PME, Tg_PME, Kook_PME)):
+    if isinstance(event, (V11_PME, V12_PME, Tg_PME, Kook_PME, QQ_C2CME, QQ_PME)):
         if plugin_config.splatoon3_permit_private:
             if isinstance(event, Tg_PME):
                 uid = event.from_.id
             elif isinstance(event, (V11_PME, V12_PME, Kook_PME)):
                 uid = event.user_id
+            elif isinstance(event, (QQ_C2CME, QQ_PME)):
+                uid = event.get_user_id()
             state["_uid_"] = uid
             return plugin_config.verify_permission(uid)
         else:
             return False
     # 群聊
-    elif isinstance(event, (V11_GME, V12_GME, Tg_GME)):
+    elif isinstance(event, (V11_GME, V12_GME, Tg_GME, QQ_GME)):
         if isinstance(event, Tg_GME):
             gid = event.chat.id
             uid = event.get_user_id()
         elif isinstance(event, (V11_GME, V12_GME)):
             gid = event.group_id
             uid = event.user_id
+        elif isinstance(event, QQ_GME):
+            gid = event.group_openid
+            uid = event.get_user_id()
         state["_gid_"] = gid
+        state["_uid_"] = uid
         if plugin_config.verify_permission(gid):
             # 再判断触发者是否有权限
             return plugin_config.verify_permission(uid)
@@ -92,18 +113,26 @@ async def _permission_check(bot: BOT, event: MESSAGE_EVENT, state: T_State):
             return False
 
     # 频道
-    elif isinstance(event, (V12_CME, Tg_CME, Kook_CME)):
+    elif isinstance(event, (V12_CME, Tg_CME, Kook_CME, QQ_CME)):
         if plugin_config.splatoon3_permit_channel:
             if isinstance(event, Tg_CME):
                 cid = event.chat.id
                 uid = event.get_user_id()
             elif isinstance(event, V12_CME):
+                guid = event.guild_id
                 cid = event.channel_id
                 uid = event.user_id
             elif isinstance(event, Kook_CME):
+                guid = event.extra.guild_id
                 cid = event.group_id
                 uid = event.user_id
+            elif isinstance(event, QQ_CME):
+                guid = event.guild_id
+                cid = event.channel_id
+                uid = event.author.id
+            state["_guid_"] = guid
             state["_cid_"] = cid
+            state["_uid_"] = uid
             if plugin_config.verify_permission(cid):
                 # 再判断触发者是否有权限
                 return plugin_config.verify_permission(uid)
@@ -313,7 +342,7 @@ async def _(
 ):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  替换.。\/ 等前缀触发词
-    plain_text = multiple_replace(plain_text, dict_keyword_replace)
+    plain_text = multiple_replace(plain_text, dict_prefix_replace)
     logger.info("同义文本替换后触发词为:" + plain_text + "\n")
     # 判断是否满足进一步正则
     # 随机武器
@@ -357,10 +386,10 @@ async def _(
         img = get_save_temp_image(plain_text, func)
         # 发送图片
         await send_img(bot, event, matcher, img)
-    elif re.search("^装备$", plain_text):
-        img = await get_screenshot(shot_url="https://splatoon3.ink/gear")
-        # 发送图片
-        await send_img(bot, event, matcher, img)
+    # elif re.search("^装备$", plain_text):
+    #     img = await get_screenshot(shot_url="https://splatoon3.ink/gear")
+    #     # 发送图片
+    #     await send_img(bot, event, matcher, img)
 
 
 matcher_admin = on_regex("^[\\/.,，。]?(重载武器数据|更新武器数据|清空图片缓存)$", priority=10, block=True, permission=SUPERUSER)
@@ -373,7 +402,9 @@ async def _(
     matcher: Matcher,
     event: MESSAGE_EVENT,
 ):
+    # 触发关键词  替换.。\/ 等前缀触发词
     plain_text = event.get_message().extract_plain_text().strip()
+    plain_text = multiple_replace(plain_text, dict_prefix_replace)
     err_msg = "执行失败，错误日志为: "
     # 清空图片缓存
     if re.search("^清空图片缓存$", plain_text):
@@ -409,6 +440,8 @@ async def send_msg(bot: BOT, event: MESSAGE_EVENT, matcher, msg):
             await bot.send(event, msg, reply_to_message_id=event.dict().get("message_id"))
         else:
             await bot.send(event, msg)
+    elif isinstance(bot, QQ_Bot):
+        await bot.send(event, message=QQ_MsgSeg.text(msg), reply_message=reply_mode)
 
 
 async def send_img(bot: BOT, event: MESSAGE_EVENT, matcher, img: bytes):
@@ -437,6 +470,8 @@ async def send_img(bot: BOT, event: MESSAGE_EVENT, matcher, img: bytes):
     elif isinstance(bot, Kook_Bot):
         url = await bot.upload_file(img)
         await bot.send(event, Kook_MsgSeg.image(url), reply_sender=reply_mode)
+    elif isinstance(bot, QQ_Bot):
+        await bot.send(event, message=QQ_MsgSeg.file_image(img), reply_message=reply_mode)
 
 
 @driver.on_startup

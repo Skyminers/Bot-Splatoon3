@@ -68,8 +68,8 @@ def get_random_weapon_image(*args):
         for v in range(4):
             list_weapon.append({"type": "zh_father_class", "name": ""})
     elif " " in plain_text:
+        plain_text = plain_text.replace("随机武器", "").strip()
         args = plain_text.split(" ")
-        args = args[1:]
         # 如果参数超出
         if len(args) > 4:
             args = args[:4]

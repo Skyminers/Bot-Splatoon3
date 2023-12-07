@@ -116,7 +116,7 @@ from nonebot_plugin_splatoon3.image.image import *
 
 
 # 测试新版随机武器
-# plain_text = "随机武器 nice弹"
+# plain_text = "随机武器rpg rpg rpg rpg"
 # res = get_random_weapon_image(plain_text)
 # res.show()
 
