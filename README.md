@@ -32,7 +32,7 @@ _✨ splatoon3游戏日程查询插件 ✨_
 <img src="https://img.shields.io/badge/telegram-Adapter-lightgrey?style=social&logo=telegram" alt="telegram">
 </a>
 <a href="https://github.com/Tian-que/nonebot-adapter-kaiheila">
-<img src="https://img.shields.io/badge/QQ-Adapter-lightgrey?style=social&logo=https://github.com/Skyminers/Bot-Splatoon3/tree/dev_cypas/images/kook.ico" alt="kook">
+<img src="https://img.shields.io/badge/kook-Adapter-lightgrey?style=social&logo=https://github.com/Skyminers/Bot-Splatoon3/tree/dev_cypas/images/kook.ico" alt="kook">
 </a>
 <a href="https://github.com/nonebot/adapter-qq">
 <img src="https://img.shields.io/badge/QQ-Adapter-lightgrey?style=social&logo=https://github.com/Skyminers/Bot-Splatoon3/tree/dev_cypas/images/qq_bot.ico" alt="QQ">
