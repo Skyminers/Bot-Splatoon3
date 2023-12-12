@@ -1,6 +1,7 @@
 import asyncio
 from nonebot_plugin_splatoon3 import reload_weapon_info
 from nonebot_plugin_splatoon3.image.image import *
+from nonebot_plugin_splatoon3.util import write_weapon_trans_dict, init_blacklist, check_msg_permission
 
 # 测试打工图片
 # res = get_coop_stages_image(True)
@@ -116,7 +117,7 @@ from nonebot_plugin_splatoon3.image.image import *
 
 
 # 测试新版随机武器
-# plain_text = "随机武器 nice弹"
+# plain_text = "随机武器rpg rpg rpg rpg"
 # res = get_random_weapon_image(plain_text)
 # res.show()
 
@@ -137,3 +138,20 @@ from nonebot_plugin_splatoon3.image.image import *
 
 # 写出武器翻译字典
 # write_weapon_trans_dict()
+
+# 黑名单初始化
+# init_blacklist()
+
+# 黑名单测试
+# init_blacklist()
+# check_msg_permission("Kaiheila", "2486998048", "guild", "4498783094960820")
+# check_msg_permission("Kaiheila", "2486998048", "channel", "1339318493016829")
+
+# imageDB.add_or_modify_MESSAGE_CONTROL(
+#     "Kaiheila",
+#     "2486998048",
+#     "channel",
+#     "1339318493016829",
+#     "嘤嘤嘤",
+#     1,
+# )

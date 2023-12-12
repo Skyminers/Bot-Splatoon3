@@ -1,11 +1,11 @@
 import requests
 import urllib3
 
-requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = "ALL:@SECLEVEL=1"
-
-from .image_db import imageDB
+from .db_image import db_image
 from ..utils import *
 from playwright.async_api import Browser, async_playwright
+
+# requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = "ALL:@SECLEVEL=1"
 
 schedule_res = None
 http = urllib3.PoolManager()
@@ -211,25 +211,25 @@ def get_weapon_info(list_weapon: list):
         elif _type == weapon_image_type[4]:
             # father_class
             zh_father_class = name
-        weaponData = imageDB.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special, zh_father_class)
-        weaponData2 = imageDB.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special, zh_father_class)
+        weaponData = db_image.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special, zh_father_class)
+        weaponData2 = db_image.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special, zh_father_class)
         # 获取图片数据
         # Main
-        weaponData.image = imageDB.get_weapon_image(weaponData.name, weapon_image_type[0]).get("image")
-        weaponData2.image = imageDB.get_weapon_image(weaponData2.name, weapon_image_type[0]).get("image")
+        weaponData.image = db_image.get_weapon_image(weaponData.name, weapon_image_type[0]).get("image")
+        weaponData2.image = db_image.get_weapon_image(weaponData2.name, weapon_image_type[0]).get("image")
         # Sub
-        weaponData.sub_image = imageDB.get_weapon_image(weaponData.sub_name, weapon_image_type[1]).get("image")
-        weaponData2.sub_image = imageDB.get_weapon_image(weaponData2.sub_name, weapon_image_type[1]).get("image")
+        weaponData.sub_image = db_image.get_weapon_image(weaponData.sub_name, weapon_image_type[1]).get("image")
+        weaponData2.sub_image = db_image.get_weapon_image(weaponData2.sub_name, weapon_image_type[1]).get("image")
         # Special
-        weaponData.special_image = imageDB.get_weapon_image(weaponData.special_name, weapon_image_type[2]).get("image")
-        weaponData2.special_image = imageDB.get_weapon_image(weaponData2.special_name, weapon_image_type[2]).get(
+        weaponData.special_image = db_image.get_weapon_image(weaponData.special_name, weapon_image_type[2]).get("image")
+        weaponData2.special_image = db_image.get_weapon_image(weaponData2.special_name, weapon_image_type[2]).get(
             "image"
         )
         # Class
-        weaponData.weapon_class_image = imageDB.get_weapon_image(weaponData.weapon_class, weapon_image_type[3]).get(
+        weaponData.weapon_class_image = db_image.get_weapon_image(weaponData.weapon_class, weapon_image_type[3]).get(
             "image"
         )
-        weaponData2.weapon_class_image = imageDB.get_weapon_image(weaponData2.weapon_class, weapon_image_type[3]).get(
+        weaponData2.weapon_class_image = db_image.get_weapon_image(weaponData2.weapon_class, weapon_image_type[3]).get(
             "image"
         )
         # 添加
@@ -257,42 +257,42 @@ def get_stage_info(num_list=None, contest_match=None, rule_match=None):
     return schedule, num_list, new_contest_match, new_rule_match
 
 
-async def init_browser() -> Browser:
-    """初始化 browser 并唤起"""
-    global _browser
-    p = await async_playwright().start()
-    if proxy_address:
-        proxies = {"server": "http://{}".format(proxy_address)}
-        # 代理访问
-        _browser = await p.chromium.launch(proxy=proxies)
-    else:
-        _browser = await p.chromium.launch()
-    return _browser
-
-
-async def get_browser() -> Browser:
-    """获取目前唤起的 browser"""
-    global _browser
-    if _browser is None or not _browser.is_connected():
-        _browser = await init_browser()
-    return _browser
-
-
-async def get_screenshot(shot_url, shot_path=None):
-    """通过 browser 获取 shot_url 中的网页截图"""
-    # playwright 要求不能有多个 browser 被同时唤起
-    browser = await get_browser()
-    context = await browser.new_context(viewport={"width": 1480, "height": 900}, locale="zh-CH")
-    page = await context.new_page()
-    await page.set_viewport_size({"width": 1480, "height": 900})
-    await page.goto(shot_url)
-    try:
-        if shot_path is None:
-            return await page.screenshot()
-        else:
-            await page.screenshot(path=shot_path)
-    except Exception as e:
-        logger.error("Screenshot failed" + str(e))
-        return await page.screenshot(full_page=True)
-    finally:
-        await context.close()
+# async def init_browser() -> Browser:
+#     """初始化 browser 并唤起"""
+#     global _browser
+#     p = await async_playwright().start()
+#     if proxy_address:
+#         proxies = {"server": "http://{}".format(proxy_address)}
+#         # 代理访问
+#         _browser = await p.chromium.launch(proxy=proxies)
+#     else:
+#         _browser = await p.chromium.launch()
+#     return _browser
+#
+#
+# async def get_browser() -> Browser:
+#     """获取目前唤起的 browser"""
+#     global _browser
+#     if _browser is None or not _browser.is_connected():
+#         _browser = await init_browser()
+#     return _browser
+#
+#
+# async def get_screenshot(shot_url, shot_path=None):
+#     """通过 browser 获取 shot_url 中的网页截图"""
+#     # playwright 要求不能有多个 browser 被同时唤起
+#     browser = await get_browser()
+#     context = await browser.new_context(viewport={"width": 1480, "height": 900}, locale="zh-CH")
+#     page = await context.new_page()
+#     await page.set_viewport_size({"width": 1480, "height": 900})
+#     await page.goto(shot_url)
+#     try:
+#         if shot_path is None:
+#             return await page.screenshot()
+#         else:
+#             await page.screenshot(path=shot_path)
+#     except Exception as e:
+#         logger.error("Screenshot failed" + str(e))
+#         return await page.screenshot(full_page=True)
+#     finally:
+#         await context.close()

@@ -2,7 +2,7 @@ from typing import Union, Tuple
 from nonebot.adapters.telegram.message import File
 from nonebot.params import RegexGroup
 from nonebot.plugin import PluginMetadata
-from nonebot import on_regex, Bot, params
+from nonebot import on_regex, Bot, params, require
 from nonebot.matcher import Matcher
 from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
@@ -39,11 +39,32 @@ from nonebot.adapters.kaiheila import MessageSegment as Kook_MsgSeg
 from nonebot.adapters.kaiheila.event import PrivateMessageEvent as Kook_PME
 from nonebot.adapters.kaiheila.event import ChannelMessageEvent as Kook_CME
 
+# qq官方协议
+from nonebot.adapters.qq import Bot as QQ_Bot
+from nonebot.adapters.qq.event import MessageEvent as QQ_ME
+from nonebot.adapters.qq import MessageSegment as QQ_MsgSeg
+from nonebot.adapters.qq.event import GroupAtMessageCreateEvent as QQ_GME  # 群艾特信息
+from nonebot.adapters.qq.event import C2CMessageCreateEvent as QQ_C2CME  # Q私聊信息
+from nonebot.adapters.qq.event import DirectMessageCreateEvent as QQ_PME  # 频道私聊信息
+from nonebot.adapters.qq.event import AtMessageCreateEvent as QQ_CME  # 频道艾特信息
+
+from .data.db_control import db_control
 from .image.image import *
 from .image import image_to_bytes
-from .config import plugin_config, driver
+from .config import plugin_config, driver, global_config
 from .utils import dict_keyword_replace, multiple_replace
-from .data import get_screenshot, reload_weapon_info, imageDB
+from .data import reload_weapon_info, db_image
+from .util import (
+    get_weapon_info_test,
+    check_msg_permission,
+    init_blacklist,
+    get_channel_info,
+    ChannelInfo,
+    cron_job,
+)
+
+require("nonebot_plugin_apscheduler")
+from nonebot_plugin_apscheduler import scheduler
 
 __plugin_meta__ = PluginMetadata(
     name="nonebot-plugin-splatoon3",
@@ -53,68 +74,161 @@ __plugin_meta__ = PluginMetadata(
     # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
     homepage="https://github.com/Skyminers/Bot-Splatoon3",
     # 发布必填。
-    supported_adapters={"~onebot.v11", "~onebot.v12", "~telegram"},
+    supported_adapters={"~onebot.v11", "~onebot.v12", "~telegram", "~kaiheila", "~qq"},
 )
 
-BOT = Union[V11_Bot, V12_Bot, Tg_Bot, Kook_Bot]
-MESSAGE_EVENT = Union[V11_ME, V12_ME, Tg_ME, Kook_ME]
+BOT = Union[V11_Bot, V12_Bot, Tg_Bot, Kook_Bot, QQ_Bot]
+MESSAGE_EVENT = Union[V11_ME, V12_ME, Tg_ME, Kook_ME, QQ_ME]
 
 
 async def _permission_check(bot: BOT, event: MESSAGE_EVENT, state: T_State):
     """检查消息来源权限"""
-    # 私聊
-    uid: Union[int, str] = 114514
-    gid: Union[int, str] = 114514
-    cid: Union[int, str] = 114514
-    if isinstance(event, (V11_PME, V12_PME, Tg_PME, Kook_PME)):
+    # 前缀限定判断
+    if plugin_config.splatoon3_sole_prefix:
+        plain_text = event.get_message().extract_plain_text().strip()
+        if not plain_text.startswith("/"):
+            return False
+    # id定义
+    default_id = 25252
+    guid: Union[int, str] = default_id  # 服务器id
+    gid: Union[int, str] = default_id  # Q群id
+    cid: Union[int, str] = default_id  # 频道id
+    uid: Union[int, str] = default_id  # 用户id
+    state["_guid_"] = default_id
+    state["_gid_"] = default_id
+    state["_cid_"] = default_id
+    state["_uid_"] = default_id
+    bot_adapter = bot.adapter.get_name()
+    bot_id = bot.self_id
+    # 频道私聊
+    if isinstance(event, (V11_PME, V12_PME, Tg_PME, Kook_PME, QQ_PME)):
+        state["_msg_source_type_"] = "private"
         if plugin_config.splatoon3_permit_private:
             if isinstance(event, Tg_PME):
                 uid = event.from_.id
             elif isinstance(event, (V11_PME, V12_PME, Kook_PME)):
                 uid = event.user_id
+            elif isinstance(event, QQ_PME):
+                uid = event.get_user_id()
             state["_uid_"] = uid
-            return plugin_config.verify_permission(uid)
+
+            ok = check_msg_permission(bot_adapter, bot_id, state["_msg_source_type_"], state["_uid_"])
+            if not ok:
+                logger.info(f'{state["_msg_source_type_"]} 对象 {uid} 位于黑名单或关闭中，不予提供服务')
+            return ok
         else:
+            logger.info(f'插件配置项未允许 {state["_msg_source_type_"]} 类别用户触发查询')
+            return False
+    # qq c2c私聊
+    if isinstance(event, QQ_C2CME):
+        state["_msg_source_type_"] = "c2c"
+        if plugin_config.splatoon3_permit_c2c:
+            if isinstance(event, (QQ_C2CME, QQ_PME)):
+                uid = event.get_user_id()
+            state["_uid_"] = uid
+            ok = check_msg_permission(bot_adapter, bot_id, state["_msg_source_type_"], state["_uid_"])
+            if not ok:
+                logger.info(f'{state["_msg_source_type_"]} 对象 {uid} 位于黑名单或关闭中，不予提供服务')
+            return ok
+        else:
+            logger.info(f'插件配置项未允许 {state["_msg_source_type_"]} 类别用户触发查询')
             return False
     # 群聊
-    elif isinstance(event, (V11_GME, V12_GME, Tg_GME)):
-        if isinstance(event, Tg_GME):
-            gid = event.chat.id
-            uid = event.get_user_id()
-        elif isinstance(event, (V11_GME, V12_GME)):
-            gid = event.group_id
-            uid = event.user_id
-        state["_gid_"] = gid
-        if plugin_config.verify_permission(gid):
-            # 再判断触发者是否有权限
-            return plugin_config.verify_permission(uid)
+    elif isinstance(event, (V11_GME, V12_GME, Tg_GME, QQ_GME)):
+        state["_msg_source_type_"] = "group"
+        if plugin_config.splatoon3_permit_group:
+            if isinstance(event, Tg_GME):
+                gid = event.chat.id
+                uid = event.get_user_id()
+            elif isinstance(event, (V11_GME, V12_GME)):
+                gid = event.group_id
+                uid = event.user_id
+            elif isinstance(event, QQ_GME):
+                gid = event.group_openid
+                uid = event.get_user_id()
+            state["_gid_"] = gid
+            state["_uid_"] = uid
+            ok = check_msg_permission(bot_adapter, bot_id, state["_msg_source_type_"], gid)
+            if ok:
+                # 再判断触发者是否有权限
+                ok = check_msg_permission(bot_adapter, bot_id, "c2c", uid)
+                if not ok:
+                    logger.info(f"c2c 对象 {uid} 位于黑名单或关闭中，不予提供服务")
+                return ok
+            else:
+                logger.info(f"group 对象 {gid} 位于黑名单或关闭中，不予提供服务")
+                return False
         else:
+            logger.info(f'插件配置项未允许 {state["_msg_source_type_"]} 类别用户触发查询')
             return False
-
-    # 频道
-    elif isinstance(event, (V12_CME, Tg_CME, Kook_CME)):
+    # 服务器频道
+    elif isinstance(event, (V12_CME, Kook_CME, QQ_CME)):
+        state["_msg_source_type_"] = "channel"
+        if plugin_config.splatoon3_permit_channel:
+            if isinstance(event, V12_CME):
+                guid = event.guild_id
+                cid = event.channel_id
+                uid = event.user_id
+            elif isinstance(event, Kook_CME):
+                guid = event.extra.guild_id
+                cid = event.group_id
+                uid = event.user_id
+            elif isinstance(event, QQ_CME):
+                guid = event.guild_id
+                cid = event.channel_id
+                uid = event.author.id
+            state["_guid_"] = guid
+            state["_cid_"] = cid
+            state["_uid_"] = uid
+            # 判断服务器是否有权限
+            ok = check_msg_permission(bot_adapter, bot_id, "guild", guid)
+            if ok:
+                # 再判断频道是否有权限
+                ok = check_msg_permission(bot_adapter, bot_id, "channel", cid)
+                if ok:
+                    # 再判断触发者是否有权限
+                    ok = check_msg_permission(bot_adapter, bot_id, "private", uid)
+                    if not ok:
+                        logger.info(f"private 对象 {uid} 位于黑名单或关闭中，不予提供服务")
+                    return ok
+                else:
+                    logger.info(f"channel 对象 {cid} 位于黑名单或关闭中，不予提供服务")
+                    return False
+            else:
+                logger.info(f"guild 对象 {guid} 位于黑名单或关闭中，不予提供服务")
+                return False
+        else:
+            logger.info(f'插件配置项未允许 {state["_msg_source_type_"]} 类别用户触发查询')
+            return False
+    # 单频道
+    elif isinstance(event, Tg_CME):
+        state["_msg_source_type_"] = "channel"
         if plugin_config.splatoon3_permit_channel:
             if isinstance(event, Tg_CME):
                 cid = event.chat.id
                 uid = event.get_user_id()
-            elif isinstance(event, V12_CME):
-                cid = event.channel_id
-                uid = event.user_id
-            elif isinstance(event, Kook_CME):
-                cid = event.group_id
-                uid = event.user_id
             state["_cid_"] = cid
-            if plugin_config.verify_permission(cid):
+            state["_uid_"] = uid
+            ok = check_msg_permission(bot_adapter, bot_id, "channel", cid)
+            if ok:
                 # 再判断触发者是否有权限
-                return plugin_config.verify_permission(uid)
+                ok = check_msg_permission(bot_adapter, bot_id, "private", uid)
+                if not ok:
+                    logger.info(f"private 对象 {uid} 位于黑名单或关闭中，不予提供服务")
+                return ok
             else:
+                logger.info(f"channel 对象 {cid} 位于黑名单或关闭中，不予提供服务")
                 return False
         else:
+            logger.info(f'插件配置项未允许 {state["_msg_source_type_"]} 类别用户触发查询')
             return False
     # 其他
     else:
-        state["_uid_"] = "unkown"
-        return plugin_config.splatoon3_permit_unkown_src
+        state["_uid_"] = "unknown"
+        ok = plugin_config.splatoon3_permit_unknown_src
+        if not ok:
+            logger.info(f"插件配置项未允许 unknown 类别用户触发查询")
+        return ok
 
 
 # 图 触发器  正则内需要涵盖所有的同义词
@@ -313,7 +427,7 @@ async def _(
 ):
     plain_text = event.get_message().extract_plain_text().strip()
     # 触发关键词  替换.。\/ 等前缀触发词
-    plain_text = multiple_replace(plain_text, dict_keyword_replace)
+    plain_text = multiple_replace(plain_text, dict_prefix_replace)
     logger.info("同义文本替换后触发词为:" + plain_text + "\n")
     # 判断是否满足进一步正则
     # 随机武器
@@ -357,10 +471,92 @@ async def _(
         img = get_save_temp_image(plain_text, func)
         # 发送图片
         await send_img(bot, event, matcher, img)
-    elif re.search("^装备$", plain_text):
-        img = await get_screenshot(shot_url="https://splatoon3.ink/gear")
-        # 发送图片
-        await send_img(bot, event, matcher, img)
+    # elif re.search("^装备$", plain_text):
+    #     img = await get_screenshot(shot_url="https://splatoon3.ink/gear")
+    #     # 发送图片
+    #     await send_img(bot, event, matcher, img)
+
+
+async def _guild_owner_check(bot: BOT, event: MESSAGE_EVENT, state: T_State):
+    # 服务器频道
+    channel_info: ChannelInfo
+    if isinstance(event, (Kook_CME, QQ_CME)):
+        guid = ""
+        cid = ""
+        uid = ""
+        if isinstance(event, Kook_CME):
+            guid = event.extra.guild_id
+            cid = event.group_id
+            uid = event.user_id
+        elif isinstance(event, QQ_CME):
+            guid = event.guild_id
+            cid = event.channel_id
+            uid = event.author.id
+        guild_info = await get_channel_info(bot, "guild", guid)
+        channel_info = await get_channel_info(bot, "channel", cid, guid)
+        owner_id = guild_info.owner_id
+        state["_channel_info_"] = channel_info
+        if (uid == owner_id) or (uid in global_config.superusers):
+            if uid == owner_id:
+                state["_user_level_"] = "owner"
+            if uid in global_config.superusers:
+                state["_user_level_"] = "superuser"
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
+# 管理命令 触发器
+matcher_manage = on_regex("^[\\/.,，。]?(开启|关闭)(查询|推送)$", priority=10, block=True, rule=_guild_owner_check)
+
+
+# 管理命令 触发器处理
+@matcher_manage.handle()
+async def _(bot: BOT, matcher: Matcher, event: MESSAGE_EVENT, state: T_State, re_tuple: Tuple = RegexGroup()):
+    re_list = []
+    for k, v in enumerate(re_tuple):
+        re_list.append(v)
+    # 触发关键词  替换.。\/ 等前缀触发词
+    plain_text = event.get_message().extract_plain_text().strip()
+    plain_text = multiple_replace(plain_text, dict_prefix_replace)
+    # 获取字典
+    channel_info: ChannelInfo = state.get("_channel_info_")
+    if channel_info is not None:
+        status = 0
+        if re_list[0] == "开启":
+            status = 1
+        elif re_list[0] == "关闭":
+            status = 0
+        if re_list[1] == "查询":
+            db_control.add_or_modify_MESSAGE_CONTROL(
+                channel_info.bot_adapter,
+                channel_info.bot_id,
+                channel_info.source_type,
+                channel_info.source_id,
+                msg_source_name=channel_info.source_name,
+                status=status,
+                msg_source_parent_id=channel_info.source_parent_id,
+                msg_source_parent_name=channel_info.source_parent_name,
+            )
+            init_blacklist()
+        elif re_list[1] == "推送" in plain_text:
+            user_level = state.get("_user_level_")
+            if (not plugin_config.splatoon3_guild_owner_switch_push) & (user_level == "owner"):
+                logger.info(f"插件配置项未允许 频道服务器拥有者 修改主动推送开关")
+                return
+            db_control.add_or_modify_MESSAGE_CONTROL(
+                channel_info.bot_adapter,
+                channel_info.bot_id,
+                channel_info.source_type,
+                channel_info.source_id,
+                msg_source_name=channel_info.source_name,
+                active_push=status,
+                msg_source_parent_id=channel_info.source_parent_id,
+                msg_source_parent_name=channel_info.source_parent_name,
+            )
+        await send_msg(bot, event, matcher, f"已{re_list[0]}本频道 日程{re_list[1]} 功能")
 
 
 matcher_admin = on_regex("^[\\/.,，。]?(重载武器数据|更新武器数据|清空图片缓存)$", priority=10, block=True, permission=SUPERUSER)
@@ -373,13 +569,15 @@ async def _(
     matcher: Matcher,
     event: MESSAGE_EVENT,
 ):
+    # 触发关键词  替换.。\/ 等前缀触发词
     plain_text = event.get_message().extract_plain_text().strip()
+    plain_text = multiple_replace(plain_text, dict_prefix_replace)
     err_msg = "执行失败，错误日志为: "
     # 清空图片缓存
     if re.search("^清空图片缓存$", plain_text):
         msg = "数据库合成图片缓存数据已清空！"
         try:
-            imageDB.clean_image_temp()
+            db_image.clean_image_temp()
         except Exception as e:
             msg = err_msg + str(e)
         # 发送消息
@@ -409,6 +607,10 @@ async def send_msg(bot: BOT, event: MESSAGE_EVENT, matcher, msg):
             await bot.send(event, msg, reply_to_message_id=event.dict().get("message_id"))
         else:
             await bot.send(event, msg)
+    elif isinstance(bot, Kook_Bot):
+        await bot.send(event, message=Kook_MsgSeg.text(msg), reply_sender=reply_mode)
+    elif isinstance(bot, QQ_Bot):
+        await bot.send(event, message=QQ_MsgSeg.text(msg))
 
 
 async def send_img(bot: BOT, event: MESSAGE_EVENT, matcher, img: bytes):
@@ -437,34 +639,48 @@ async def send_img(bot: BOT, event: MESSAGE_EVENT, matcher, img: bytes):
     elif isinstance(bot, Kook_Bot):
         url = await bot.upload_file(img)
         await bot.send(event, Kook_MsgSeg.image(url), reply_sender=reply_mode)
+    elif isinstance(bot, QQ_Bot):
+        await bot.send(event, message=QQ_MsgSeg.file_image(img))
 
 
 @driver.on_startup
 async def startup():
-    # 初始化插件时清空合成图片缓存表
-    imageDB.clean_image_temp()
+    """nb启动时事件"""
+    # 清空合成图片缓存表
+    db_image.clean_image_temp()
+    # 初始化黑名单字典
+    init_blacklist()
 
 
 @driver.on_shutdown
 async def shutdown():
+    """nb关闭时事件"""
     # 关闭数据库
-    imageDB.close()
+    db_image.close()
+    db_control.close()
 
 
-# # 根据不同onebot协议消息路径分别取用户id
-# def get_user_id():
-#     def dependency(bot: Union[V11Bot, V12Bot], event: Union[V11MEvent, V12MEvent]) -> str:
-#         if isinstance(event, V11MEvent):
-#             cid = f"{bot.self_id}_{event.message_type}_"
-#         else:
-#             cid = f"{bot.self_id}_{event.detail_type}_"
-#
-#         if isinstance(event, V11MsgSeg) or isinstance(event, V12MsgSeg):
-#             cid += str(event.group_id)
-#         elif isinstance(event, V12CMEvent):
-#             cid += f"{event.guild_id}_{event.channel_id}"
-#         else:
-#             cid += str(event.user_id)
-#         return cid
-#
-#     return Depends(dependency)
+@driver.on_bot_connect
+async def _(bot: Bot):
+    """bot接入时事件"""
+    bot_adapter = bot.adapter.get_name()
+    bot_id = bot.self_id
+
+    logger.info(f" {bot_adapter} bot connect {bot_id} ".center(60, "-").center(60, " "))
+    # 防止bot重连时重复添加任务
+    job_id = f"sp3_push_cron_job_{bot_id}"
+    if scheduler.get_job(job_id):
+        scheduler.remove_job(job_id)
+        logger.info(f"remove job {job_id} first")
+
+    scheduler.add_job(
+        cron_job,
+        "interval",
+        minutes=1,
+        id=job_id,
+        args=[bot, bot_adapter, bot_id],
+        misfire_grace_time=59,
+        coalesce=True,
+        max_instances=1,
+    )
+    logger.info(f"add job {job_id}")

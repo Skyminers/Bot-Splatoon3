@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from .image_db import imageDB
+from .db_image import db_image
 from ..utils import *
 
 # 爬取地址
@@ -52,7 +52,7 @@ async def reload_weapon_info():
             )
         )
         # 数据库新增 装备信息
-        imageDB.add_or_modify_weapon_info(weapon_data)
+        db_image.add_or_modify_weapon_info(weapon_data)
         # 数据库新增 装备图片
         names = [
             weapon_data.name,
@@ -90,12 +90,12 @@ async def get_image_info(imageInfo: ImageInfo):
 
 async def push_weapon_images(img: ImageInfo):
     """向数据库新增 武器图片 二进制文件"""
-    res = imageDB.get_weapon_image(img.name, img.source_type)
+    res = db_image.get_weapon_image(img.name, img.source_type)
     if not res:
         image_data = await get_file_url(img.url)
         if len(image_data) != 0:
             logger.info("[ImageDB] new weapon image {}".format(img.name))
-            imageDB.add_or_modify_weapon_images(
+            db_image.add_or_modify_weapon_images(
                 img.name,
                 img.source_type,
                 image_data,
