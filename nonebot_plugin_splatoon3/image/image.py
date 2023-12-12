@@ -99,18 +99,9 @@ def get_random_weapon_image(*args):
     return image
 
 
-def get_weapon_info_test():
-    """测试武器数据库能否取到数据"""
-    res = imageDB.get_weapon_info("", "", "", "")
-    if res is not None:
-        return True
-    else:
-        return False
-
-
 def get_save_temp_image(trigger_word, func, *args):
     """向数据库新增或读取图片二进制  缓存图片"""
-    res = imageDB.get_img_temp(trigger_word)
+    res = db_image.get_img_temp(trigger_word)
     image_data: bytes
     if not res:
         # 重新生成图片并写入
@@ -122,7 +113,7 @@ def get_save_temp_image(trigger_word, func, *args):
             # 如果是太大的图片，需要压缩到1024k以下确保最后发出图片的大小
             image_data = compress_image(image_data, mb=1024, step=10, quality=80)
             logger.info("[ImageDB] new temp image {}".format(trigger_word))
-            imageDB.add_or_modify_IMAGE_TEMP(trigger_word, image_data, get_expire_time())
+            db_image.add_or_modify_IMAGE_TEMP(trigger_word, image_data, get_expire_time())
         return image_data
     else:
         image_expire_time = res.get("image_expire_time")
@@ -138,26 +129,11 @@ def get_save_temp_image(trigger_word, func, *args):
                 # 如果是太大的图片，需要压缩到1024k以下确保最后发出图片的大小
                 image_data = compress_image(image_data, mb=1024, step=10, quality=80)
                 logger.info("[ImageDB] update temp image {}".format(trigger_word))
-                imageDB.add_or_modify_IMAGE_TEMP(trigger_word, image_data, get_expire_time())
+                db_image.add_or_modify_IMAGE_TEMP(trigger_word, image_data, get_expire_time())
             return image_data
         else:
             logger.info("数据库内存在时效范围内的缓存图片，将从数据库读取缓存图片")
             return image_to_bytes(Image.open(io.BytesIO(image_data)))
-
-
-def write_weapon_trans_dict():
-    """写出武器翻译字典"""
-    weapon_trans_dict = imageDB.get_all_weapon_info()
-    if len(weapon_trans_dict) > 0:
-        with open("weapon_trans_dict.txt", "a") as file:
-            file.write("{")
-        for val in weapon_trans_dict:
-            # s += '"' + val["name"] + '":"' + val["zh_name"] + '",'
-            s = '"{}":"{}",'.format(val["name"], val["zh_name"])
-            with open("weapon_trans_dict.txt", "a") as file:
-                file.write(s)
-        with open("weapon_trans_dict.txt", "a") as file:
-            file.write("}")
 
 
 # 旧版 取 随机武器图片 不能进行缓存，这个需要实时生成

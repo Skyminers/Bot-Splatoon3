@@ -87,12 +87,13 @@ _✨ splatoon3游戏日程查询插件 ✨_
 |:------:|:----:|:---:|:---:|:--:|
 | splatoon3_proxy_address | 否 | str | ""  | 代理地址，格式为 127.0.0.1:20171 |
 | splatoon3_reply_mode | 否 | bool | False  | 指定回复模式，开启后将通过触发词的消息进行回复，默认为False |
-| splatoon3_permit_private | 否 | bool | False  | 是否允许私聊触发，默认为False |
-| splatoon3_permit_channel | 否 | bool | False  | 是否允许频道触发，默认为False |
-| splatoon3_permit_unkown_src | 否 | bool | False  | 是否允许未知来源触发，默认为False |
+| splatoon3_permit_private | 否 | bool | False  | 是否允许频道私聊触发，默认为False |
+| splatoon3_permit_c2c | 否 | bool | False  | 是否允许qq私聊(c2c)触发，默认为False |
+| splatoon3_permit_channel | 否 | bool | True  | 是否允许频道触发，默认为True |
+| splatoon3_permit_group | 否 | bool | True  | 是否允许群聊(如qq群，tg群)触发，默认为True |
+| splatoon3_permit_unknown_src | 否 | bool | False  | 是否允许未知来源触发，默认为False |
 | splatoon3_sole_prefix | 否 | bool | False  | 限制消息触发前缀为/ |
-| splatoon3_whitelist | 否 | List[str] | []  | 白名单列表，填写后黑名单无效，里面可以填写用户id，群id，频道id，如 ["10000","123456"]|
-| splatoon3_blacklist | 否 | List[str] | []  | 黑名单列表，里面可以填写用户id，群id，频道id，如 ["10000","123456"]|
+| splatoon3_guild_owner_switch_push | 否 | bool | False  | 频道服务器拥有者是否允许开关主动推送功能(为False时仅允许管理员开启关闭) |
 
 <details>
 <summary>示例配置</summary>
@@ -101,12 +102,13 @@ _✨ splatoon3游戏日程查询插件 ✨_
 # splatoon3示例配置
 splatoon3_proxy_address = "" #代理地址
 splatoon3_reply_mode = False #指定回复模式
-splatoon3_permit_private = False #是否允许私聊触发
-splatoon3_permit_channel = False #是否允许频道触发
+splatoon3_permit_private = False #是否允许频道私聊触发
+splatoon3_permit_c2c = False #是否允许qq私聊(c2c)触发
+splatoon3_permit_channel = True #是否允许频道触发
+splatoon3_permit_group = True # 是否允许群聊(如qq群，tg群)触发
 splatoon3_permit_unkown_src = False #是否允许未知来源触发
 splatoon3_sole_prefix = False # 限制消息触发前缀为/
-splatoon3_whitelist = [] #白名单列表，填写后黑名单无效，里面可以填写用户id，群id，频道id
-splatoon3_blacklist = ["10000","123456"] #黑名单列表，填写后黑名单无效，里面可以填写用户id，群id，频道id
+splatoon3_guild_owner_switch_push = False # 频道服务器拥有者是否允许开关主动推送功能(为False时仅允许管理员开启关闭)
 ```
 
 </details>
@@ -116,7 +118,7 @@ splatoon3_blacklist = ["10000","123456"] #黑名单列表，填写后黑名单�
 <details>
 <summary>指令帮助手册</summary>
 
-![help.png](images/help.png)
+![help.png](images/help1.png)
 
 </details>
 

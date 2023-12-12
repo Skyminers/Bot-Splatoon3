@@ -111,7 +111,7 @@ def get_events(events):
         # 全问号活动会导致地图和时间参数错误，这里改用try except
         try:
             event_card = get_event_card(event, event_card_bg_size)
-        except Exception as e:
+        except Exception:
             error = "傻逼任天堂又整不出新活，开始输出问号活动了，活动地图渲染失败"
             logger.error(error)
             drawer.text((desc_pos[0], desc_pos[1] + 50), error, font=ttf, fill=(255, 255, 255))
@@ -465,7 +465,7 @@ def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
 
 def get_help():
     """绘制 帮助图片"""
-    image_background_size = (1200, 2300)
+    image_background_size = (1200, 2500)
     # 取背景rgb颜色
     bg_rgb = dict_bg_rgb["活动"]
     # 创建纯色背景
@@ -494,7 +494,7 @@ def get_help():
     w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
     height += h
     # 绘制 帮助卡片 对战地图查询
-    pre = "直接查询:"
+    pre = "查询指令:"
     order_list = ["图", "图图", "下图", "下下图", "全部图"]
     desc_list = ["查询当前或指定时段 所有模式 的地图", "前面如果是 全部 则显示至多未来5个时段的地图"]
     text_card, card_h = drawer_help_card(pre, order_list, desc_list)
@@ -516,9 +516,9 @@ def get_help():
     title = "对战地图 筛选查询"
     title_pos = (20, height)
     w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
-    height += h + 20
+    height += h
     # 绘制 帮助卡片 对战地图查询
-    pre = "直接查询:"
+    pre = "查询指令:"
     order_list = ["挑战", "涂地", "x赛", "塔楼", "开放挑战", "pp抢鱼"]
     desc_list = ["支持指定规则或比赛，或同时指定规则比赛", "触发词进行了语义化处理，很多常用的称呼也能触发，如:pp和排排 都等同于 开放;抢鱼对应鱼虎;涂涂对应涂地 等"]
     text_card, card_h = drawer_help_card(pre, order_list, desc_list)
@@ -540,9 +540,9 @@ def get_help():
     title = "打工 查询"
     title_pos = (20, height)
     w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
-    height += h + 20
+    height += h
     # 绘制 帮助卡片 对战地图查询
-    pre = "直接查询:"
+    pre = "查询指令:"
     order_list = ["工", "打工", "bigrun", "团队打工", "全部工"]
     desc_list = ["查询当前和下一时段的打工地图，如果存在bigrun或团队打工时，也会显示在里面，并根据时间自动排序", "前面加上 全部 则显示接下来的五场打工地图"]
     text_card, card_h = drawer_help_card(pre, order_list, desc_list)
@@ -555,9 +555,9 @@ def get_help():
     title = "其他 查询"
     title_pos = (20, height)
     w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
-    height += h + 20
+    height += h
     # 绘制 帮助卡片 对战地图查询
-    pre = "直接查询:"
+    pre = "查询指令:"
     order_list = ["祭典", "活动", "帮助", "help"]
     desc_list = ["查询 祭典  活动 ", "帮助/help:回复本帮助图片"]
     text_card, card_h = drawer_help_card(pre, order_list, desc_list)
@@ -570,9 +570,9 @@ def get_help():
     title = "私房用 随机武器"
     title_pos = (20, height)
     w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
-    height += h + 20
+    height += h
     # 绘制 帮助卡片 对战地图查询
-    pre = "直接查询:"
+    pre = "查询指令:"
     order_list = ["随机武器", "随机武器 nice弹", "随机武器 小枪 刷 狙 泡"]
     desc_list = [
         "可以在 随机武器 后面，接至多四个参数，每个参数间用空格分开",
@@ -587,14 +587,34 @@ def get_help():
     height += card_h
 
     # 绘制title
+    title = "频道主命令"
+    title_pos = (20, height)
+    w, h = drawer_text(drawer, title, title_pos, text_width, (255, 167, 137))
+    height += h
+    # 绘制 帮助卡片 对战地图查询
+    pre = "指令:"
+    order_list = ["开启/关闭查询"]
+    desc_list = ["频道服务器拥有者可发送 关闭查询 来禁用该频道内bot的主动地图查询功能"]
+    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # 贴图
+    text_bg_pos = (title_pos[0] + 30, height)
+    paste_with_a(image_background, text_card, text_bg_pos)
+    height += card_h
+
+    # 绘制title
     title = "bot管理员命令"
     title_pos = (20, height)
     w, h = drawer_text(drawer, title, title_pos, text_width, (255, 167, 137))
-    height += h + 20
+    height += h
     # 绘制 帮助卡片 对战地图查询
-    pre = "直接发送:"
-    order_list = ["清空图片缓存", "更新武器数据"]
-    desc_list = ["清空图片缓存：会主动清空2h内的全部缓存图", "更新武器数据：首次使用时，必须先运行一次这个命令，来更新武器数据库，不然随机武器功能无法使用"]
+    pre = "指令:"
+    order_list = ["清空图片缓存", "更新武器数据", "开启/关闭查询", "开启/关闭推送"]
+    desc_list = [
+        "清空图片缓存：会主动清空2h内的全部缓存图",
+        "更新武器数据：主动更新武器数据库(新版本武器不一定有中文，还是需要定期更新本插件)",
+        "开启/关闭查询：开关本频道的地图查询功能",
+        "开启/关闭推送：开关本频道的地图推送功能(建议在除q频道，q群以外的渠道使用)",
+    ]
     text_card, card_h = drawer_help_card(pre, order_list, desc_list)
     # 贴图
     text_bg_pos = (title_pos[0] + 30, height)
@@ -605,7 +625,7 @@ def get_help():
     title = "关于本插件"
     title_pos = (20, height)
     w, h = drawer_text(drawer, title, title_pos, text_width, title_rgb)
-    height += h + 20
+    height += h
     # 绘制 帮助卡片 对战地图查询
     pre = ""
     order_list = []
@@ -613,6 +633,7 @@ def get_help():
         "本插件已开源，地址如下：",
         "https://github.com/Skyminers/Bot-Splatoon3",
         "有github账号的人可以去帮忙点个star，这是对我们最大的支持了",
+        "小鱿鱿Bot或插件反馈可以加q群:827977720 联系作者",
         "插件作者:Cypas_Nya;Sky_miner",
     ]
     text_card, card_h = drawer_help_card(pre, order_list, desc_list)

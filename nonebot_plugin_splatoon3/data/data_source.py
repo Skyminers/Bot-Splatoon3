@@ -1,11 +1,11 @@
 import requests
 import urllib3
 
-requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = "ALL:@SECLEVEL=1"
-
-from .image_db import imageDB
+from .db_image import db_image
 from ..utils import *
 from playwright.async_api import Browser, async_playwright
+
+# requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = "ALL:@SECLEVEL=1"
 
 schedule_res = None
 http = urllib3.PoolManager()
@@ -211,25 +211,25 @@ def get_weapon_info(list_weapon: list):
         elif _type == weapon_image_type[4]:
             # father_class
             zh_father_class = name
-        weaponData = imageDB.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special, zh_father_class)
-        weaponData2 = imageDB.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special, zh_father_class)
+        weaponData = db_image.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special, zh_father_class)
+        weaponData2 = db_image.get_weapon_info(zh_weapon_class, zh_weapon_sub, zh_weapon_special, zh_father_class)
         # 获取图片数据
         # Main
-        weaponData.image = imageDB.get_weapon_image(weaponData.name, weapon_image_type[0]).get("image")
-        weaponData2.image = imageDB.get_weapon_image(weaponData2.name, weapon_image_type[0]).get("image")
+        weaponData.image = db_image.get_weapon_image(weaponData.name, weapon_image_type[0]).get("image")
+        weaponData2.image = db_image.get_weapon_image(weaponData2.name, weapon_image_type[0]).get("image")
         # Sub
-        weaponData.sub_image = imageDB.get_weapon_image(weaponData.sub_name, weapon_image_type[1]).get("image")
-        weaponData2.sub_image = imageDB.get_weapon_image(weaponData2.sub_name, weapon_image_type[1]).get("image")
+        weaponData.sub_image = db_image.get_weapon_image(weaponData.sub_name, weapon_image_type[1]).get("image")
+        weaponData2.sub_image = db_image.get_weapon_image(weaponData2.sub_name, weapon_image_type[1]).get("image")
         # Special
-        weaponData.special_image = imageDB.get_weapon_image(weaponData.special_name, weapon_image_type[2]).get("image")
-        weaponData2.special_image = imageDB.get_weapon_image(weaponData2.special_name, weapon_image_type[2]).get(
+        weaponData.special_image = db_image.get_weapon_image(weaponData.special_name, weapon_image_type[2]).get("image")
+        weaponData2.special_image = db_image.get_weapon_image(weaponData2.special_name, weapon_image_type[2]).get(
             "image"
         )
         # Class
-        weaponData.weapon_class_image = imageDB.get_weapon_image(weaponData.weapon_class, weapon_image_type[3]).get(
+        weaponData.weapon_class_image = db_image.get_weapon_image(weaponData.weapon_class, weapon_image_type[3]).get(
             "image"
         )
-        weaponData2.weapon_class_image = imageDB.get_weapon_image(weaponData2.weapon_class, weapon_image_type[3]).get(
+        weaponData2.weapon_class_image = db_image.get_weapon_image(weaponData2.weapon_class, weapon_image_type[3]).get(
             "image"
         )
         # 添加

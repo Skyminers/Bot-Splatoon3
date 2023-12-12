@@ -7,7 +7,7 @@ from io import BytesIO
 import urllib3
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-from ..data import imageDB
+from ..data import db_image
 from ..utils import *
 
 # 根路径
@@ -51,14 +51,14 @@ def get_cf_file_url(url):
 
 def get_save_file(img: ImageInfo):
     """向数据库新增或读取素材图片二进制文件"""
-    res = imageDB.get_img_data(img.name)
+    res = db_image.get_img_data(img.name)
     if not res:
         image_data = get_cf_file_url(img.url)
         if len(image_data) != 0:
             # 如果是太大的图片，需要压缩到100k以下确保最后发出图片的大小
             image_data = compress_image(image_data, mb=100, step=10, quality=50)
             logger.info("[ImageDB] new image {}".format(img.name))
-            imageDB.add_or_modify_IMAGE_DATA(img.name, image_data, img.zh_name, img.source_type)
+            db_image.add_or_modify_IMAGE_DATA(img.name, image_data, img.zh_name, img.source_type)
         return Image.open(io.BytesIO(image_data))
     else:
         return Image.open(io.BytesIO(res.get("image_data")))
@@ -515,6 +515,8 @@ def get_event_card(event, event_card_bg_size):
         draw_grid_transverse_line(drawer, transverse_line_pos_list, fill="white", width=3, gap=25)
         # 绘制 时间状态 文字
         now = get_time_now_china()
+        text = ""
+        text_color = ""
         if time_converter(st) > now:
             text = "未开始"
             text_color = (243, 254, 176)
@@ -610,6 +612,8 @@ def get_festival_team_card(festival, card_bg_size: tuple, teams_list: [], font_p
 
 def get_festival_result_card(card_bg_size: tuple, teams_list: [], font_path: str = ttf_path_chinese):
     """绘制 祭典结算卡片"""
+    bg_rgb: tuple[int, int, int] = (0, 0, 0)
+    win_team_name: str = ""
     # 背景颜色取获胜队伍的rgb颜色
     for k, v in enumerate(teams_list):
         if v["result"]["isWinner"]:
@@ -697,6 +701,8 @@ def get_festival_result_item_card(
 
     # 格式化整理数据,返回 是否是赢家，百分比点数
     def get_data(index: int, value: dict) -> (bool, str):
+        flag_win = False
+        _percentage = 0
         if index == 0:
             flag_win = value["result"]["isHoragaiRatioTop"]
             _percentage = value["result"]["horagaiRatio"]
