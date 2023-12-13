@@ -1,4 +1,6 @@
 from typing import Union, Tuple
+
+import nonebot
 from nonebot.adapters.telegram.message import File
 from nonebot.params import RegexGroup
 from nonebot.plugin import PluginMetadata
@@ -41,7 +43,7 @@ from nonebot.adapters.kaiheila.event import ChannelMessageEvent as Kook_CME
 
 # qq官方协议
 from nonebot.adapters.qq import Bot as QQ_Bot
-from nonebot.adapters.qq.event import MessageEvent as QQ_ME
+from nonebot.adapters.qq.event import MessageEvent as QQ_ME, GroupAtMessageCreateEvent
 from nonebot.adapters.qq import MessageSegment as QQ_MsgSeg
 from nonebot.adapters.qq.event import GroupAtMessageCreateEvent as QQ_GME  # 群艾特信息
 from nonebot.adapters.qq.event import C2CMessageCreateEvent as QQ_C2CME  # Q私聊信息
@@ -232,7 +234,7 @@ async def _permission_check(bot: BOT, event: MESSAGE_EVENT, state: T_State):
 
 
 # 图 触发器  正则内需要涵盖所有的同义词
-matcher_stage_group = on_regex("^[\\/.,，。]?[0-9]*(全部)?下*图+$", priority=10, block=True, rule=_permission_check)
+matcher_stage_group = on_regex("^[\\/.,，。]?[0-9]*(全部)?下*图+[ ]?$", priority=10, block=True, rule=_permission_check)
 
 
 # 图 触发器处理 二次判断正则前，已经进行了同义词替换，二次正则只需要判断最终词
@@ -295,7 +297,7 @@ matcher_stage = on_regex(
     "(全部)?"
     "(下*)"
     "(区域|区|推塔|抢塔|塔楼|塔|蛤蜊|蛤|抢鱼|鱼虎|鱼|涂地|涂涂|涂|挑战|真格|开放|组排|排排|排|pp|p|PP|P|X段|x段|X赛|x赛|X|x)"
-    "(区域|区|推塔|抢塔|塔楼|塔|蛤蜊|蛤|抢鱼|鱼虎|鱼|涂地|涂涂|涂|挑战|真格|开放|组排|排排|排|pp|p|PP|P|X段|x段|X赛|x赛|X|x)?$",
+    "(区域|区|推塔|抢塔|塔楼|塔|蛤蜊|蛤|抢鱼|鱼虎|鱼|涂地|涂涂|涂|挑战|真格|开放|组排|排排|排|pp|p|PP|P|X段|x段|X赛|x赛|X|x)?[ ]?$",
     priority=10,
     block=True,
     rule=_permission_check,
@@ -387,7 +389,7 @@ async def _(bot: BOT, matcher: Matcher, event: MESSAGE_EVENT, re_tuple: Tuple = 
 
 # 打工 触发器
 matcher_coop = on_regex(
-    "^[\\/.,，。]?(全部)?(工|打工|鲑鱼跑|bigrun|big run|团队打工)$", priority=10, block=True, rule=_permission_check
+    "^[\\/.,，。]?(全部)?(工|打工|鲑鱼跑|bigrun|big run|团队打工)[ ]?$", priority=10, block=True, rule=_permission_check
 )
 
 
@@ -415,7 +417,9 @@ async def _(
 
 
 # 其他命令 触发器
-matcher_else = on_regex("^[\\/.,，。]?(帮助|help|(随机武器).*|装备|衣服|祭典|活动)$", priority=10, block=True, rule=_permission_check)
+matcher_else = on_regex(
+    "^[\\/.,，。]?(帮助|help|(随机武器).*|装备|衣服|祭典|活动)[ ]?$", priority=10, block=True, rule=_permission_check
+)
 
 
 # 其他命令 触发器处理
@@ -509,7 +513,7 @@ async def _guild_owner_check(bot: BOT, event: MESSAGE_EVENT, state: T_State):
 
 
 # 管理命令 触发器
-matcher_manage = on_regex("^[\\/.,，。]?(开启|关闭)(查询|推送)$", priority=10, block=True, rule=_guild_owner_check)
+matcher_manage = on_regex("^[\\/.,，。]?(开启|关闭)(查询|推送)[ ]?$", priority=10, block=True, rule=_guild_owner_check)
 
 
 # 管理命令 触发器处理
@@ -640,7 +644,20 @@ async def send_img(bot: BOT, event: MESSAGE_EVENT, matcher, img: bytes):
         url = await bot.upload_file(img)
         await bot.send(event, Kook_MsgSeg.image(url), reply_sender=reply_mode)
     elif isinstance(bot, QQ_Bot):
-        await bot.send(event, message=QQ_MsgSeg.file_image(img))
+        if not isinstance(event, GroupAtMessageCreateEvent):
+            await bot.send(event, message=QQ_MsgSeg.file_image(img))
+        else:
+            # 目前q群只支持url图片，得想办法上传图片获取url
+            kook_bot = None
+            bots = nonebot.get_bots()
+            for k, b in bots.items():
+                if isinstance(b, Kook_Bot):
+                    kook_bot = b
+                    break
+            if kook_bot is not None:
+                # 使用kook的接口传图片
+                url = await kook_bot.upload_file(img)
+                await bot.send(event, message=QQ_MsgSeg.image(url))
 
 
 @driver.on_startup
