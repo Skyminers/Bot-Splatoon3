@@ -465,7 +465,8 @@ def get_random_weapon(weapon1: [WeaponData], weapon2: [WeaponData]):
 
 def get_help():
     """绘制 帮助图片"""
-    image_background_size = (1200, 2500)
+    # image_background_size = (1200, 2500)
+    image_background_size = (1200, 2200)
     # 取背景rgb颜色
     bg_rgb = dict_bg_rgb["活动"]
     # 创建纯色背景
@@ -586,40 +587,40 @@ def get_help():
     paste_with_a(image_background, text_card, text_bg_pos)
     height += card_h
 
-    # 绘制title
-    title = "频道主命令"
-    title_pos = (20, height)
-    w, h = drawer_text(drawer, title, title_pos, text_width, (255, 167, 137))
-    height += h
-    # 绘制 帮助卡片 对战地图查询
-    pre = "指令:"
-    order_list = ["开启/关闭查询"]
-    desc_list = ["频道服务器拥有者可发送 关闭查询 来禁用该频道内bot的主动地图查询功能"]
-    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
-    # 贴图
-    text_bg_pos = (title_pos[0] + 30, height)
-    paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h
-
-    # 绘制title
-    title = "bot管理员命令"
-    title_pos = (20, height)
-    w, h = drawer_text(drawer, title, title_pos, text_width, (255, 167, 137))
-    height += h
-    # 绘制 帮助卡片 对战地图查询
-    pre = "指令:"
-    order_list = ["清空图片缓存", "更新武器数据", "开启/关闭查询", "开启/关闭推送"]
-    desc_list = [
-        "清空图片缓存：会主动清空2h内的全部缓存图",
-        "更新武器数据：主动更新武器数据库(新版本武器不一定有中文，还是需要定期更新本插件)",
-        "开启/关闭查询：开关本频道的地图查询功能",
-        "开启/关闭推送：开关本频道的地图推送功能(建议在除q频道，q群以外的渠道使用)",
-    ]
-    text_card, card_h = drawer_help_card(pre, order_list, desc_list)
-    # 贴图
-    text_bg_pos = (title_pos[0] + 30, height)
-    paste_with_a(image_background, text_card, text_bg_pos)
-    height += card_h
+    # # 绘制title
+    # title = "频道主命令"
+    # title_pos = (20, height)
+    # w, h = drawer_text(drawer, title, title_pos, text_width, (255, 167, 137))
+    # height += h
+    # # 绘制 帮助卡片 对战地图查询
+    # pre = "指令:"
+    # order_list = ["开启/关闭查询"]
+    # desc_list = ["频道服务器拥有者可发送 关闭查询 来禁用该频道内bot的主动地图查询功能"]
+    # text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # # 贴图
+    # text_bg_pos = (title_pos[0] + 30, height)
+    # paste_with_a(image_background, text_card, text_bg_pos)
+    # height += card_h
+    #
+    # # 绘制title
+    # title = "bot管理员命令"
+    # title_pos = (20, height)
+    # w, h = drawer_text(drawer, title, title_pos, text_width, (255, 167, 137))
+    # height += h
+    # # 绘制 帮助卡片 对战地图查询
+    # pre = "指令:"
+    # order_list = ["清空图片缓存", "更新武器数据", "开启/关闭查询", "开启/关闭推送"]
+    # desc_list = [
+    #     "清空图片缓存：会主动清空2h内的全部缓存图",
+    #     "更新武器数据：主动更新武器数据库(新版本武器不一定有中文，还是需要定期更新本插件)",
+    #     "开启/关闭查询：开关本频道的地图查询功能",
+    #     "开启/关闭推送：开关本频道的地图推送功能(建议在除q频道，q群以外的渠道使用)",
+    # ]
+    # text_card, card_h = drawer_help_card(pre, order_list, desc_list)
+    # # 贴图
+    # text_bg_pos = (title_pos[0] + 30, height)
+    # paste_with_a(image_background, text_card, text_bg_pos)
+    # height += card_h
 
     # 绘制title
     title = "关于本插件"

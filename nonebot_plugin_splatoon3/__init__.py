@@ -287,7 +287,7 @@ async def _(
         # 获取图片
         img = get_save_temp_image(plain_text, func, num_list, contest_match, rule_match)
         # 发送消息
-        await send_img(bot, event, matcher, img)
+        await send_img(bot, event, img)
 
 
 # 对战 触发器
@@ -384,7 +384,7 @@ async def _(bot: BOT, matcher: Matcher, event: MESSAGE_EVENT, re_tuple: Tuple = 
         # 获取图片
         img = get_save_temp_image(plain_text, func, num_list, contest_match, rule_match)
         # 发送消息
-        await send_img(bot, event, matcher, img)
+        await send_img(bot, event, img)
 
 
 # 打工 触发器
@@ -413,7 +413,7 @@ async def _(
     # 获取图片
     img = get_save_temp_image(plain_text, func, _all)
     # 发送消息
-    await send_img(bot, event, matcher, img)
+    await send_img(bot, event, img)
 
 
 # 其他命令 触发器
@@ -440,11 +440,11 @@ async def _(
         # 测试数据库能否取到武器数据
         if not get_weapon_info_test():
             msg = "请机器人管理员先发送 更新武器数据 更新本地武器数据库后，才能使用随机武器功能"
-            await send_msg(bot, event, matcher, msg)
+            await send_msg(bot, event, msg)
         else:
             img = image_to_bytes(get_random_weapon_image(plain_text))
             # 发送消息
-            await send_img(bot, event, matcher, img)
+            await send_img(bot, event, img)
     elif re.search("^祭典$", plain_text):
         # 传递函数指针
         func = get_festival_image
@@ -452,10 +452,10 @@ async def _(
         img = get_save_temp_image(plain_text, func)
         if img is None:
             msg = "近期没有任何祭典"
-            await send_msg(bot, event, matcher, msg)
+            await send_msg(bot, event, msg)
         else:
             # 发送图片
-            await send_img(bot, event, matcher, img)
+            await send_img(bot, event, img)
     elif re.search("^活动$", plain_text):
         # 传递函数指针
         func = get_events_image
@@ -463,10 +463,10 @@ async def _(
         img = get_save_temp_image(plain_text, func)
         if img is None:
             msg = "近期没有任何活动比赛"
-            await send_msg(bot, event, matcher, msg)
+            await send_msg(bot, event, msg)
         else:
             # 发送图片
-            await send_img(bot, event, matcher, img)
+            await send_img(bot, event, img)
 
     elif re.search("^帮助$", plain_text):
         # 传递函数指针
@@ -474,11 +474,11 @@ async def _(
         # 获取图片
         img = get_save_temp_image(plain_text, func)
         # 发送图片
-        await send_img(bot, event, matcher, img)
+        await send_img(bot, event, img)
     # elif re.search("^装备$", plain_text):
     #     img = await get_screenshot(shot_url="https://splatoon3.ink/gear")
     #     # 发送图片
-    #     await send_img(bot, event, matcher, img)
+    #     await send_img(bot, event, img)
 
 
 async def _guild_owner_check(bot: BOT, event: MESSAGE_EVENT, state: T_State):
@@ -560,7 +560,7 @@ async def _(bot: BOT, matcher: Matcher, event: MESSAGE_EVENT, state: T_State, re
                 msg_source_parent_id=channel_info.source_parent_id,
                 msg_source_parent_name=channel_info.source_parent_name,
             )
-        await send_msg(bot, event, matcher, f"已{re_list[0]}本频道 日程{re_list[1]} 功能")
+        await send_msg(bot, event, f"已{re_list[0]}本频道 日程{re_list[1]} 功能")
 
 
 matcher_admin = on_regex("^[\\/.,，。]?(重载武器数据|更新武器数据|清空图片缓存)$", priority=10, block=True, permission=SUPERUSER)
@@ -585,20 +585,20 @@ async def _(
         except Exception as e:
             msg = err_msg + str(e)
         # 发送消息
-        await send_msg(bot, event, matcher, msg)
+        await send_msg(bot, event, msg)
 
     elif re.search("^(重载武器数据|更新武器数据)$", plain_text):
         msg_start = "将开始重新爬取武器数据，此过程可能需要10min左右,请稍等..."
         msg = "武器数据更新完成"
-        await send_msg(bot, event, matcher, msg_start)
+        await send_msg(bot, event, msg_start)
         try:
             await reload_weapon_info()
         except Exception as e:
             msg = err_msg + str(e) + "\n如果错误信息是timed out，不妨可以等会儿重新发送指令"
-        await send_msg(bot, event, matcher, msg)
+        await send_msg(bot, event, msg)
 
 
-async def send_msg(bot: BOT, event: MESSAGE_EVENT, matcher, msg):
+async def send_msg(bot: BOT, event: MESSAGE_EVENT, msg):
     """公用send_msg"""
     # 指定回复模式
     reply_mode = plugin_config.splatoon3_reply_mode
@@ -617,7 +617,7 @@ async def send_msg(bot: BOT, event: MESSAGE_EVENT, matcher, msg):
         await bot.send(event, message=QQ_MsgSeg.text(msg))
 
 
-async def send_img(bot: BOT, event: MESSAGE_EVENT, matcher, img: bytes):
+async def send_img(bot: BOT, event: MESSAGE_EVENT, img: bytes):
     """公用send_img"""
     # 指定回复模式
     reply_mode = plugin_config.splatoon3_reply_mode
@@ -675,6 +675,13 @@ async def shutdown():
     # 关闭数据库
     db_image.close()
     db_control.close()
+    # 删除任务
+    bots = nonebot.get_bots()
+    for k in bots.keys():
+        job_id = f"sp3_push_cron_job_{k}"
+        if scheduler.get_job(job_id):
+            scheduler.remove_job(job_id)
+            logger.info(f"remove job {job_id}!")
 
 
 @driver.on_bot_connect
