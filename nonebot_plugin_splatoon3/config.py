@@ -24,6 +24,10 @@ class Config(BaseModel):
     splatoon3_sole_prefix: bool = False
     # 频道服务器拥有者是否允许开关主动推送功能(为False时仅允许管理员开启关闭)
     splatoon3_guild_owner_switch_push: bool = False
+    # # 七牛云储存桶密钥 仅在有qq群聊查询需求下配置(qq群目前无法直接发图，必须转存储存桶)
+    # splatoon3_qiniu_kodo_access_Key: str = ""
+    # splatoon3_qiniu_kodo_secret_Key: str = ""
+    # splatoon3_qiniu_kodo_bucket_name: str = ""
     # # 白名单，填写后黑名单失效
     # splatoon3_whitelist: List[str] = []
     # # 黑名单
