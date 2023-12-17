@@ -44,10 +44,7 @@ _✨ splatoon3游戏日程查询插件 ✨_
 
 ## 📖 介绍
 
-- 一个基于nonebot2框架的splatoon3游戏日程查询插件,支持onebot11,onebot12,[telegram](https://github.com/nonebot/adapter-telegram)协议,[kook](https://github.com/Tian-que/nonebot-adapter-kaiheila)协议,[QQ官方bot](https://github.com/nonebot/adapter-qq)协议
-- onebot12协议下支持QQ、QQ频道、QQ官方bot、TG、微信消息、微信公众号、KOOK 等[平台](https://onebot.dev/ecosystem.html)
-- 全部查询图片,全部采用pillow精心绘制,图片效果可查看下面的[效果图](#效果图)
-> 也可以邀请我目前做好的bot直接加入频道，[kook频道bot](https://www.kookapp.cn/app/oauth2/authorize?id=22230&permissions=4096&client_id=4Kn4ukf1To48rax8&redirect_uri=&scope=bot),[qq频道bot](https://qun.qq.com/qunpro/robot/share?robot_appid=102083290),[qq群聊bot](https://qun.qq.com/qunpro/robot/qunshare?robot_appid=102083290&robot_uin=3889005657)
+> 此仓库内容不再更新，最新版本仓库请前往 https://github.com/Cypas/splatoon3-schedule
 
 ## 💿 安装
 
